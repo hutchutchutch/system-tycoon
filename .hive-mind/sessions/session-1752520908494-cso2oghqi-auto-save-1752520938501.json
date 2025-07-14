@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1752520908494-cso2oghqi",
+  "checkpointId": "checkpoint-1752520938501-hzagdtocc",
+  "checkpointName": "auto-save-1752520938501",
+  "timestamp": "2025-07-14T19:22:18.502Z",
+  "data": {
+    "timestamp": "2025-07-14T19:22:18.501Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1752520908476-8q290olt5",
+            "swarmName": "hive-1752520908434",
+            "objective": "review the /docs/foundation/game_design_document.md to understand what the goal for this project is then review the initial_screens.md to setup the initial screens for this application. use best practices for the architecture of our file directory for this react application and keep our codebase cleanly organized and ready for growth because this codebase will be extensively expanded upon so really put on your best frontend engineering hat to organize this project perfectly",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-14T19:21:48.502Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752520908476-8q290olt5-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-14T19:21:48.509Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752520908476-8q290olt5-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-14T19:21:48.513Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752520908476-8q290olt5-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-14T19:21:48.517Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752520908476-8q290olt5-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-14T19:21:48.520Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}
