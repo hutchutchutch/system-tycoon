@@ -1,458 +1,398 @@
-Updated Screen Instructions with Database Integration
+Detailed Screen Display Requirements
 1. Landing Page
-Database Requirements: None (static content)
-Empty States: N/A - fully static marketing page
+Display Elements:
+
+Hero section with animated system architecture visualization
+Main tagline and subtitle
+"Start Your Journey" CTA button
+Value proposition cards (4 cards)
+Social proof section with usage stats
+Demo video/screenshots section
+Navigation to sign-in/sign-up
+
+Database Requirements: None
+Empty States: N/A
 
 2. User Sign-in/Sign-up
+Display Elements:
+
+OAuth provider buttons (Google, GitHub, LinkedIn)
+Email/password form as fallback
+"Remember me" checkbox
+"Forgot password" link
+Value proposition reminders
+Terms of service and privacy policy links
+
 Database Requirements:
 
-Supabase Auth (auth.users)
-Triggers handle_new_user() function on signup
+Creates new entries in profiles and user_stats tables on signup via trigger
 
-Actions on Signup:
-javascript// Supabase handles auth automatically
-const { data, error } = await supabase.auth.signUp({
-  email: 'user@example.com',
-  password: 'password'
-})
-// This automatically creates entries in:
-// - profiles (via trigger)
-// - user_stats (via trigger)
-Empty States: N/A - auth flow
+Empty States: N/A
 
-3. First Time User Experience - Career Map
-Database Requirements:
-javascript// 1. Get user profile
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('*')
-  .eq('id', user.id)
-  .single();
+3. Career Map Screen (Phaser.js)
+Display Elements:
+Background Layer:
 
-// 2. Get all scenarios with user's progress
-const { data: scenarios } = await supabase
-  .from('scenarios')
-  .select(`
-    *,
-    scenario_progress!left(
-      status,
-      best_score,
-      completed_at
-    )
-  `)
-  .order('level', { ascending: true })
-  .order('sublevel', { ascending: true });
+Tech-themed subtle pattern background
+Winding path connecting scenario nodes
 
-// 3. Get user stats for reputation display
-const { data: stats } = await supabase
-  .from('user_stats')
-  .select('total_projects_completed, total_revenue_saved')
-  .eq('user_id', user.id)
-  .single();
-Visual Elements Based on Data:
-javascript// Career path nodes
-scenarios.map(scenario => ({
-  id: scenario.id,
-  position: calculatePosition(scenario.level, scenario.sublevel),
-  status: scenario.scenario_progress?.[0]?.status || 'locked',
-  display: {
-    // First scenario always available
-    isClickable: scenario.id === '1-1-sarahs-bakery' || 
-                scenario.scenario_progress?.[0]?.status === 'available',
-    isCompleted: scenario.scenario_progress?.[0]?.status === 'completed',
-    showQuestionMark: !scenario.scenario_progress?.[0]?.completed_at,
-    title: scenario.scenario_progress?.[0]?.completed_at 
-           ? scenario.title 
-           : '???',
-    score: scenario.scenario_progress?.[0]?.best_score
-  }
-}))
+HUD Elements (React Overlay):
+
+User reputation points (from profiles.reputation_points)
+Career title (from profiles.career_title)
+Level indicator (from profiles.current_level)
+Settings/menu button
+
+Scenario Nodes:
+For each scenario from scenarios table:
+
+Locked nodes (status = 'locked' or no progress record):
+
+Grayed out circular node
+Question mark icon
+No title visible
+Not clickable
+
+
+Available nodes (status = 'available' or first scenario):
+
+Colored circular node with glow effect
+Visible scenario title
+Client name subtitle
+Pulsing animation
+Clickable with hover effect
+
+
+Completed nodes (status = 'completed'):
+
+Green circular node
+Checkmark icon
+Best score percentage (from scenario_progress.best_score)
+Scenario title
+Client name
+Clickable to replay
+
+
+
+First-Time User Elements:
+
+Narrative overlay with typewriter text
+Chat notification from Sarah sliding in from bottom-right
+Tutorial hints pointing to first scenario
+
 Empty States:
-javascript// First time user state (no completed projects)
-if (stats.total_projects_completed === 0) {
-  showNarrativeOverlay({
-    text: "You've always been curious about how the digital world works...",
-    showChatNotification: true
-  });
-}
 
-// Show chat from Sarah after narrative
-setTimeout(() => {
-  showChatNotification({
-    from: "Sarah",
-    preview: "Hey! Quick question about my website...",
-    unread: true
-  });
-}, 3000);
+If user_stats.total_projects_completed = 0:
 
-4. Initial Meeting Room Experience
-Database Requirements:
-javascript// Get scenario details including available questions
-const { data: scenario } = await supabase
-  .from('scenarios')
-  .select('*')
-  .eq('id', '1-1-sarahs-bakery')
-  .single();
+Show narrative introduction
+Trigger Sarah's chat notification
+Highlight first scenario node
 
-// Parse available questions
-const questions = scenario.available_questions;
-// Structure: 
-// {
-//   "sarah": [
-//     { id: "budget", text: "What's your budget?", impact: {...} }
-//   ],
-//   "alex": [...],
-//   "mark": [...],
-//   "devin": [...]
-// }
 
-// Track attempt start
-const { data: attempt } = await supabase
-  .from('scenario_attempts')
-  .insert({
-    user_id: user.id,
-    scenario_id: scenario.id,
-    started_at: new Date()
-  })
-  .select()
-  .single();
-Meeting UI State Management:
-javascriptconst [questionsAsked, setQuestionsAsked] = useState([]);
-const [questionsRemaining, setQuestionsRemaining] = useState(3);
 
-// When question selected
-const handleQuestionSelect = async (character, question) => {
-  const newQuestion = {
-    character,
-    question: question.id,
-    answer: question.answer
-  };
-  
-  setQuestionsAsked([...questionsAsked, newQuestion]);
-  setQuestionsRemaining(prev => prev - 1);
-  
-  // Update requirements based on question impact
-  updateRequirements(question.impact);
-};
-Empty States: N/A - Questions are always available from scenario data
+Data Required:
+- profiles: current_level, reputation_points, career_title
+- user_stats: total_projects_completed
+- scenarios: all fields
+- scenario_progress: status, best_score, completed_at for each scenario
 
-5. Mentor Selection Screen
-Database Requirements:
-javascript// Get available mentors for this scenario
-const { data: scenario } = await supabase
-  .from('scenarios')
-  .select('available_mentors')
-  .eq('id', currentScenarioId)
-  .single();
+4. Meeting Room Screen (Phaser.js)
+Display Elements:
+Environment:
 
-// Get user's preferred mentor (if any)
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('preferred_mentor_id')
-  .eq('id', user.id)
-  .single();
+Coffee shop background (Level 1)
+Conference room background (Higher levels)
+Animated character sprites for NPCs
+Player hands/coffee cup at bottom of screen
+Laptop showing current website
 
-// Available mentors from scenario
-const availableMentors = scenario.available_mentors;
-// ["dr_linda_wu", "jordan_rivera", "maya_patel"]
+Dialogue System:
 
-// Get full mentor data from static config or mentors table
-const mentorData = availableMentors.map(id => MENTOR_CONFIG[id]);
-Mentor Display:
-javascriptmentorData.map(mentor => ({
-  id: mentor.id,
-  name: mentor.name,
-  title: mentor.title,
-  specialization: mentor.specialization,
-  isPreferred: mentor.id === profile.preferred_mentor_id,
-  isAvailable: true, // All shown mentors are available
-  guidancePreview: mentor.signature_advice
-}))
-Empty States: Always shows 3-4 mentors (defined in scenario data)
+Speaker name badge
+Dialogue text box with typewriter effect
+Character portrait next to dialogue
 
-6. System Design Canvas Screen
-Database Requirements:
-javascript// Get available components for user's level
-const { data: components } = await supabase
-  .from('components')
-  .select('*')
-  .lte('min_level', profile.current_level)
-  .order('category')
-  .order('name');
+Question Selection Interface:
 
-// Get user's component mastery
-const { data: mastery } = await supabase
-  .from('component_mastery')
-  .select('*')
-  .eq('user_id', user.id);
+Questions remaining counter (3/3 → 2/3 → 1/3)
+Character selection buttons:
 
-// Create component drawer structure
-const componentsByCategory = components.reduce((acc, comp) => {
-  const masteryData = mastery.find(m => m.component_id === comp.id);
-  
-  if (!acc[comp.category]) acc[comp.category] = [];
-  
-  acc[comp.category].push({
-    ...comp,
-    mastery_level: masteryData?.mastery_level || 'novice',
-    times_used: masteryData?.times_used || 0,
-    isNew: !masteryData
-  });
-  
-  return acc;
-}, {});
-Component Drawer Display:
-javascript// For Level 1 user
-{
-  "frontend": [
-    {
-      id: "web_interface",
-      name: "Web Interface",
-      cost: 50,
-      capacity: 1000,
-      mastery_level: "novice",
-      isNew: true
-    }
-  ],
-  "backend": [...],
-  "data": [...]
-}
-Canvas State Management:
-javascriptconst [architecture, setArchitecture] = useState({
-  nodes: [],
-  edges: [],
-  totalCost: 0
-});
+Petra Manager (Product)
+Alex Executive (Business)
+Mark Ethan (Marketing)
+Devin Ops (Technical)
+Security Stan (Levels 4+ only)
 
-// Real-time cost calculation
-const updateCost = () => {
-  const cost = architecture.nodes.reduce((sum, node) => {
-    const component = components.find(c => c.id === node.type);
-    return sum + (component?.base_cost || 0);
-  }, 0);
-  
-  setArchitecture(prev => ({ ...prev, totalCost: cost }));
-};
+
+Question list for selected character
+Question preview showing impact
+
+Requirements Tracker:
+
+Live updating requirements list
+Visual indicators for new requirements added
+Budget constraint display
+Timeline display
+
+Data Required:
+- scenarios.available_questions: structured JSON with questions per character
+- scenarios.base_requirements: initial requirements
+- scenarios.budget_limit: budget constraint
+- scenario_attempts: create new record, track questions_asked
 Empty States:
-javascript// Empty canvas state
-if (architecture.nodes.length === 0) {
-  showCanvasHint("Drag components from the left drawer to start building!");
-}
 
-// No unlocked components (shouldn't happen)
-if (components.length === 0) {
-  showError("No components available. Please contact support.");
-}
+Always has questions available from scenario data
 
-7. System Simulation Screen
-Database Requirements:
-javascript// Save architecture snapshot before simulation
-await supabase
-  .from('scenario_attempts')
-  .update({
-    architecture_snapshot: architecture,
-    components_used: architecture.nodes.map(n => n.type),
-    total_cost: architecture.totalCost,
-    selected_mentor_id: selectedMentor,
-    questions_asked: questionsAsked
-  })
-  .eq('id', attemptId);
 
-// During simulation, calculate metrics
-const simulationResults = {
-  response_time: calculateResponseTime(architecture),
-  error_rate: calculateErrorRate(architecture),
-  throughput: calculateThroughput(architecture),
-  uptime: calculateUptime(architecture)
-};
+5. Mentor Selection Screen (Phaser.js)
+Display Elements:
+Screen Layout:
 
-// After simulation completes
-await supabase
-  .from('scenario_attempts')
-  .update({
-    completed_at: new Date(),
-    duration_seconds: Math.floor((Date.now() - startTime) / 1000),
-    final_score: calculateScore(simulationResults),
-    performance_metrics: simulationResults,
-    requirements_met: checkRequirements(simulationResults, scenario.base_requirements),
-    client_satisfaction: calculateSatisfaction(simulationResults)
-  })
-  .eq('id', attemptId);
-Real-time Metrics Display:
-javascript// Simulation state
-const [metrics, setMetrics] = useState({
-  requestsPerSecond: 0,
-  responseTime: 0,
-  errorRate: 0,
-  uptime: 100
-});
+Dark overlay background
+"Choose Your Mentor" title
+3-4 mentor cards in horizontal layout
 
-// Update metrics during simulation
-useEffect(() => {
-  const interval = setInterval(() => {
-    setMetrics(calculateCurrentMetrics(architecture, simulationTime));
-  }, 100); // Update 10 times per second
-  
-  return () => clearInterval(interval);
-}, [architecture, simulationTime]);
-Empty States: N/A - Simulation runs on submitted architecture
+Each Mentor Card Shows:
 
-8. Feedback Modal & Career Map Return
-Database Requirements:
-javascript// Update scenario progress
-const { data: progress } = await supabase
-  .from('scenario_progress')
-  .upsert({
-    user_id: user.id,
-    scenario_id: scenarioId,
-    status: 'completed',
-    completed_at: new Date(),
-    attempts_count: attempts + 1,
-    best_score: Math.max(currentScore, previousBestScore || 0),
-    best_requirements_score: scores.requirements,
-    best_performance_score: scores.performance,
-    best_cost_score: scores.cost,
-    best_architecture_score: scores.architecture,
-    best_response_time_ms: metrics.response_time,
-    best_error_rate: metrics.error_rate,
-    best_cost_savings: scenario.budget_limit - architecture.totalCost
-  })
-  .select()
-  .single();
+Mentor portrait/avatar
+Name and title
+Specialization badge (color-coded)
+Best for: level range/scenario type
+Signature advice quote
+Hover state with glow effect
+Lock icon if not yet unlocked
 
-// Update user stats
-await supabase.rpc('increment_user_stats', {
-  user_id: user.id,
-  projects_completed: 1,
-  revenue_saved: scenario.budget_limit - architecture.totalCost,
-  systems_built: 1,
-  perfect_score: currentScore === 100 ? 1 : 0
-});
+Selection Feedback:
 
-// Update component mastery
-for (const componentId of componentsUsed) {
-  await supabase.rpc('update_component_mastery', {
-    user_id: user.id,
-    component_id: componentId,
-    was_successful: currentScore >= 80,
-    was_optimal: currentScore >= 95
-  });
-}
+Selected card highlight animation
+"Confirm Selection" button
+Brief description of mentor's guidance style
 
-// Check for achievements
-const newAchievements = checkAchievements(currentScore, metrics);
-for (const achievement of newAchievements) {
-  await supabase
-    .from('achievements')
-    .insert({
-      user_id: user.id,
-      achievement_id: achievement.id
-    });
-}
-
-// Unlock next scenario
-if (currentScore >= 80) {
-  await supabase
-    .from('scenario_progress')
-    .insert({
-      user_id: user.id,
-      scenario_id: getNextScenarioId(scenarioId),
-      status: 'available'
-    });
-}
-
-// Save to portfolio (optional)
-if (userWantsToSave) {
-  await supabase
-    .from('design_portfolio')
-    .insert({
-      user_id: user.id,
-      scenario_id: scenarioId,
-      scenario_name: scenario.title,
-      client_name: scenario.client_name,
-      architecture_snapshot: architecture,
-      achieved_metrics: metrics,
-      cost_savings: scenario.budget_limit - architecture.totalCost,
-      client_testimonial: generateTestimonial(currentScore),
-      completed_at: new Date(),
-      share_token: generateShareToken()
-    });
-}
-Feedback Display:
-javascript// Show results
-const feedbackData = {
-  score: progress.best_score,
-  breakdown: {
-    requirements: `${progress.best_requirements_score}/40`,
-    performance: `${progress.best_performance_score}/30`,
-    cost: `${progress.best_cost_score}/20`,
-    architecture: `${progress.best_architecture_score}/10`
-  },
-  newAchievements,
-  clientTestimonial: generateTestimonial(progress.best_score),
-  unlockedComponents: progress.unlocked_components,
-  nextScenarioTeaser: getNextScenario(scenarioId)
-};
-Return to Career Map:
-javascript// Refresh career map data
-const refreshCareerMap = async () => {
-  // Re-fetch all scenarios with updated progress
-  const { data: scenarios } = await supabase
-    .from('scenarios')
-    .select(`
-      *,
-      scenario_progress!left(
-        status,
-        best_score,
-        completed_at
-      )
-    `)
-    .order('level')
-    .order('sublevel');
-  
-  // Update UI to show:
-  // - Completed scenario with checkmark
-  // - Newly unlocked scenario(s) 
-  // - Updated reputation/stats
-  // - New chat notification if available
-};
+Data Required:
+- scenarios.available_mentors: array of mentor IDs
+- profiles.preferred_mentor_id: user's previous selection
+- Static mentor data (from constants or mentor table)
 Empty States:
-javascript// First completion special handling
-if (stats.total_projects_completed === 1) {
-  showSpecialAnimation("First Project Complete! 🎉");
-  showTutorial("You've unlocked new scenarios and components!");
-}
-Global Empty States & Error Handling
-javascript// Generic error handler for all screens
-const handleDatabaseError = (error) => {
-  console.error('Database error:', error);
-  
-  if (error.code === 'PGRST301') {
-    showError("You don't have permission to access this data.");
-  } else if (error.code === '23505') {
-    showError("This action has already been completed.");
-  } else {
-    showError("Something went wrong. Please try again.");
-  }
-};
 
-// Loading states
-const LoadingState = () => (
-  <div className="flex items-center justify-center h-full">
-    <Spinner />
-    <span>Loading your architecture journey...</span>
-  </div>
-);
+Always shows 3-4 mentors defined in scenario
 
-// No data states
-const NoDataState = ({ message, action }) => (
-  <div className="text-center py-12">
-    <p className="text-gray-500 mb-4">{message}</p>
-    {action && (
-      <button onClick={action.onClick} className="btn-primary">
-        {action.label}
-      </button>
-    )}
-  </div>
-);
-This comprehensive integration ensures each screen knows exactly what data to fetch, how to handle empty states, and how to update the database as users progress through the game.
+
+6. System Design Canvas (React Flow)
+Display Elements:
+Top Bar (HUD):
+
+Timer countdown (from scenarios.time_limit_seconds)
+Budget used/limit bar (calculate from components vs scenarios.budget_limit)
+Requirements checklist (from meeting phase + scenarios.base_requirements)
+"Submit Design" button
+
+Left Sidebar - Component Drawer:
+Organized by category from components table:
+
+Each component shows:
+
+Icon (from components.icon_url)
+Name
+Cost per month
+Capacity/performance stats
+Mastery level indicator (novice/bronze/silver/gold)
+"NEW" badge if never used
+Locked overlay if level requirement not met
+
+
+
+Main Canvas (React Flow):
+
+Grid background
+Dropped components as nodes
+Connection lines between components
+Real-time data flow preview (subtle animation)
+Invalid connection indicators
+
+Right Sidebar - Mentor Assistant:
+
+Selected mentor portrait
+Contextual hints based on current design
+Suggestions for missing components
+Performance predictions
+Best practices reminders
+
+Component States on Canvas:
+
+Normal: standard appearance
+Selected: highlight border
+Invalid placement: red outline
+Over capacity: orange warning
+
+Data Required:
+- components: all fields filtered by min_level <= user level
+- component_mastery: mastery_level, times_used for each component
+- scenarios: budget_limit, time_limit_seconds
+- Current architecture state (local)
+Empty States:
+
+Empty canvas: "Drag components from the left to start building!"
+No components unlocked: Error state (shouldn't happen)
+
+
+7. System Simulation Screen (Phaser.js)
+Display Elements:
+Same Canvas Layout with Animations:
+
+Components from design phase now active
+Animated data packets flowing between components
+Particle effects along connection lines
+Traffic intensity visualization
+
+Component Visual States:
+
+Idle: gentle breathing animation
+Active: processing animation
+Stressed: faster animation, orange tint
+Overloaded: shaking, red tint
+Failed: grayed out with error icon
+
+Live Metrics Dashboard:
+
+Requests per second gauge
+Average response time (ms)
+Error rate percentage
+System uptime percentage
+Current cost per month
+Capacity utilization bars per component
+
+Client Reactions (Top of screen):
+
+Sarah's avatar with speech bubbles
+Real-time comments based on performance
+Satisfaction meter filling up
+
+Traffic Simulation Phases:
+
+Normal traffic (baseline)
+Peak hours (2x traffic)
+Viral spike (10x traffic)
+Recovery phase
+
+Data to Save:
+- scenario_attempts: 
+  - architecture_snapshot
+  - components_used
+  - total_cost
+  - performance_metrics
+  - final_score
+  - requirements_met
+Empty States: N/A - runs on submitted design
+
+8. Results & Feedback Modal
+Display Elements:
+Results Summary:
+
+Total score (out of 100)
+Star rating (1-5 stars)
+Score breakdown:
+
+Requirements Met: X/40
+Performance: X/30
+Cost Efficiency: X/20
+Architecture Quality: X/10
+
+
+
+Client Feedback Section:
+
+Client avatar
+Testimonial text based on score
+Specific callouts (good/bad)
+Money saved calculation
+
+Achievements & Unlocks:
+
+New achievements earned (with icons)
+Components unlocked preview
+Next scenario teaser
+Reputation points gained
+
+Learning Summary:
+
+What went well
+Areas for improvement
+Mentor's assessment
+Recommended reading/practice
+
+Action Buttons:
+
+"Save to Portfolio"
+"Try Again"
+"Next Scenario"
+"Return to Map"
+
+Data Updates:
+- scenario_progress: update/create with best scores
+- user_stats: increment counters
+- component_mastery: update usage stats
+- achievements: check and award new ones
+- profiles: update reputation_points, current_level
+- design_portfolio: optional save
+Empty States:
+
+First completion: Special celebration animation
+Perfect score: Special "Master Architect" animation
+
+
+9. Career Map Return (Updated State)
+Display Changes:
+
+Completed scenario now shows green with checkmark
+Score displayed on completed node
+New scenario node(s) unlocked and glowing
+Updated reputation in HUD
+New chat notification if available
+Path extended to newly unlocked nodes
+Achievement toast notifications
+
+Referral System:
+
+New chat message from referrer
+Preview of next client's problem
+Excitement building for next challenge
+
+Data Required:
+- All career map data (refreshed)
+- New unlocked scenarios
+- Updated progress for all scenarios
+- Check for new messages/referrals
+
+Global UI Elements (Across All Screens)
+Persistent HUD Elements:
+
+User avatar/profile button
+Settings gear icon
+Help/tutorial button
+Current level/reputation display
+
+Loading States:
+
+Spinner with contextual message
+Progress bar for longer operations
+Cancel option where appropriate
+
+Error States:
+
+User-friendly error messages
+Retry options
+Fallback to safe state
+
+Empty States by Category:
+
+No data: Friendly message with action to create
+Loading: Skeleton screens or spinners
+Error: Clear message with recovery action
+First time: Tutorial or onboarding flow
+
+Accessibility Features:
+
+Screen reader descriptions
+Keyboard navigation indicators
+High contrast mode toggle
+Subtitle options for audio
