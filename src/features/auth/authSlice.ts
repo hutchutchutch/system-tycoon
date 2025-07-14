@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { User, Profile } from '../../types';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { User, Profile } from '../../types';
 import { supabase } from '../../services/supabase';
 
 interface AuthState {

@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { UserStats, Achievement, UserAchievement, ComponentMastery } from '../../types';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { UserStats, Achievement, UserAchievement, ComponentMastery } from '../../types';
 import { supabase } from '../../services/supabase';
 
 interface UserSliceState {
