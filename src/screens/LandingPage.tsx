@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
+import { Button } from '../components/ui/Button';
+import { Card, CardBody } from '../components/ui/Card';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -23,27 +25,28 @@ export const LandingPage: React.FC = () => {
           <div className="space-x-4">
             {!isAuthenticated && (
               <>
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => navigate('/auth/signin')}
-                  className="px-4 py-2 text-white hover:text-gray-300 transition-colors"
+                  className="text-white hover:text-gray-300"
                 >
                   Sign In
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
                   onClick={() => navigate('/auth/signup')}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Sign Up
-                </button>
+                </Button>
               </>
             )}
             {isAuthenticated && (
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => navigate('/career')}
-                className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
               >
                 Continue Playing
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -63,12 +66,13 @@ export const LandingPage: React.FC = () => {
             for real companies, watch data flow through your systems, and learn from 
             industry experts.
           </p>
-          <button
+          <Button
+            size="large"
             onClick={handleGetStarted}
-            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-lg font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 transition-all animate-fade-in-delay-3"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 animate-fade-in-delay-3"
           >
             Start Your Journey
-          </button>
+          </Button>
         </div>
 
         {/* Animated System Visualization */}
@@ -87,14 +91,17 @@ export const LandingPage: React.FC = () => {
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {valueProps.map((prop, index) => (
-              <div
+              <Card
                 key={index}
-                className="bg-gray-800 rounded-lg p-6 border border-gray-700 hover:border-blue-500 transition-colors"
+                interactive
+                className="bg-gray-800 border-gray-700 hover:border-blue-500"
               >
-                <div className="text-4xl mb-4">{prop.icon}</div>
-                <h3 className="text-xl font-semibold text-white mb-2">{prop.title}</h3>
-                <p className="text-gray-400">{prop.description}</p>
-              </div>
+                <CardBody>
+                  <div className="text-4xl mb-4">{prop.icon}</div>
+                  <h3 className="text-xl font-semibold text-white mb-2">{prop.title}</h3>
+                  <p className="text-gray-400">{prop.description}</p>
+                </CardBody>
+              </Card>
             ))}
           </div>
         </div>

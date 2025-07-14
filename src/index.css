@@ -1,18 +1,27 @@
+/* Import Design System */
+@import './styles/design-system/index.css';
+
+/* Tailwind CSS - Used alongside design system for utility classes */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+/* Override Tailwind's base styles with design system tokens */
+@layer base {
+  :root {
+    font-family: var(--font-sans);
+    line-height: var(--leading-normal);
+    font-weight: var(--font-normal);
+    
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-body {
-  margin: 0;
+  body {
+    margin: 0;
+    background: var(--color-neutral-50);
+    color: var(--color-neutral-900);
+  }
 }

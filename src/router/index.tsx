@@ -15,6 +15,9 @@ import { SystemDesignCanvas } from '../screens/game/SystemDesignCanvas';
 import { SimulationScreen } from '../screens/game/SimulationScreen';
 import { ResultsScreen } from '../screens/game/ResultsScreen';
 
+// Design System Showcase (development only)
+import { ComponentShowcase } from '../components/design-system/ComponentShowcase';
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -129,6 +132,10 @@ export const router = createBrowserRouter([
             element: <ResultsScreen />,
           },
         ],
+      },
+      {
+        path: 'design-system',
+        element: <ComponentShowcase />,
       },
     ],
   },
