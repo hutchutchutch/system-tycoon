@@ -93,7 +93,7 @@ const defaultInitialEdges: Edge[] = [
   { id: 'e2-3', source: '2', target: '3', animated: true },
 ];
 
-export const SystemDesignCanvas: React.FC = () => {
+export const SystemDesignPage: React.FC = () => {
   const { scenarioId } = useParams();
   
   // Redux selectors

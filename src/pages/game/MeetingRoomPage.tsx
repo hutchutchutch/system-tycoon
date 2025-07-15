@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-export const MeetingRoomScreen: React.FC = () => {
+export const MeetingRoomPage: React.FC = () => {
   const { scenarioId } = useParams();
 
   return (

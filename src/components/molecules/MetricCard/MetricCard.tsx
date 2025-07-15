@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
-import { MetricCardProps } from './MetricCard.types';
+import type { MetricCardProps } from './MetricCard.types';
 
 export const MetricCard: React.FC<MetricCardProps> = ({
   data,

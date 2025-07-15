@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 
-export const SimulationScreen: React.FC = () => {
+export const SimulationPage: React.FC = () => {
   const { scenarioId } = useParams();
 
   return (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge, Connection, Node, Edge } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
+import type { Connection, Node, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { completeStep, updateMetrics } from '../../features/mission/missionSlice';

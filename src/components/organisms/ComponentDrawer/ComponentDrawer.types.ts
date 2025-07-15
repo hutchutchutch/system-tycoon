@@ -1,4 +1,4 @@
-import { ComponentData, ComponentCategory } from '../../molecules/ComponentCard';
+import type { ComponentData, ComponentCategory } from '../../molecules/ComponentCard/ComponentCard.types';
 
 export interface ComponentDrawerProps {
   components: ComponentData[];

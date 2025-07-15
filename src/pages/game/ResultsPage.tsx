@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-export const ResultsScreen: React.FC = () => {
+export const ResultsPage: React.FC = () => {
   const { attemptId } = useParams();
   const navigate = useNavigate();
 

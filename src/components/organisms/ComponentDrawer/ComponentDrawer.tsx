@@ -3,7 +3,7 @@ import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Input } from '../../atoms/Input';
 import { ComponentCard } from '../../molecules/ComponentCard';
-import { ComponentDrawerProps } from './ComponentDrawer.types';
+import type { ComponentDrawerProps } from './ComponentDrawer.types';
 
 export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
   components,

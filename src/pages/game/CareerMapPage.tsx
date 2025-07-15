@@ -7,7 +7,7 @@ import { PhaseHeader } from '../../components/molecules/PhaseHeader';
 import { Progress } from '../../components/atoms/Progress';
 import { Badge } from '../../components/atoms/Badge';
 
-export const CareerMapScreen: React.FC = () => {
+export const CareerMapPage: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { scenarios, progress, isLoading } = useAppSelector((state) => state.game);

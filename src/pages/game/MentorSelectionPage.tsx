@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MentorCard, type Mentor } from '../../components/molecules/MentorCard';
 import { supabase } from '../../services/supabase';
 
-export const MentorSelectionScreen: React.FC = () => {
+export const MentorSelectionPage: React.FC = () => {
   const { scenarioId } = useParams();
   const navigate = useNavigate();
   const [mentors, setMentors] = useState<Mentor[]>([]);
