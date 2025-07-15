@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { signInWithEmail, signInWithOAuth, clearError, demoSignIn } from '../../features/auth/authSlice';
 import { OAUTH_PROVIDERS } from '../../constants';
@@ -121,9 +121,9 @@ export const SignInPage: React.FC = () => {
             <input type="checkbox" id="remember" className="auth-page__checkbox" />
             <label htmlFor="remember" className="auth-page__checkbox-label">Remember me</label>
           </div>
-          <Link to="/auth/forgot-password" className="auth-page__link">
+          <a href="#" className="auth-page__link">
             Forgot password?
-          </Link>
+          </a>
         </div>
 
         <button
@@ -138,13 +138,6 @@ export const SignInPage: React.FC = () => {
           )}
         </button>
       </form>
-
-      <div className="auth-page__footer">
-        Don't have an account?{' '}
-        <Link to="/auth/signup" className="auth-page__link">
-          Sign up
-        </Link>
-      </div>
     </div>
   );
 };

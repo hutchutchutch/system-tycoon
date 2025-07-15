@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { signUpWithEmail, signInWithOAuth, clearError } from '../../features/auth/authSlice';
 import { OAUTH_PROVIDERS } from '../../constants';
@@ -214,13 +214,6 @@ export const SignUpPage: React.FC = () => {
           )}
         </button>
       </form>
-
-      <div className="auth-page__footer">
-        Already have an account?{' '}
-        <Link to="/auth/signin" className="auth-page__link">
-          Sign in
-        </Link>
-      </div>
     </div>
   );
 };
