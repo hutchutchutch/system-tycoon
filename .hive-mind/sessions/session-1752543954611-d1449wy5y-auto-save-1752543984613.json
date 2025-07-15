@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1752543954611-d1449wy5y",
+  "checkpointId": "checkpoint-1752543984613-20hngtbk4",
+  "checkpointName": "auto-save-1752543984613",
+  "timestamp": "2025-07-15T01:46:24.616Z",
+  "data": {
+    "timestamp": "2025-07-15T01:46:24.613Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1752543954611-u0j3xe480",
+            "swarmName": "hive-1752543954424",
+            "objective": "analyze the /docs/design_system.md and the /docs/redux_state_management.md to go over the structure of our file system and make sure our /src folder is properly structured with all our UI components neatly ordered in the /src/components folder like it's detailed in the /docs/design_system.md file.",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-15T01:45:54.612Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752543954611-u0j3xe480-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-15T01:45:54.613Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752543954611-u0j3xe480-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-15T01:45:54.613Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752543954611-u0j3xe480-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-15T01:45:54.614Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752543954611-u0j3xe480-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-15T01:45:54.614Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}

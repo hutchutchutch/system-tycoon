@@ -1,77 +1,100 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { clsx } from 'clsx';
-
-export interface Question {
-  id: string;
-  text: string;
-  category: 'product' | 'business' | 'marketing' | 'technical';
-  impact: {
-    requirements?: number;
-    budget?: number;
-    timeline?: number;
-  };
-}
-
-export interface QuestionCardProps {
-  question: Question;
-  selected?: boolean;
-  disabled?: boolean;
-  onSelect?: (question: Question) => void;
-}
+import { Icon } from '../../atoms/Icon';
+import { Badge } from '../../atoms/Badge';
+import { QuestionCardProps } from './QuestionCard.types';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
-  selected = false,
-  disabled = false,
+  isSelected,
+  isDisabled,
   onSelect,
+  className,
 }) => {
-  const handleClick = () => {
-    if (!disabled && onSelect) {
-      onSelect(question);
+  // Local state for preview
+  const [showImpactPreview, setShowImpactPreview] = useState(false);
+
+  const handleClick = useCallback(() => {
+    if (!isDisabled && !isSelected) {
+      onSelect(question.id);
     }
+  }, [isDisabled, isSelected, onSelect, question.id]);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  }, [handleClick]);
+
+  const getCategoryColor = () => {
+    const colors = {
+      product: 'primary',
+      business: 'success',
+      marketing: 'warning',
+      technical: 'info',
+    };
+    return colors[question.category] || 'default';
   };
 
-  const classes = clsx(
-    'question-card',
-    `question-card--${question.category}`,
-    selected && 'question-card--selected',
-    disabled && 'question-card--disabled'
-  );
-
-  const impactIcons = [];
-  if (question.impact.requirements) {
-    impactIcons.push(
-      <div key="req" className="question-card__impact-icon" title="Adds requirements">
-        📋
-      </div>
-    );
-  }
-  if (question.impact.budget) {
-    impactIcons.push(
-      <div key="budget" className="question-card__impact-icon" title="Affects budget">
-        💰
-      </div>
-    );
-  }
-  if (question.impact.timeline) {
-    impactIcons.push(
-      <div key="time" className="question-card__impact-icon" title="Affects timeline">
-        ⏱️
-      </div>
-    );
-  }
-
   return (
-    <div className={classes} onClick={handleClick}>
+    <div
+      className={clsx(
+        'question-card',
+        `question-card--${question.category}`,
+        {
+          'question-card--selected': isSelected,
+          'question-card--disabled': isDisabled,
+        },
+        className
+      )}
+      onClick={handleClick}
+      onKeyPress={handleKeyPress}
+      onMouseEnter={() => setShowImpactPreview(true)}
+      onMouseLeave={() => setShowImpactPreview(false)}
+      role="button"
+      tabIndex={isDisabled ? -1 : 0}
+      aria-pressed={isSelected}
+      aria-disabled={isDisabled}
+    >
       <div className="question-card__category-indicator" />
       
-      {impactIcons.length > 0 && (
-        <div className="question-card__impact-icons">
-          {impactIcons}
+      <div className="question-card__content">
+        <p className="question-card__text">{question.text}</p>
+        <div className="question-card__speaker">
+          <Icon name="user" size="xs" />
+          <span>{question.speaker.name}</span>
+        </div>
+      </div>
+
+      <div className="question-card__impact-icons">
+        {question.impact.map((impact) => (
+          <div 
+            key={impact.type}
+            className="question-card__impact-icon"
+            title={impact.description}
+          >
+            <Icon name={impact.icon as any} size="xs" />
+          </div>
+        ))}
+      </div>
+
+      {showImpactPreview && !isDisabled && (
+        <div className="question-card__impact-preview">
+          <h4>This question will:</h4>
+          <ul>
+            {question.impact.map((impact) => (
+              <li key={impact.type}>{impact.description}</li>
+            ))}
+          </ul>
         </div>
       )}
 
-      <p className="text-base">{question.text}</p>
+      {isSelected && (
+        <div className="question-card__selected-badge">
+          <Icon name="check" size="sm" />
+        </div>
+      )}
     </div>
   );
 };

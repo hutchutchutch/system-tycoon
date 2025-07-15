@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
-import { Button } from '../components/ui/Button';
-import { Card, CardBody } from '../components/ui/Card';
+import { Button } from '../components/atoms/Button';
+import { Card } from '../components/atoms/Card';
 import { ReactFlow, useNodesState, useEdgesState, Handle, Position } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
