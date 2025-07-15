@@ -63,3 +63,118 @@
 .email-client-wrapper .email-card[data-priority="high"] .email-card__sender {
   color: #dc2626;
 }
+
+/* Email Detail View */
+.email-detail-view {
+  height: 100%;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+.email-detail-header {
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.email-detail-back {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.email-detail-back:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.email-detail-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.email-detail-meta {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #e0e0e0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.email-detail-meta strong {
+  color: #333;
+}
+
+.email-detail-content {
+  background: white;
+  margin: 1rem 2rem;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 16px;
+  line-height: 1.8;
+  color: #333;
+}
+
+.email-detail-content p {
+  margin-bottom: 1rem;
+}
+
+.email-detail-content p strong {
+  color: #d32f2f;
+  font-weight: 600;
+}
+
+.email-link.crisis-link {
+  color: #1976d2;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.email-link.crisis-link:hover {
+  color: #1565c0;
+  background: #e3f2fd;
+  padding: 2px 4px;
+  border-radius: 3px;
+  margin: -2px -4px;
+}
+
+.email-urgent {
+  color: #c62828;
+  font-weight: 600;
+  font-style: italic;
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #ffebee;
+  border-left: 4px solid #ef5350;
+  border-radius: 4px;
+}
+
+/* Highlight Alex's crisis email */
+.email-client-wrapper .email-card[data-id="crisis-1"] {
+  background: #fff3e0;
+  border-left: 3px solid #ff6f00;
+  animation: urgentPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes urgentPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 111, 0, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px 3px rgba(255, 111, 0, 0.4);
+  }
+}

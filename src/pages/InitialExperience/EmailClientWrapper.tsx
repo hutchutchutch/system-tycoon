@@ -14,86 +14,58 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
+  const [showEmailDetail, setShowEmailDetail] = useState(false);
 
   useEffect(() => {
     // Simulate loading delay
     const timer = setTimeout(() => {
-      // Set initial emails with late bills and Sarah's offer
+      // Set initial emails for the health crisis mission
       setEmails([
         {
-          id: '1',
+          id: 'crisis-1',
           sender: {
-            name: 'Chase Bank',
-            email: 'alerts@chase.com',
+            name: 'Alex Chen',
+            email: 'alexchen.neighbor@gmail.com',
             avatar: '',
           },
-          subject: 'Your account balance is $0.00',
-          preview: 'Your account is now overdrawn. Fees may apply...',
-          timestamp: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+          subject: 'URGENT - Need your help NOW',
+          preview: 'I know this is out of nowhere, but I desperately need help. My daughter Emma and 12 other kids...',
+          timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
           status: 'unread',
           priority: 'high',
           hasAttachments: false,
-          tags: ['urgent', 'bills'],
+          tags: ['urgent', 'crisis'],
         },
         {
           id: '2',
           sender: {
-            name: 'Visa',
-            email: 'noreply@visa.com',
+            name: 'Mom',
+            email: 'mom@family.com',
             avatar: '',
           },
-          subject: 'Payment Failed - Action Required',
-          preview: 'Your automatic payment of $847.23 could not be...',
-          timestamp: new Date(Date.now() - 60 * 60 * 1000), // 1 hour ago
-          status: 'unread',
-          priority: 'high',
+          subject: 'Are you okay?',
+          preview: 'Haven\'t heard from you in a while. Just checking in...',
+          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+          status: 'read',
+          priority: 'normal',
           hasAttachments: false,
-          tags: ['urgent', 'bills'],
+          tags: ['personal'],
         },
         {
           id: '3',
           sender: {
-            name: 'State Farm',
-            email: 'billing@statefarm.com',
+            name: 'LinkedIn',
+            email: 'notifications@linkedin.com',
             avatar: '',
           },
-          subject: 'Final Notice - Policy Canceling',
-          preview: 'Your auto insurance will be cancelled in 48 hours...',
-          timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-          status: 'read',
-          priority: 'high',
-          hasAttachments: false,
-          tags: ['urgent', 'bills'],
-        },
-        {
-          id: '4',
-          sender: {
-            name: 'Apartment Complex',
-            email: 'management@skyviewapts.com',
-            avatar: '',
-          },
-          subject: 'Rent Past Due - $1,450',
-          preview: 'This is your final notice before we begin eviction...',
+          subject: 'Your profile was viewed 3 times',
+          preview: 'See who\'s been looking at your profile this week...',
           timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
           status: 'read',
-          priority: 'high',
-          hasAttachments: true,
-          tags: ['urgent', 'bills'],
-        },
-        {
-          id: '5',
-          sender: {
-            name: 'Sarah Chen',
-            email: 'sarah@sweetrisesbakery.com',
-            avatar: '',
-          },
-          subject: 'Quick favor? (I can pay!)',
-          preview: 'Hey! I know things have been rough since the layoff...',
-          timestamp: new Date(Date.now() - 1 * 60 * 1000), // just now
-          status: 'unread',
-          priority: 'normal',
+          priority: 'low',
           hasAttachments: false,
-          tags: ['opportunity'],
+          tags: ['social'],
         },
       ]);
       setLoading(false);
@@ -103,19 +75,24 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   }, []);
 
   const folders: EmailFolder[] = [
-    { id: 'inbox', name: 'Inbox', count: 5, icon: 'inbox' },
+    { id: 'inbox', name: 'Inbox', count: 3, icon: 'inbox' },
     { id: 'sent', name: 'Sent', count: 0, icon: 'send' },
     { id: 'drafts', name: 'Drafts', count: 0, icon: 'file-text' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
 
   const handleEmailSelect = (emailId: string) => {
-    // If Sarah's email is clicked, open system design tab
-    if (emailId === '5' && onOpenSystemDesign) {
-      // Simulate a small delay to show email opening
-      setTimeout(() => {
-        onOpenSystemDesign();
-      }, 500);
+    setSelectedEmailId(emailId);
+    setShowEmailDetail(true);
+    
+    // Mark as read
+    setEmails(emails => emails.map(email => 
+      email.id === emailId ? { ...email, status: 'read' } : email
+    ));
+
+    // If Alex's crisis email is clicked, we'll show the detail view
+    if (emailId === 'crisis-1') {
+      // Email detail will show the link to system builder
     }
   };
 
@@ -127,12 +104,80 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     );
   };
 
+  const handleFolderSelect = (folderId: string) => {
+    setSelectedFolder(folderId);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleEmailCompose = () => {
+    console.log('Compose new email');
+  };
+
+  const handleEmailReply = (emailId: string) => {
+    console.log('Reply to email:', emailId);
+  };
+
+  const selectedEmail = selectedEmailId ? emails.find(e => e.id === selectedEmailId) : null;
+
   if (loading) {
     return (
       <div className="email-client-wrapper">
         <div className="email-client-loading">
           <div className="email-client-loading__spinner"></div>
           <p>Loading your emails...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show email detail view for Alex's crisis email
+  if (showEmailDetail && selectedEmail && selectedEmail.id === 'crisis-1') {
+    return (
+      <div className="email-client-wrapper">
+        <div className="email-detail-view">
+          <div className="email-detail-header">
+            <button 
+              className="email-detail-back"
+              onClick={() => setShowEmailDetail(false)}
+            >
+              ← Back to Inbox
+            </button>
+            <h2>{selectedEmail.subject}</h2>
+          </div>
+          
+          <div className="email-detail-meta">
+            <strong>From:</strong> {selectedEmail.sender.name} &lt;{selectedEmail.sender.email}&gt;<br />
+            <strong>To:</strong> Me<br />
+            <strong>Date:</strong> {selectedEmail.timestamp.toLocaleString()}
+          </div>
+          
+          <div className="email-detail-content">
+            <p>I know this is out of nowhere, but I desperately need help.</p>
+            
+            <p>My daughter Emma and 12 other kids in our neighborhood got sick last week with identical symptoms - rash, fatigue, joint pain. Doctors are baffled. But we're finding more cases when people search online.</p>
+            
+            <p>I built a simple website on my home computer where families can report symptoms and locations. We're starting to see patterns - it might be environmental. Maybe the old factory site they're building the new playground on?</p>
+            
+            <p><strong>But my laptop keeps crashing!</strong> 200+ families are trying to access it. Some can't submit their reports. If we can't collect this data, we can't prove anything to the city.</p>
+            
+            <p>I know you don't have a CS background, but you've always been smart and pick things up fast. Could you look at this?</p>
+            
+            <p>I found this tool: <a 
+              href="#" 
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenSystemDesign?.();
+              }}
+              className="email-link crisis-link"
+            >systembuilder.tech/emergency/alexsite</a></p>
+            
+            <p className="email-urgent">Please. Emma's getting worse. We need this data to save these kids.</p>
+            
+            <p>- Alex</p>
+          </div>
         </div>
       </div>
     );
@@ -148,10 +193,10 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         searchQuery={searchQuery}
         onEmailSelect={handleEmailSelect}
         onEmailToggleSelect={handleEmailToggleSelect}
-        onFolderSelect={setSelectedFolder}
-        onSearchChange={setSearchQuery}
-        onEmailCompose={() => {}}
-        onEmailReply={() => {}}
+        onFolderSelect={handleFolderSelect}
+        onSearchChange={handleSearchChange}
+        onEmailCompose={handleEmailCompose}
+        onEmailReply={handleEmailReply}
       />
     </div>
   );

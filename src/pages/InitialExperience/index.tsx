@@ -3,12 +3,14 @@ import { Mail } from 'lucide-react';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
+import { MissionInitializer } from '../../components/mission/MissionInitializer';
 import './InitialExperience.css';
 
-export const InitialExperience: React.FC = () => {
+const InitialExperienceContent: React.FC = () => {
   const [showBrowser, setShowBrowser] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('');
   const [tabs, setTabs] = useState<any[]>([]);
+  const [missionComplete, setMissionComplete] = useState(false);
 
   const handleEmailIconClick = useCallback(() => {
     setShowBrowser(true);
@@ -24,13 +26,23 @@ export const InitialExperience: React.FC = () => {
   const handleOpenSystemDesignTab = useCallback(() => {
     const newTab = {
       id: 'system-design',
-      title: 'System Builder - Sarah\'s Bakery',
-      url: 'https://systembuilder.tech/project/sarahsbakery',
+      title: 'System Builder - Emergency: Alex\'s Site',
+      url: 'https://systembuilder.tech/emergency/alexsite',
       component: SystemDesignCanvasWrapper,
     };
     
     setTabs(prev => [...prev, newTab]);
     setActiveTab('system-design');
+  }, []);
+
+  const handleMissionComplete = useCallback(() => {
+    setMissionComplete(true);
+    // In a full implementation, this would:
+    // 1. Show a success notification
+    // 2. Update the email with a thank you from Alex
+    // 3. Transition to the next mission or career map
+    // For now, we'll just mark it complete
+    console.log('Mission completed! Alex\'s system is now stable.');
   }, []);
 
   const handleTabChange = useCallback((tabId: string) => {
@@ -87,10 +99,19 @@ export const InitialExperience: React.FC = () => {
         tabs={tabs.map(tab => ({
           ...tab,
           onOpenSystemDesign: tab.id === 'email' ? handleOpenSystemDesignTab : undefined,
+          onMissionComplete: tab.id === 'system-design' ? handleMissionComplete : undefined,
         }))}
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
       />
     </div>
+  );
+};
+
+export const InitialExperience: React.FC = () => {
+  return (
+    <MissionInitializer>
+      <InitialExperienceContent />
+    </MissionInitializer>
   );
 };
