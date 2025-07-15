@@ -23,7 +23,7 @@ import '../../styles/design-system/index.css';
 const reactFlowStyle = {
   width: '100%',
   height: '100%',
-  backgroundColor: '#1f2937'
+  backgroundColor: 'var(--color-neutral-50)'
 };
 
 const containerStyle = {
@@ -168,7 +168,7 @@ export const SystemDesignCanvas: React.FC = () => {
   }, []);
 
   return (
-    <div style={containerStyle} className="bg-gray-900 text-white">
+    <div style={{ ...containerStyle, backgroundColor: 'var(--color-neutral-50)' }} className="text-gray-800">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -307,68 +307,112 @@ export const SystemDesignCanvas: React.FC = () => {
               </Panel>
             )}
 
-            {/* Expanded Mentor - Right Side */}
+            {/* Expanded Mentor - Bottom Left Chat Window */}
             {!isMentorCollapsed && (
-              <Panel position="top-right" className="pointer-events-auto">
-                <div style={{ width: '320px', maxHeight: '70vh', backgroundColor: '#1f2937', borderRadius: '8px', border: '1px solid #374151', padding: '16px', display: 'flex', flexDirection: 'column' }}>
-                  <div className="border-b border-gray-700 pb-4 mb-4 flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">Mentor Guidance</h2>
+              <Panel position="bottom-left" className="pointer-events-auto">
+                <div className="mentor-chat" style={{ 
+                  width: '350px', 
+                  height: '420px', 
+                  backgroundColor: 'white', 
+                  borderRadius: '16px', 
+                  border: '1px solid var(--color-neutral-200)', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  overflow: 'hidden'
+                }}>
+                  {/* Chat Header */}
+                  <div className="flex items-center justify-between p-4" style={{ backgroundColor: 'var(--color-primary-500)', color: 'white' }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white font-bold text-sm border-2 border-white/30">
+                        {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-sm">{selectedMentor.name}</h3>
+                        <p className="text-white/80 text-xs flex items-center gap-1">
+                          <span className="w-2 h-2 bg-green-400 rounded-full"></span>
+                          {selectedMentor.title}
+                        </p>
+                      </div>
+                    </div>
                     <button
                       onClick={() => setIsMentorCollapsed(true)}
-                      className="text-gray-400 hover:text-white transition-colors"
-                      aria-label="Collapse mentor guidance"
+                      className="text-white/80 hover:text-white transition-colors p-1 rounded hover:bg-white/10"
+                      aria-label="Close mentor chat"
                     >
                       <Minimize2 size={16} />
                     </button>
                   </div>
                   
-                  <div style={{ flex: 1, overflow: 'auto' }}>
-                    <div className="space-y-4">
-                      {/* Mentor Info */}
-                      <div className="bg-gray-700 p-3 rounded-lg">
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                            {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                  {/* Chat Messages */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ backgroundColor: 'var(--color-neutral-50)' }}>
+                    {/* Welcome Message */}
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
+                        {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex flex-col gap-1 max-w-[240px]">
+                        <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                          <p className="mb-1">👋 Hi! I'm {selectedMentor.name.split(' ')[0]}.</p>
+                          <p className="text-xs text-gray-600 italic">"{selectedMentor.quote}"</p>
+                        </div>
+                        <span className="text-xs text-gray-400 ml-2">just now</span>
+                      </div>
+                    </div>
+
+                    {/* Context Message */}
+                    {mentorContext && (
+                      <div className="flex items-start gap-2">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
+                          {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className="flex flex-col gap-1 max-w-[240px]">
+                          <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                            <p>I'll help you design <span style={{ color: 'var(--color-primary-600)' }} className="font-medium">{mentorContext.componentType || 'system'}</span> components.</p>
                           </div>
-                          <div>
-                            <h3 className="text-white font-medium">{selectedMentor.name}</h3>
-                            <p className="text-gray-400 text-sm">{selectedMentor.title}</p>
+                          <span className="text-xs text-gray-400 ml-2">just now</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Expertise Tags */}
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
+                        {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex flex-col gap-1 max-w-[240px]">
+                        <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                          <p className="mb-2">My expertise areas:</p>
+                          <div className="flex flex-wrap gap-1">
+                            {selectedMentor.tags.slice(0, 3).map((tag) => (
+                              <span key={tag} style={{ backgroundColor: 'var(--color-primary-100)', color: 'var(--color-primary-700)' }} className="text-xs px-2 py-1 rounded-full font-medium">
+                                {tag}
+                              </span>
+                            ))}
                           </div>
                         </div>
-                        <p className="text-gray-300 text-sm italic">"{selectedMentor.quote}"</p>
+                        <span className="text-xs text-gray-400 ml-2">just now</span>
                       </div>
+                    </div>
 
-                      {/* Context */}
-                      {mentorContext && (
-                        <div className="bg-gray-700 p-3 rounded-lg">
-                          <h4 className="text-white font-medium mb-2">Design Focus</h4>
-                          <p className="text-gray-300 text-sm">
-                            Designing <span className="text-blue-400">{mentorContext.componentType || 'system'}</span> components
-                          </p>
+                    {/* Guidance Message */}
+                    <div className="flex items-start gap-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
+                        {selectedMentor.name.split(' ').map(n => n[0]).join('')}
+                      </div>
+                      <div className="flex flex-col gap-1 max-w-[240px]">
+                        <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                          <p>💡 <span className="font-medium">Pro tip:</span> Start with the fundamentals and build incrementally. Focus on {mentorContext?.componentType || 'system'} scalability patterns.</p>
                         </div>
-                      )}
-
-                      {/* Mentor Specialties */}
-                      <div className="bg-gray-700 p-3 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Expertise</h4>
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {selectedMentor.tags.slice(0, 3).map((tag) => (
-                            <span key={tag} className="bg-blue-600 text-white text-xs px-2 py-1 rounded">
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                        <p className="text-gray-300 text-sm">{selectedMentor.tagline}</p>
+                        <span className="text-xs text-gray-400 ml-2">just now</span>
                       </div>
-
-                      {/* Sample Guidance */}
-                      <div className="bg-gray-700 p-3 rounded-lg">
-                        <h4 className="text-white font-medium mb-2">Guidance</h4>
-                        <p className="text-gray-300 text-sm">
-                          <span className="text-blue-400">{selectedMentor.name.split(' ')[0]}</span> suggests: 
-                          "Start with the fundamentals and build incrementally. Focus on {mentorContext?.componentType || 'system'} scalability patterns."
-                        </p>
-                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Chat Input (Placeholder for future) */}
+                  <div className="p-4 bg-white border-t" style={{ borderColor: 'var(--color-neutral-200)' }}>
+                                         <div style={{ backgroundColor: 'var(--color-neutral-100)', color: 'var(--color-neutral-500)', borderColor: 'var(--color-neutral-300)' }} className="text-sm p-3 rounded-lg text-center border-2 border-dashed">
+                      💬 Interactive chat coming soon...
                     </div>
                   </div>
                 </div>
