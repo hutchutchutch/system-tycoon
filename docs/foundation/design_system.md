@@ -1,21 +1,3 @@
-System Design Tycoon - Atomic Design Component Library
-Version: 1.0
-Date: July 14, 2025
-Author: Engineering Team
-
-Table of Contents
-
-Introduction
-Component Architecture
-Atoms
-Molecules
-Organisms
-Templates
-Pages
-State Management Patterns
-Component Documentation Standards
-
-
 1. Introduction
 This document provides comprehensive documentation for all components in System Design Tycoon, organized according to the Atomic Design methodology. Each component is documented with its purpose, props interface, state management approach, and usage examples.
 Design Principles
@@ -2021,7 +2003,3 @@ describe('Button', () => {
 });
 
 This Atomic Design Component Library provides a comprehensive foundation for building System Design Tycoon with clear separation of concerns, predictable state management, and maximum reusability.
-Version: 1.0
-Last Updated: July 14, 2025
-Next Review: Continuous during development
-Maintainer: Engineering Team

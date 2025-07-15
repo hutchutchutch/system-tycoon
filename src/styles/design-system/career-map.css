@@ -9,6 +9,34 @@
   overflow: hidden;
 }
 
+/* Fullscreen modifier - removes padding and constraints */
+.career-map--fullscreen {
+  padding: 0;
+  height: 100vh;
+  background: var(--color-neutral-900);
+  color: var(--color-white);
+  overflow: hidden;
+}
+
+.career-map--fullscreen .career-map__container {
+  max-width: none;
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.career-map--fullscreen .career-map__phaser-container {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  max-height: none;
+  border-radius: 0;
+  overflow: hidden;
+  box-shadow: none;
+  border: none;
+}
+
 .career-map__container {
   max-width: 1280px;
   margin: 0 auto;

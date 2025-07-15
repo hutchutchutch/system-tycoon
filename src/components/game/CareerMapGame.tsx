@@ -109,8 +109,8 @@ class CareerMapScene extends Phaser.Scene {
     // Set up the camera
     this.cameras.main.setBackgroundColor('#1a1a1a');
     
-    // Create render texture for depth sorting
-    this.gameScene = this.add.renderTexture(this.cameras.main.width, this.cameras.main.height);
+    // Create render texture for depth sorting - use viewport dimensions
+    this.gameScene = this.add.renderTexture(0, 0, this.cameras.main.width, this.cameras.main.height);
     this.add.existing(this.gameScene);
     
     // Create sprite objects for rendering
@@ -136,6 +136,16 @@ class CareerMapScene extends Phaser.Scene {
     
     // Set up camera controls
     this.setupCameraControls();
+    
+    // Handle resize events
+    this.scale.on('resize', this.handleResize, this);
+  }
+
+  private handleResize(gameSize: Phaser.Structs.Size) {
+    // Update render texture size
+    this.gameScene.setSize(gameSize.width, gameSize.height);
+    // Re-render scene with new dimensions
+    this.renderScene();
   }
 
   private findSelectorPosition() {
@@ -309,8 +319,8 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
     if (gameRef.current && !phaserGameRef.current) {
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
-        width: 1000,
-        height: 700,
+        width: window.innerWidth,
+        height: window.innerHeight,
         parent: gameRef.current,
         backgroundColor: '#1a1a1a',
         scene: CareerMapScene,
@@ -322,7 +332,7 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
           }
         },
         scale: {
-          mode: Phaser.Scale.FIT,
+          mode: Phaser.Scale.RESIZE,
           autoCenter: Phaser.Scale.CENTER_BOTH
         }
       };
@@ -335,6 +345,19 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         progress, 
         onScenarioClick 
       });
+
+      // Handle window resize
+      const handleResize = () => {
+        if (phaserGameRef.current) {
+          phaserGameRef.current.scale.resize(window.innerWidth, window.innerHeight);
+        }
+      };
+
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
     }
 
     return () => {
