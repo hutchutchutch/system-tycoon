@@ -1,6 +1,5 @@
 import React from 'react';
 import { ReactFlowProvider } from '@xyflow/react';
-import styles from './DesignPhaseTemplate.module.css';
 
 /**
  * DesignPhaseTemplate
@@ -31,37 +30,37 @@ export const DesignPhaseTemplate: React.FC<DesignPhaseTemplateProps> = ({
 }) => {
   return (
     <ReactFlowProvider>
-      <div className={styles.template}>
+      <div className="design-phase-template">
         {header && (
-          <header className={styles.header}>
+          <header className="design-phase-template__header">
             {header}
           </header>
         )}
         
-        <div className={styles.workspace}>
+        <div className="design-phase-template__workspace">
           {sidebar && (
-            <aside className={styles.sidebar}>
+            <aside className="design-phase-template__sidebar">
               {sidebar}
             </aside>
           )}
           
-          <main className={styles.canvas}>
+          <main className="design-phase-template__canvas">
             {canvas || (
-              <div className={styles.placeholder}>
+              <div className="design-phase-template__placeholder">
                 Design canvas will be rendered here
               </div>
             )}
           </main>
           
           {metrics && (
-            <aside className={styles.metrics}>
+            <aside className="design-phase-template__metrics">
               {metrics}
             </aside>
           )}
         </div>
         
         {mentor && (
-          <div className={styles.mentor}>
+          <div className="design-phase-template__mentor">
             {mentor}
           </div>
         )}

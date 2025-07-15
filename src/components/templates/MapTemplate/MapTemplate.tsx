@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppSelector } from '../../../hooks/redux';
 import GameHUD from '../../organisms/GameHUD';
 import CareerMap from '../../organisms/CareerMap';
-import styles from './MapTemplate.module.css';
 
 interface MapTemplateProps {
   children?: React.ReactNode;
@@ -24,9 +23,11 @@ export const MapTemplate: React.FC<MapTemplateProps> = ({ children }) => {
   const unlockedLocations = useAppSelector((state) => state.game.unlockedLocations);
 
   return (
-    <div className={styles.mapTemplate}>
-      <GameHUD />
-      <main className={styles.mapContent}>
+    <div className="map-template">
+      <div className="map-template__hud">
+        <GameHUD />
+      </div>
+      <main className="map-template__content">
         <CareerMap 
           currentLocation={currentLocation}
           unlockedLocations={unlockedLocations}

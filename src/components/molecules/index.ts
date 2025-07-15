@@ -13,3 +13,6 @@ export type { ComponentCardProps, ComponentData, ComponentType, ComponentCategor
 
 export { MetricCard } from './MetricCard';
 export type { MetricCardProps, MetricData } from './MetricCard';
+
+export { PhaseHeader } from './PhaseHeader';
+export type { PhaseHeaderProps } from './PhaseHeader';

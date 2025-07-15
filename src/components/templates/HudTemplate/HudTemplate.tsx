@@ -1,7 +1,6 @@
 import React from 'react';
 import { useAppSelector } from '../../../hooks/redux';
 import GameHUD from '../../organisms/GameHUD';
-import styles from './HudTemplate.module.css';
 
 interface HudTemplateProps {
   children?: React.ReactNode;
@@ -27,9 +26,11 @@ export const HudTemplate: React.FC<HudTemplateProps> = ({
   const notifications = useAppSelector((state) => state.ui.notifications);
 
   return (
-    <div className={styles.hudTemplate}>
-      <GameHUD showMetrics={showMetrics} />
-      <main className={styles.content}>
+    <div className="hud-template">
+      <div className="hud-template__hud">
+        <GameHUD showMetrics={showMetrics} />
+      </div>
+      <main className="hud-template__content">
         {children}
       </main>
     </div>

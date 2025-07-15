@@ -1,6 +1,5 @@
 import React from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
-import styles from './BattleTemplate.module.css';
 
 interface BattleTemplateProps {
   children?: React.ReactNode;
@@ -28,18 +27,18 @@ export const BattleTemplate: React.FC<BattleTemplateProps> = ({ children }) => {
   const battleLog = useAppSelector((state) => state.battle.battleLog);
 
   return (
-    <div className={styles.battleTemplate}>
-      <div className={styles.battleArena}>
-        <div className={styles.playerSide}>
-          {/* Player system visualization */}
-        </div>
-        <div className={styles.enemySide}>
-          {/* Enemy system visualization */}
-        </div>
-      </div>
-      <div className={styles.battleInterface}>
+    <div className="battle-template">
+      <header className="battle-template__header">
+        <h1>System Architecture Battle</h1>
+      </header>
+      
+      <main className="battle-template__content">
         {children}
-      </div>
+      </main>
+      
+      <footer className="battle-template__footer">
+        {/* Battle controls and status */}
+      </footer>
     </div>
   );
 };

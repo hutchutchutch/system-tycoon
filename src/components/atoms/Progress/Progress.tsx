@@ -1,6 +1,5 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import styles from './Progress.module.css';
 
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
@@ -34,16 +33,16 @@ export const Progress: React.FC<ProgressProps> = ({
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
   const classes = clsx(
-    styles.progressContainer,
-    styles[size],
-    variant !== 'primary' && styles[variant],
+    'progress',
+    `progress--${size}`,
+    variant !== 'primary' && `progress--${variant}`,
     className
   );
 
   return (
     <div className={classes} {...props}>
       <div
-        className={styles.progressBar}
+        className="progress__bar"
         style={{ width: `${percentage}%` }}
         role="progressbar"
         aria-valuenow={value}

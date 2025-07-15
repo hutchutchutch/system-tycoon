@@ -1,6 +1,5 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import styles from './Badge.module.css';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'destructive' | 'outline';
@@ -26,15 +25,15 @@ export const Badge: React.FC<BadgeProps> = ({
   ...props
 }) => {
   const classes = clsx(
-    styles.badge,
-    styles[variant],
-    styles[size],
+    'badge',
+    `badge--${variant}`,
+    `badge--${size}`,
     className
   );
 
   return (
     <span className={classes} {...props}>
-      {icon && <span className={styles.icon}>{icon}</span>}
+      {icon && <span className="badge__icon">{icon}</span>}
       {children}
     </span>
   );
