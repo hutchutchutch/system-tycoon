@@ -1,0 +1,65 @@
+.email-client-wrapper {
+  width: 100%;
+  height: 100%;
+  background: white;
+}
+
+.email-client-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.email-client-loading__spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.email-client-loading p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Override email client styles for the initial experience */
+.email-client-wrapper .email-client {
+  height: 100%;
+}
+
+/* Highlight Sarah's email with a subtle glow */
+.email-client-wrapper .email-card:last-child {
+  background: #f0f9ff;
+  border-left: 3px solid #3b82f6;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px 2px rgba(59, 130, 246, 0.3);
+  }
+}
+
+/* Style urgent emails with red indicators */
+.email-client-wrapper .email-card[data-priority="high"] {
+  border-left: 3px solid #dc2626;
+}
+
+.email-client-wrapper .email-card[data-priority="high"] .email-card__sender {
+  color: #dc2626;
+}

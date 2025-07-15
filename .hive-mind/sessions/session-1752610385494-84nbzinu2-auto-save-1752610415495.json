@@ -1,0 +1,81 @@
+{
+  "sessionId": "session-1752610385494-84nbzinu2",
+  "checkpointId": "checkpoint-1752610415495-gk6s8en46",
+  "checkpointName": "auto-save-1752610415495",
+  "timestamp": "2025-07-15T20:13:35.495Z",
+  "data": {
+    "timestamp": "2025-07-15T20:13:35.495Z",
+    "changeCount": 5,
+    "changesByType": {
+      "swarm_created": [
+        {
+          "type": "swarm_created",
+          "data": {
+            "swarmId": "swarm-1752610385493-lsnpotsp4",
+            "swarmName": "hive-1752610385480",
+            "objective": "review the /docs/game_design_document.md and the /docs/design_system.md to understand the flow of our app. we are trying to create the initial experience for the user after they login. if a user signs in for the first time, they should see a blank browser window with single icon that lets the user open an 'email' tab. this will show the loading experience of the email tab and then display the user's emails with late bills, etc. then a the user will receive an email from a friend offering to hire them for the website help, the user then can open the email and follow the link which will create the new system design tab in the browser and display the systemdesigncanvas",
+            "workerCount": 8
+          },
+          "timestamp": "2025-07-15T20:13:05.495Z"
+        }
+      ],
+      "agent_activity": [
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752610385493-lsnpotsp4-0",
+            "activity": "spawned",
+            "data": {
+              "type": "researcher",
+              "name": "Researcher Worker 1"
+            }
+          },
+          "timestamp": "2025-07-15T20:13:05.496Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752610385493-lsnpotsp4-1",
+            "activity": "spawned",
+            "data": {
+              "type": "coder",
+              "name": "Coder Worker 2"
+            }
+          },
+          "timestamp": "2025-07-15T20:13:05.496Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752610385493-lsnpotsp4-2",
+            "activity": "spawned",
+            "data": {
+              "type": "analyst",
+              "name": "Analyst Worker 3"
+            }
+          },
+          "timestamp": "2025-07-15T20:13:05.496Z"
+        },
+        {
+          "type": "agent_activity",
+          "data": {
+            "agentId": "worker-swarm-1752610385493-lsnpotsp4-3",
+            "activity": "spawned",
+            "data": {
+              "type": "tester",
+              "name": "Tester Worker 4"
+            }
+          },
+          "timestamp": "2025-07-15T20:13:05.496Z"
+        }
+      ]
+    },
+    "statistics": {
+      "tasksProcessed": 0,
+      "tasksCompleted": 0,
+      "memoryUpdates": 0,
+      "agentActivities": 4,
+      "consensusDecisions": 0
+    }
+  }
+}
