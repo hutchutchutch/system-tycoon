@@ -17,6 +17,9 @@ export interface BrowserTabProps {
   /** Whether the tab has unsaved changes */
   modified?: boolean;
   
+  /** Whether the tab has a notification indicator */
+  hasNotification?: boolean;
+  
   /** Handler for tab click */
   onClick?: () => void;
   

@@ -9,6 +9,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
   favicon,
   loading = false,
   modified = false,
+  hasNotification = false,
   onClick,
   onClose,
   showClose = true,
@@ -64,6 +65,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
         {getDisplayTitle()}
         {modified && <span className="browser-tab__modified">•</span>}
       </span>
+
+      {/* Notification indicator */}
+      {hasNotification && (
+        <div className="browser-tab__notification" />
+      )}
 
       {/* Close button */}
       {showClose && (

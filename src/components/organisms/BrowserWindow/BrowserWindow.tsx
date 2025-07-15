@@ -33,7 +33,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
                 title={tab.title}
                 url={tab.url}
                 active={tab.id === activeTab}
-
+                hasNotification={tab.hasNotification}
                 onClick={() => onTabChange(tab.id)}
                 onClose={tabs.length > 1 ? () => onTabClose(tab.id) : undefined}
               />
@@ -76,10 +76,10 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
           </div>
 
           {activeTabData && (
-                         <BrowserAddressBar
-               url={activeTabData.url}
-               secure={activeTabData.url.startsWith('https://')}
-             />
+            <BrowserAddressBar
+              url={activeTabData.url}
+              secure={activeTabData.url.startsWith('https://')}
+            />
           )}
         </div>
       </div>

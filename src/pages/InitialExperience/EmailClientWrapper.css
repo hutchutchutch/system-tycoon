@@ -2,6 +2,8 @@
   width: 100%;
   height: 100%;
   background: white;
+  min-width: 100vw;
+  min-height: calc(100vh - 64px);
 }
 
 .email-client-loading {
@@ -37,6 +39,23 @@
 /* Override email client styles for the initial experience */
 .email-client-wrapper .email-client {
   height: 100%;
+  min-height: calc(100vh - 64px);
+  width: 100%;
+}
+
+/* Dark mode styles for Email Client Wrapper */
+[data-theme="dark"] .email-client-wrapper {
+  background: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .email-client-loading {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .email-client-loading__spinner {
+  border-color: var(--color-neutral-300);
+  border-top-color: var(--color-primary-500);
 }
 
 /* Highlight Sarah's email with a subtle glow */
@@ -71,6 +90,12 @@
   background: #f8f9fa;
 }
 
+/* Dark mode styles for Email Detail View */
+[data-theme="dark"] .email-detail-view {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+}
+
 .email-detail-header {
   background: white;
   border-bottom: 1px solid #e0e0e0;
@@ -79,6 +104,12 @@
   align-items: center;
   gap: 2rem;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode styles for Email Detail Header */
+[data-theme="dark"] .email-detail-header {
+  background: var(--color-neutral-200);
+  border-bottom-color: var(--color-neutral-300);
 }
 
 .email-detail-back {
@@ -92,9 +123,22 @@
   transition: all 0.2s;
 }
 
+/* Dark mode styles for Email Detail Back */
+[data-theme="dark"] .email-detail-back {
+  background: var(--color-neutral-300);
+  color: var(--color-neutral-800);
+  border-color: var(--color-neutral-400);
+}
+
 .email-detail-back:hover {
   background: #f0f0f0;
   color: #333;
+}
+
+/* Dark mode styles for Email Detail Back Hover */
+[data-theme="dark"] .email-detail-back:hover {
+  background: var(--color-neutral-400);
+  color: var(--color-neutral-900);
 }
 
 .email-detail-header h2 {
@@ -113,6 +157,13 @@
   line-height: 1.6;
 }
 
+/* Dark mode styles for Email Detail Meta */
+[data-theme="dark"] .email-detail-meta {
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-300);
+}
+
 .email-detail-meta strong {
   color: #333;
 }
@@ -126,6 +177,12 @@
   font-size: 16px;
   line-height: 1.8;
   color: #333;
+}
+
+/* Dark mode styles for Email Detail Content */
+[data-theme="dark"] .email-detail-content {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-900);
 }
 
 .email-detail-content p {
@@ -144,12 +201,22 @@
   transition: all 0.2s;
 }
 
+/* Dark mode styles for Email Link */
+[data-theme="dark"] .email-link {
+  color: var(--color-primary-600);
+}
+
 .email-link.crisis-link:hover {
   color: #1565c0;
   background: #e3f2fd;
   padding: 2px 4px;
   border-radius: 3px;
   margin: -2px -4px;
+}
+
+/* Dark mode styles for Email Link Hover */
+[data-theme="dark"] .email-link:hover {
+  color: var(--color-primary-700);
 }
 
 .email-urgent {
@@ -161,6 +228,13 @@
   background: #ffebee;
   border-left: 4px solid #ef5350;
   border-radius: 4px;
+}
+
+/* Dark mode styles for Email Urgent */
+[data-theme="dark"] .email-urgent {
+  color: var(--color-error-600);
+  background: var(--color-error-100);
+  border-color: var(--color-error-200);
 }
 
 /* Highlight Alex's crisis email */
