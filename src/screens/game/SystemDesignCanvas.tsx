@@ -13,9 +13,17 @@ import {
 } from '@xyflow/react';
 import type { Connection, Edge, Node } from '@xyflow/react';
 import type { Mentor } from '../../components/molecules/MentorCard';
-import { Search, ChevronDown, Minimize2, ChevronsRight } from 'lucide-react';
+import { Search, ChevronDown, Minimize2, ChevronsRight, Users } from 'lucide-react';
 import { Input } from '../../components/atoms/Input';
 import { Icon } from '../../components/atoms/Icon';
+import { useAppSelector } from '../../hooks/redux';
+import { 
+  selectSelectedComponent, 
+  selectIsCollaborationMode, 
+  selectComponentRequirements, 
+  selectComponentInitialNodes,
+  selectCollaborationSettings 
+} from '../../features/game/gameSlice';
 import '@xyflow/react/dist/style.css';
 import '../../styles/design-system/index.css';
 
@@ -57,7 +65,8 @@ const availableComponents = [
   { id: 'compute', name: 'Compute Instance', category: 'compute', cost: 80, capacity: 800, description: 'General computation', icon: 'cpu' as const },
 ];
 
-const initialNodes: Node[] = [
+// Default nodes when no specific component is selected
+const defaultInitialNodes: Node[] = [
   {
     id: '1',
     type: 'input',
@@ -79,17 +88,28 @@ const initialNodes: Node[] = [
   },
 ];
 
-const initialEdges: Edge[] = [
+const defaultInitialEdges: Edge[] = [
   { id: 'e1-2', source: '1', target: '2', animated: true },
   { id: 'e2-3', source: '2', target: '3', animated: true },
 ];
 
 export const SystemDesignCanvas: React.FC = () => {
   const { scenarioId } = useParams();
+  
+  // Redux selectors
+  const selectedComponent = useAppSelector(selectSelectedComponent);
+  const isCollaborationMode = useAppSelector(selectIsCollaborationMode);
+  const componentRequirements = useAppSelector(selectComponentRequirements);
+  const componentInitialNodes = useAppSelector(selectComponentInitialNodes);
+  const collaborationSettings = useAppSelector(selectCollaborationSettings);
+  
+  // Get initial nodes from Redux or use defaults
+  const initialNodes = componentInitialNodes.length > 0 ? componentInitialNodes : defaultInitialNodes;
+  const initialEdges = defaultInitialEdges;
+  
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
-  const [mentorContext, setMentorContext] = useState<any>(null);
   
   // Component drawer state
   const [searchQuery, setSearchQuery] = useState('');
@@ -104,7 +124,6 @@ export const SystemDesignCanvas: React.FC = () => {
   useEffect(() => {
     // Load selected mentor from localStorage only once
     const mentorData = localStorage.getItem('selectedMentor');
-    const contextData = localStorage.getItem('mentorContext');
     
     if (mentorData && !selectedMentor) {
       try {
@@ -116,19 +135,28 @@ export const SystemDesignCanvas: React.FC = () => {
       }
     }
     
-    if (contextData && !mentorContext) {
-      try {
-        const context = JSON.parse(contextData);
-        setMentorContext(context);
-        console.log(`📋 Loaded mentor context:`, context);
-        console.log(`🎯 Component type from context: ${context.componentType}`);
-        console.log(`🎯 Scenario ID from context: ${context.scenarioId}`);
-      } catch (error) {
-        console.error('Failed to parse mentor context:', error);
+    // Log Redux component selection state
+    if (selectedComponent) {
+      console.log(`📋 Component selection from Redux:`, selectedComponent);
+      console.log(`🎯 Component type: ${selectedComponent.componentType}`);
+      console.log(`🎯 Mode: ${selectedComponent.mode}`);
+      console.log(`🎯 Scenario ID: ${selectedComponent.scenarioId}`);
+      console.log(`📋 Requirements:`, componentRequirements);
+      
+      if (isCollaborationMode) {
+        console.log(`👥 Collaboration mode active:`, collaborationSettings);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array for mount-only effect
+  }, [selectedComponent, componentRequirements, isCollaborationMode, collaborationSettings]); // Dependencies for Redux state
+
+  // Update nodes when component selection changes
+  useEffect(() => {
+    if (componentInitialNodes.length > 0) {
+      console.log(`🔄 Updating canvas with component-specific nodes:`, componentInitialNodes);
+      setNodes(componentInitialNodes);
+    }
+  }, [componentInitialNodes, setNodes]);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -187,6 +215,12 @@ export const SystemDesignCanvas: React.FC = () => {
             <div className="bg-gray-800 px-4 py-2 rounded shadow-lg text-white">
               Budget: $0 / $200
             </div>
+            {isCollaborationMode && (
+              <div className="bg-green-600 px-4 py-2 rounded shadow-lg text-white flex items-center gap-2">
+                <Users size={16} />
+                <span>Collaboration Mode</span>
+              </div>
+            )}
           </div>
         </Panel>
 
@@ -361,14 +395,14 @@ export const SystemDesignCanvas: React.FC = () => {
                     </div>
 
                     {/* Context Message */}
-                    {mentorContext && (
+                    {selectedComponent && (
                       <div className="flex items-start gap-2">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
                           {selectedMentor.name.split(' ').map(n => n[0]).join('')}
                         </div>
                         <div className="flex flex-col gap-1 max-w-[240px]">
                           <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
-                            <p>I'll help you design <span style={{ color: 'var(--color-primary-600)' }} className="font-medium">{mentorContext.componentType || 'system'}</span> components.</p>
+                            <p>I'll help you design <span style={{ color: 'var(--color-primary-600)' }} className="font-medium">{selectedComponent.componentType || 'system'}</span> components{isCollaborationMode ? ' in collaboration mode' : ''}.</p>
                           </div>
                           <span className="text-xs text-gray-400 ml-2">just now</span>
                         </div>
@@ -400,12 +434,12 @@ export const SystemDesignCanvas: React.FC = () => {
                       <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ backgroundColor: 'var(--color-primary-500)', flexShrink: 0 }}>
                         {selectedMentor.name.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <div className="flex flex-col gap-1 max-w-[240px]">
-                        <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
-                          <p>💡 <span className="font-medium">Pro tip:</span> Start with the fundamentals and build incrementally. Focus on {mentorContext?.componentType || 'system'} scalability patterns.</p>
+                                              <div className="flex flex-col gap-1 max-w-[240px]">
+                          <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                            <p>💡 <span className="font-medium">Pro tip:</span> Start with the fundamentals and build incrementally. Focus on {selectedComponent?.componentType || 'system'} scalability patterns.</p>
+                          </div>
+                          <span className="text-xs text-gray-400 ml-2">just now</span>
                         </div>
-                        <span className="text-xs text-gray-400 ml-2">just now</span>
-                      </div>
                     </div>
                   </div>
                   
@@ -423,6 +457,38 @@ export const SystemDesignCanvas: React.FC = () => {
 
 
         
+        {/* Requirements Panel - Top Right */}
+        {componentRequirements.length > 0 && (
+          <Panel position="top-right" className="pointer-events-auto">
+            <div className="bg-white rounded-lg shadow-lg p-4 max-w-[300px]" style={{ border: '1px solid var(--color-neutral-200)' }}>
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                <Icon name="activity" size="md" />
+                Requirements
+              </h3>
+              <div className="space-y-2">
+                {componentRequirements.map((req: any) => (
+                  <div key={req.id} className="text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${
+                        req.priority === 'critical' ? 'bg-red-100 text-red-700' :
+                        req.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                        req.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-gray-100 text-gray-700'
+                      }`}>
+                        {req.priority}
+                      </span>
+                      <span className="text-gray-600 font-medium">
+                        {req.target} {req.unit}
+                      </span>
+                    </div>
+                    <p className="text-gray-700 mt-1">{req.description}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Panel>
+        )}
+
         {/* React Flow MiniMap */}
         <MiniMap 
           className="react-flow__minimap"

@@ -293,3 +293,45 @@ export interface UserAchievement {
   unlockedAt: string;
   progress?: number;
 }
+
+export interface ComponentRequirement {
+  id: string;
+  type: 'performance' | 'scalability' | 'security' | 'cost' | 'reliability';
+  description: string;
+  target: number;
+  unit: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+}
+
+export interface InitialNode {
+  id: string;
+  type: string;
+  position: { x: number; y: number };
+  data: {
+    label: string;
+    componentType: string;
+    cost: number;
+    capacity: number;
+    description: string;
+    category: string;
+  };
+  style?: Record<string, any>;
+}
+
+export interface CollaborationSettings {
+  maxPlayers: number;
+  allowedRoles: ('architect' | 'engineer' | 'reviewer')[];
+  consensusRequired: boolean;
+  timeLimit?: number;
+  allowRealTimeEditing: boolean;
+}
+
+export interface ComponentSelection {
+  componentType: string;
+  mode: 'mentor' | 'collaboration';
+  scenarioId: string;
+  requirements: ComponentRequirement[];
+  initialNodes: InitialNode[];
+  collaborationSettings?: CollaborationSettings;
+  selectedAt: number;
+}

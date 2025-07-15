@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import { MentorCard, type Mentor } from '../../molecules/MentorCard';
 import { supabase } from '../../../services/supabase';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { updateCareerMapViewport, updateCareerMapData, selectCareerMapData } from '../../../features/game/gameSlice';
+import { updateCareerMapViewport, updateCareerMapData, selectCareerMapData, selectComponentForMode } from '../../../features/game/gameSlice';
 import { MentorSelectionScene } from './MentorSelectionScene';
 
 interface CareerMapGameProps {
@@ -48,6 +48,7 @@ class CareerMapScene extends Phaser.Scene {
   private onComponentClick: (componentType: string) => void;
   private onShowMentorSelection: (componentType: string) => void;
   private dispatch: any; // Redux dispatch function
+  private selectComponentForModeAction: any; // Redux action creator
   private gameScene!: Phaser.GameObjects.RenderTexture;
   private floorSprite!: Phaser.GameObjects.Sprite;
   private selectorSprite!: Phaser.GameObjects.Sprite;
@@ -91,11 +92,13 @@ class CareerMapScene extends Phaser.Scene {
     onComponentClick?: (componentType: string) => void;
     onShowMentorSelection?: (componentType: string) => void;
     dispatch?: any;
+    selectComponentForModeAction?: any;
   }) {
     this.onScenarioClick = data.onScenarioClick;
     this.onComponentClick = data.onComponentClick || (() => {});
     this.onShowMentorSelection = data.onShowMentorSelection || (() => {});
     this.dispatch = data.dispatch || (() => {});
+    this.selectComponentForModeAction = data.selectComponentForModeAction;
     // Scenarios will be loaded via updateScenariosData from Redux
     this.scenarios = [];
   }
@@ -286,8 +289,8 @@ class CareerMapScene extends Phaser.Scene {
     this.tooltipContainer.setDepth(1000); // Ensure it's on top
     this.tooltipContainer.setVisible(false);
 
-    // Create tooltip background
-    this.tooltipBackground = this.add.rectangle(0, 0, 300, 120, 0x1a1a1a, 0.95);
+    // Create tooltip background (wider to accommodate both buttons)
+    this.tooltipBackground = this.add.rectangle(0, 0, 400, 120, 0x1a1a1a, 0.95);
     this.tooltipBackground.setStrokeStyle(2, 0x333333);
     this.tooltipContainer.add(this.tooltipBackground);
 
@@ -296,40 +299,64 @@ class CareerMapScene extends Phaser.Scene {
       fontSize: '14px',
       color: '#ffffff',
       align: 'center',
-      wordWrap: { width: 280 }
+      wordWrap: { width: 380 }
     });
     this.tooltipText.setOrigin(0.5);
     this.tooltipContainer.add(this.tooltipText);
 
-    // Create button container with interactive background
+    // Create button container with both mentor and collaboration options
     this.tooltipButton = this.add.container(0, 30);
     this.tooltipContainer.add(this.tooltipButton);
     
-    const buttonBg = this.add.rectangle(0, 0, 140, 30, 0x4f46e5);
-    const buttonText = this.add.text(0, 0, 'Select Mentor', {
+    // Mentor Selection Button
+    const mentorButtonBg = this.add.rectangle(-75, 0, 140, 30, 0x4f46e5);
+    const mentorButtonText = this.add.text(-75, 0, 'Select Mentor', {
       fontSize: '12px',
       color: '#ffffff',
       fontStyle: 'bold'
     });
-    buttonText.setOrigin(0.5);
+    mentorButtonText.setOrigin(0.5);
     
-    this.tooltipButton.add([buttonBg, buttonText]);
+    // Collaboration Button
+    const collabButtonBg = this.add.rectangle(75, 0, 140, 30, 0x059669);
+    const collabButtonText = this.add.text(75, 0, 'Collaboration', {
+      fontSize: '12px',
+      color: '#ffffff',
+      fontStyle: 'bold'
+    });
+    collabButtonText.setOrigin(0.5);
     
-    // Make button interactive
-    buttonBg.setInteractive();
-    buttonBg.on('pointerover', () => {
-      buttonBg.setFillStyle(0x6366f1);
-      // Clear any pending hide timeout when hovering over button
+    this.tooltipButton.add([mentorButtonBg, mentorButtonText, collabButtonBg, collabButtonText]);
+    
+    // Make mentor button interactive
+    mentorButtonBg.setInteractive();
+    mentorButtonBg.on('pointerover', () => {
+      mentorButtonBg.setFillStyle(0x6366f1);
       this.clearTooltipHideTimeout();
     });
-    buttonBg.on('pointerout', () => {
-      buttonBg.setFillStyle(0x4f46e5);
-      // Schedule tooltip to hide when leaving button
+    mentorButtonBg.on('pointerout', () => {
+      mentorButtonBg.setFillStyle(0x4f46e5);
       this.scheduleTooltipHide(300);
     });
-    buttonBg.on('pointerdown', () => {
+    mentorButtonBg.on('pointerdown', () => {
       if (this.currentHoveredComponent) {
-        this.onShowMentorSelection(this.currentHoveredComponent);
+        this.handleComponentSelection(this.currentHoveredComponent, 'mentor');
+      }
+    });
+    
+    // Make collaboration button interactive
+    collabButtonBg.setInteractive();
+    collabButtonBg.on('pointerover', () => {
+      collabButtonBg.setFillStyle(0x16a34a);
+      this.clearTooltipHideTimeout();
+    });
+    collabButtonBg.on('pointerout', () => {
+      collabButtonBg.setFillStyle(0x059669);
+      this.scheduleTooltipHide(300);
+    });
+    collabButtonBg.on('pointerdown', () => {
+      if (this.currentHoveredComponent) {
+        this.handleComponentSelection(this.currentHoveredComponent, 'collaboration');
       }
     });
 
@@ -366,7 +393,7 @@ class CareerMapScene extends Phaser.Scene {
     const isOnLeftSide = screenX < viewportCenterX;
     
     // Calculate tooltip position based on side
-    const tooltipWidth = 300;
+    const tooltipWidth = 400;
     const tooltipHeight = 120;
     const padding = 20;
     
@@ -934,6 +961,22 @@ class CareerMapScene extends Phaser.Scene {
       this.hideTooltip();
     }, delay);
   }
+  
+  private handleComponentSelection(componentType: string, mode: 'mentor' | 'collaboration') {
+    console.log(`🎯 Component selected: ${componentType} in ${mode} mode`);
+    
+    // Dispatch Redux action to store component selection
+    if (this.dispatch && this.selectComponentForModeAction) {
+      this.dispatch(this.selectComponentForModeAction({
+        componentType,
+        mode,
+        scenarioId: 'demo-scenario', // Use actual scenario ID in production
+      }));
+    }
+    
+    // Navigate to mentor selection scene (same for both modes)
+    this.onShowMentorSelection(componentType);
+  }
 }
 
 export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progress, onScenarioClick, onComponentClick }) => {
@@ -988,7 +1031,8 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         onScenarioClick,
         onComponentClick,
         onShowMentorSelection: handleShowMentorSelection,
-        dispatch
+        dispatch,
+        selectComponentForModeAction: selectComponentForMode
       });
       // Stop the MentorSelectionScene
       phaserGameRef.current.scene.stop('MentorSelectionScene');
@@ -1054,7 +1098,8 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         onScenarioClick,
         onComponentClick,
         onShowMentorSelection: handleShowMentorSelection,
-        dispatch
+        dispatch,
+        selectComponentForModeAction: selectComponentForMode
       });
       
       // Store scene reference for selective updates

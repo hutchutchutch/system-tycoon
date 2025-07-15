@@ -11,6 +11,10 @@ import type {
   PerformanceMetrics,
   ComponentState,
   SimulationPhase,
+  ComponentSelection,
+  ComponentRequirement,
+  InitialNode,
+  CollaborationSettings,
 } from '../../types';
 import { supabase } from '../../services/supabase';
 
@@ -35,6 +39,8 @@ interface GameSliceState extends GameState {
     progress: any[];
     lastUpdate: number;
   };
+  // Component Selection State
+  selectedComponent: ComponentSelection | null;
 }
 
 const initialState: GameSliceState = {
@@ -58,6 +64,7 @@ const initialState: GameSliceState = {
     progress: [],
     lastUpdate: 0,
   },
+  selectedComponent: null,
 };
 
 // Async thunks
@@ -157,6 +164,241 @@ export const submitDesign = createAsyncThunk(
   }
 );
 
+// Helper function to get component-specific data
+const getComponentData = (componentType: string) => {
+  const componentConfigs: Record<string, {
+    requirements: ComponentRequirement[];
+    initialNodes: InitialNode[];
+    collaborationSettings: CollaborationSettings;
+  }> = {
+    api: {
+      requirements: [
+        {
+          id: 'api-latency',
+          type: 'performance',
+          description: 'API response time should be under 200ms',
+          target: 200,
+          unit: 'ms',
+          priority: 'critical',
+        },
+        {
+          id: 'api-throughput',
+          type: 'scalability',
+          description: 'Handle at least 1000 requests per second',
+          target: 1000,
+          unit: 'req/s',
+          priority: 'high',
+        },
+        {
+          id: 'api-security',
+          type: 'security',
+          description: 'Implement authentication and rate limiting',
+          target: 100,
+          unit: '%',
+          priority: 'critical',
+        },
+      ],
+      initialNodes: [
+        {
+          id: 'api-gateway',
+          type: 'custom',
+          position: { x: 100, y: 100 },
+          data: {
+            label: 'API Gateway',
+            componentType: 'api-gateway',
+            cost: 25,
+            capacity: 5000,
+            description: 'Manage API requests',
+            category: 'networking',
+          },
+          style: { background: '#4f46e5', color: 'white' },
+        },
+      ],
+      collaborationSettings: {
+        maxPlayers: 4,
+        allowedRoles: ['architect', 'engineer'],
+        consensusRequired: true,
+        timeLimit: 1800, // 30 minutes
+        allowRealTimeEditing: true,
+      },
+    },
+    cache: {
+      requirements: [
+        {
+          id: 'cache-hit-rate',
+          type: 'performance',
+          description: 'Achieve 90% cache hit rate',
+          target: 90,
+          unit: '%',
+          priority: 'high',
+        },
+        {
+          id: 'cache-capacity',
+          type: 'scalability',
+          description: 'Handle 10GB of cached data',
+          target: 10,
+          unit: 'GB',
+          priority: 'medium',
+        },
+      ],
+      initialNodes: [
+        {
+          id: 'redis-cache',
+          type: 'custom',
+          position: { x: 100, y: 100 },
+          data: {
+            label: 'Redis Cache',
+            componentType: 'cache',
+            cost: 30,
+            capacity: 10000,
+            description: 'Speed up data access',
+            category: 'storage',
+          },
+          style: { background: '#dc2626', color: 'white' },
+        },
+      ],
+      collaborationSettings: {
+        maxPlayers: 3,
+        allowedRoles: ['architect', 'engineer'],
+        consensusRequired: false,
+        timeLimit: 1200, // 20 minutes
+        allowRealTimeEditing: true,
+      },
+    },
+    compute: {
+      requirements: [
+        {
+          id: 'compute-utilization',
+          type: 'performance',
+          description: 'Maintain CPU utilization under 80%',
+          target: 80,
+          unit: '%',
+          priority: 'high',
+        },
+        {
+          id: 'compute-auto-scaling',
+          type: 'scalability',
+          description: 'Auto-scale based on demand',
+          target: 100,
+          unit: '%',
+          priority: 'critical',
+        },
+      ],
+      initialNodes: [
+        {
+          id: 'compute-instance',
+          type: 'custom',
+          position: { x: 100, y: 100 },
+          data: {
+            label: 'Compute Instance',
+            componentType: 'compute',
+            cost: 80,
+            capacity: 800,
+            description: 'General computation',
+            category: 'compute',
+          },
+          style: { background: '#059669', color: 'white' },
+        },
+      ],
+      collaborationSettings: {
+        maxPlayers: 4,
+        allowedRoles: ['architect', 'engineer', 'reviewer'],
+        consensusRequired: true,
+        timeLimit: 2400, // 40 minutes
+        allowRealTimeEditing: true,
+      },
+    },
+    database: {
+      requirements: [
+        {
+          id: 'db-availability',
+          type: 'reliability',
+          description: 'Maintain 99.9% uptime',
+          target: 99.9,
+          unit: '%',
+          priority: 'critical',
+        },
+        {
+          id: 'db-backup',
+          type: 'reliability',
+          description: 'Automated backups every 6 hours',
+          target: 6,
+          unit: 'hours',
+          priority: 'high',
+        },
+      ],
+      initialNodes: [
+        {
+          id: 'primary-database',
+          type: 'custom',
+          position: { x: 100, y: 100 },
+          data: {
+            label: 'Primary Database',
+            componentType: 'database',
+            cost: 100,
+            capacity: 500,
+            description: 'Store and retrieve data',
+            category: 'storage',
+          },
+          style: { background: '#dc2626', color: 'white' },
+        },
+      ],
+      collaborationSettings: {
+        maxPlayers: 3,
+        allowedRoles: ['architect', 'engineer'],
+        consensusRequired: true,
+        timeLimit: 2100, // 35 minutes
+        allowRealTimeEditing: false, // More careful editing for databases
+      },
+    },
+    load_balancer: {
+      requirements: [
+        {
+          id: 'lb-distribution',
+          type: 'performance',
+          description: 'Evenly distribute traffic across instances',
+          target: 95,
+          unit: '%',
+          priority: 'critical',
+        },
+        {
+          id: 'lb-health-checks',
+          type: 'reliability',
+          description: 'Detect unhealthy instances within 30 seconds',
+          target: 30,
+          unit: 'seconds',
+          priority: 'high',
+        },
+      ],
+      initialNodes: [
+        {
+          id: 'application-lb',
+          type: 'custom',
+          position: { x: 100, y: 100 },
+          data: {
+            label: 'Load Balancer',
+            componentType: 'load_balancer',
+            cost: 75,
+            capacity: 2000,
+            description: 'Distribute traffic',
+            category: 'networking',
+          },
+          style: { background: '#4f46e5', color: 'white' },
+        },
+      ],
+      collaborationSettings: {
+        maxPlayers: 3,
+        allowedRoles: ['architect', 'engineer'],
+        consensusRequired: false,
+        timeLimit: 1500, // 25 minutes
+        allowRealTimeEditing: true,
+      },
+    },
+  };
+
+  return componentConfigs[componentType] || componentConfigs.api; // fallback to api
+};
+
 const gameSlice = createSlice({
   name: 'game',
   initialState,
@@ -239,6 +481,41 @@ const gameSlice = createSlice({
       };
     },
     
+    // Component Selection Actions
+    selectComponentForMode: (state, action: PayloadAction<{
+      componentType: string;
+      mode: 'mentor' | 'collaboration';
+      scenarioId: string;
+    }>) => {
+      const { componentType, mode, scenarioId } = action.payload;
+      
+      // Define component-specific requirements and initial nodes
+      const componentData = getComponentData(componentType);
+      
+      state.selectedComponent = {
+        componentType,
+        mode,
+        scenarioId,
+        requirements: componentData.requirements,
+        initialNodes: componentData.initialNodes,
+        collaborationSettings: mode === 'collaboration' ? componentData.collaborationSettings : undefined,
+        selectedAt: Date.now(),
+      };
+    },
+    
+    clearComponentSelection: (state) => {
+      state.selectedComponent = null;
+    },
+    
+    updateCollaborationSettings: (state, action: PayloadAction<Partial<CollaborationSettings>>) => {
+      if (state.selectedComponent && state.selectedComponent.mode === 'collaboration') {
+        state.selectedComponent.collaborationSettings = {
+          ...state.selectedComponent.collaborationSettings!,
+          ...action.payload,
+        };
+      }
+    },
+    
     resetGameState: (state) => {
       state.currentScenario = undefined;
       state.meetingPhase = undefined;
@@ -306,6 +583,9 @@ export const {
   setSimulationPhase,
   updateCareerMapViewport,
   updateCareerMapData,
+  selectComponentForMode,
+  clearComponentSelection,
+  updateCollaborationSettings,
   resetGameState,
 } = gameSlice.actions;
 
@@ -320,5 +600,23 @@ export const selectIsAssetOnLeftSide = (worldX: number) => (state: any) => {
   const viewportCenterX = viewport.viewportWidth / 2;
   return screenX < viewportCenterX;
 };
+
+// Component Selection Selectors
+export const selectSelectedComponent = (state: any) => state.game.selectedComponent;
+
+export const selectIsCollaborationMode = (state: any) => 
+  state.game.selectedComponent?.mode === 'collaboration';
+
+export const selectComponentRequirements = (state: any) => 
+  state.game.selectedComponent?.requirements || [];
+
+export const selectComponentInitialNodes = (state: any) => 
+  state.game.selectedComponent?.initialNodes || [];
+
+export const selectCollaborationSettings = (state: any) => 
+  state.game.selectedComponent?.collaborationSettings;
+
+export const selectSelectedComponentType = (state: any) => 
+  state.game.selectedComponent?.componentType;
 
 export default gameSlice.reducer;
