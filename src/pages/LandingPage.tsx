@@ -12,11 +12,10 @@ import {
   Pricing,
   FooterCTA
 } from '../components/organisms';
-import './LandingPage.css';
 
 export const LandingPage: React.FC = () => {
   return (
-    <div className="landing-page">
+    <main className="landing-page">
       <CrisisAlert />
       <LandingHero />
       <HowItWorks />
@@ -28,6 +27,6 @@ export const LandingPage: React.FC = () => {
       <Certification />
       <Pricing />
       <FooterCTA />
-    </div>
+    </main>
   );
 };

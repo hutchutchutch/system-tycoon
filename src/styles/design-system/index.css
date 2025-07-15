@@ -25,6 +25,9 @@
 /* Import career map screen styles */
 @import './career-map.css';
 
+/* Import landing animations */
+@import '../landing-animations.css';
+
 /* Global Reset and Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;
