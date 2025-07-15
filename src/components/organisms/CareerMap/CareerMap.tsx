@@ -259,6 +259,7 @@ class CareerMapScene extends Phaser.Scene {
     
     // Re-add scenario nodes with updated data
     this.addScenarioNodes();
+    console.log('🔄 Scenarios updated:', this.scenarios.length, 'scenarios now displayed');
   }
 
   private processScenarios(scenarios: any[], progress: any[]): ScenarioNode[] {
@@ -267,6 +268,17 @@ class CareerMapScene extends Phaser.Scene {
     const worldHeight = Math.max(1500, this.cameras.main.height * 3);
     const centerX = worldWidth / 2;
     const centerY = worldHeight / 2;
+    
+    // If no scenarios provided, create test scenarios
+    if (!scenarios || scenarios.length === 0) {
+      console.log('⚠️ No scenarios provided, creating test scenarios');
+      const testScenarios = [
+        { id: 'test-1', title: 'Test Scenario 1', level: 1, clientName: 'Test Client A' },
+        { id: 'test-2', title: 'Test Scenario 2', level: 2, clientName: 'Test Client B' },
+        { id: 'test-3', title: 'Test Scenario 3', level: 3, clientName: 'Test Client C' },
+      ];
+      scenarios = testScenarios;
+    }
     
     return scenarios.map((scenario, index) => {
       const scenarioProgress = progress.find(p => p.scenarioId === scenario.id);
@@ -303,21 +315,32 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   preload() {
+    console.log('🎮 CareerMapScene: Starting preload...');
+    
+    // Add error handlers for asset loading
+    this.load.on('loaderror', (file: any) => {
+      console.error('❌ Failed to load asset:', file.src || file.key);
+    });
+    
+    this.load.on('complete', () => {
+      console.log('✅ All assets loaded successfully');
+    });
+    
     // Load background image
-    this.load.image('day_background', 'src/assets/day_background.png');
+    this.load.image('day_background', '/day_background.png');
     
     // Load system component images with proper asset paths
-    this.load.image('api', 'src/assets/api.png');
-    this.load.image('cache', 'src/assets/cache.png');
-    this.load.image('compute', 'src/assets/compute.png');
-    this.load.image('database', 'src/assets/database.png');
-    this.load.image('load_balancer', 'src/assets/load_balancer.png');
+    this.load.image('api', '/api.png');
+    this.load.image('cache', '/cache.png');
+    this.load.image('compute', '/compute.png');
+    this.load.image('database', '/database.png');
+    this.load.image('load_balancer', '/load_balancer.png');
     
     // Load nature assets
-    this.load.image('tree_pine', 'src/assets/tree_pine.png');
-    this.load.image('tree_round', 'src/assets/tree_round.png');
-    this.load.image('rocks', 'src/assets/rocks.png');
-    this.load.image('boulder', 'src/assets/boulder.png');
+    this.load.image('tree_pine', '/tree_pine.png');
+    this.load.image('tree_round', '/tree_round.png');
+    this.load.image('rocks', '/rocks.png');
+    this.load.image('boulder', '/boulder.png');
     
     // Create simple colored rectangles for nodes
     this.load.image('node-available', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
@@ -326,14 +349,28 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   create() {
+    console.log('🎮 CareerMapScene: Starting create...');
+    
     // Add tiled background that covers the entire world - ensure minimum panning space
     const worldWidth = Math.max(2000, this.cameras.main.width * 3);
     const worldHeight = Math.max(1500, this.cameras.main.height * 3);
     
+    console.log('🌍 World dimensions:', { worldWidth, worldHeight });
+    console.log('📷 Camera dimensions:', { width: this.cameras.main.width, height: this.cameras.main.height });
+    
     // Create tile sprite that covers the entire world, positioned at origin
-    this.backgroundSprite = this.add.tileSprite(0, 0, worldWidth, worldHeight, 'day_background');
-    this.backgroundSprite.setOrigin(0, 0);
-    this.backgroundSprite.setDepth(-10);
+    try {
+      this.backgroundSprite = this.add.tileSprite(0, 0, worldWidth, worldHeight, 'day_background');
+      this.backgroundSprite.setOrigin(0, 0);
+      this.backgroundSprite.setDepth(-10);
+      console.log('✅ Background sprite created successfully');
+    } catch (error) {
+      console.error('❌ Failed to create background sprite:', error);
+      // Fallback: create a colored rectangle background
+      const fallbackBg = this.add.rectangle(worldWidth/2, worldHeight/2, worldWidth, worldHeight, 0x2a4d3a);
+      fallbackBg.setDepth(-10);
+      console.log('🔄 Created fallback green background');
+    }
     
     // Set camera bounds based on world size - ensure there's room to pan
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
@@ -370,10 +407,13 @@ class CareerMapScene extends Phaser.Scene {
     this.addSystemComponents();
     
     // Add scenario nodes
+    console.log('📊 Scenarios data:', this.scenarios.length, 'scenarios loaded');
     this.addScenarioNodes();
     
     // Initial render
     this.renderScene();
+    
+    console.log('✨ CareerMapScene create() completed');
     
     // Set up camera controls
     this.setupCameraControls();
@@ -1038,6 +1078,16 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
   const careerMapViewport = useAppSelector(state => state.game.careerMapViewport);
   const careerMapData = useAppSelector(selectCareerMapData);
 
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🎮 CareerMapGame props:', {
+      scenarios: scenarios?.length || 0,
+      progress: progress?.length || 0,
+      scenariosData: scenarios,
+      progressData: progress
+    });
+  }, [scenarios, progress]);
+
   const handleShowMentorSelection = (componentType: string) => {
     setSceneState({ 
       mode: 'mentor-selection', 
@@ -1072,6 +1122,8 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
 
   useEffect(() => {
     if (gameRef.current && !phaserGameRef.current) {
+      console.log('🚀 Initializing Phaser game...');
+      
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         width: window.innerWidth,
@@ -1092,7 +1144,13 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         }
       };
 
-      phaserGameRef.current = new Phaser.Game(config);
+      try {
+        phaserGameRef.current = new Phaser.Game(config);
+        console.log('✅ Phaser game created successfully');
+      } catch (error) {
+        console.error('❌ Failed to create Phaser game:', error);
+        return;
+      }
       
       // Pass callbacks and dispatch to the scene (data will come from Redux)
       phaserGameRef.current.scene.start('CareerMapScene', { 
@@ -1130,7 +1188,7 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         sceneRef.current = null;
       }
     };
-  }, [onScenarioClick, onComponentClick, dispatch]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Update Redux state when props change (but don't restart scene)
   useEffect(() => {

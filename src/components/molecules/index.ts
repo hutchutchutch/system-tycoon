@@ -16,3 +16,6 @@ export type { MetricCardProps, MetricData } from './MetricCard';
 
 export { PhaseHeader } from './PhaseHeader';
 export type { PhaseHeaderProps } from './PhaseHeader';
+
+export { ImageComparison } from './ImageComparison';
+export type { ImageComparisonProps } from './ImageComparison';

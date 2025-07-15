@@ -10,6 +10,7 @@ export * from './MetricCard.stories';
 export * from './CharacterPortrait.stories';
 export * from './ComponentCard.stories';
 export * from './PhaseHeader.stories';
+export * from './ImageComparison.stories';
 
 export * from './AchievementToast.stories';
 export * from './GameHUD.stories';
