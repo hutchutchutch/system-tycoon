@@ -22,8 +22,29 @@ interface ScenarioNode {
 class CareerMapScene extends Phaser.Scene {
   private scenarios: ScenarioNode[] = [];
   private onScenarioClick: (scenarioId: string) => void;
-  private nodeSprites: Map<string, Phaser.GameObjects.Container> = new Map();
-  private pathGraphics!: Phaser.GameObjects.Graphics;
+  private gameScene!: Phaser.GameObjects.RenderTexture;
+  private floorSprite!: Phaser.GameObjects.Sprite;
+  private selectorSprite!: Phaser.GameObjects.Sprite;
+  private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+  private selectedTile: { x: number; y: number } = { x: 2, y: 2 };
+  
+  // Isometric grid settings
+  private readonly GRID_WIDTH = 8;
+  private readonly GRID_HEIGHT = 6;
+  private readonly TILE_WIDTH = 60;
+  private readonly BORDER_OFFSET = { x: 300, y: 100 };
+  private readonly FLOOR_GRAPHIC_WIDTH = 103;
+  private readonly FLOOR_GRAPHIC_HEIGHT = 53;
+  
+  // Level data - 0 = floor, 1 = wall, 2 = selector position
+  private levelData: number[][] = [
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,2,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0]
+  ];
 
   constructor() {
     super({ key: 'CareerMapScene' });
@@ -71,6 +92,13 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   preload() {
+    // Load system component images with proper asset paths
+    this.load.image('api', 'src/assets/api.png');
+    this.load.image('cache', 'src/assets/cache.png');
+    this.load.image('compute', 'src/assets/compute.png');
+    this.load.image('database', 'src/assets/database.png');
+    this.load.image('load_balancer', 'src/assets/load_balancer.png');
+    
     // Create simple colored rectangles for nodes
     this.load.image('node-available', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
     this.load.image('node-completed', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
@@ -81,131 +109,177 @@ class CareerMapScene extends Phaser.Scene {
     // Set up the camera
     this.cameras.main.setBackgroundColor('#1a1a1a');
     
-    // Create path graphics
-    this.pathGraphics = this.add.graphics();
-    this.drawPaths();
+    // Create render texture for depth sorting
+    this.gameScene = this.add.renderTexture(this.cameras.main.width, this.cameras.main.height);
+    this.add.existing(this.gameScene);
     
-    // Create scenario nodes
-    this.scenarios.forEach(scenario => {
-      this.createScenarioNode(scenario);
-    });
+    // Create sprite objects for rendering
+    this.floorSprite = this.make.sprite({ x: 0, y: 0, key: 'database' });
+    this.floorSprite.setScale(0.4);
+    this.floorSprite.setTint(0x666666);
+    
+    this.selectorSprite = this.make.sprite({ x: 0, y: 0, key: 'database' });
+    this.selectorSprite.setScale(0.5);
+    this.selectorSprite.setTint(0x00ff00);
+    
+    // Set up keyboard controls
+    this.cursors = this.input.keyboard!.createCursorKeys();
+    
+    // Initialize selector position from level data
+    this.findSelectorPosition();
+    
+    // Add system component decorations
+    this.addSystemComponents();
+    
+    // Initial render
+    this.renderScene();
     
     // Set up camera controls
     this.setupCameraControls();
   }
 
-  private drawPaths() {
-    this.pathGraphics.clear();
-    this.pathGraphics.lineStyle(3, 0x4a5568, 0.8);
-    
-    // Draw connecting lines between scenarios
-    for (let i = 0; i < this.scenarios.length - 1; i++) {
-      const current = this.scenarios[i];
-      const next = this.scenarios[i + 1];
-      
-      this.pathGraphics.beginPath();
-      this.pathGraphics.moveTo(current.x, current.y);
-      this.pathGraphics.lineTo(next.x, next.y);
-      this.pathGraphics.strokePath();
+  private findSelectorPosition() {
+    for (let i = 0; i < this.levelData.length; i++) {
+      for (let j = 0; j < this.levelData[i].length; j++) {
+        if (this.levelData[i][j] === 2) {
+          this.selectedTile = { x: j, y: i };
+          return;
+        }
+      }
     }
   }
 
-  private createScenarioNode(scenario: ScenarioNode) {
-    const container = this.add.container(scenario.x, scenario.y);
+  private renderScene() {
+    this.gameScene.clear();
     
-    // Node background
-    const nodeSize = 60;
-    let nodeColor = 0x4a5568; // Default gray
-    
-    if (scenario.isCompleted) {
-      nodeColor = 0x22c55e; // Success green
-    } else if (!scenario.isLocked) {
-      nodeColor = 0x3b82f6; // Primary blue
+    // Draw all tiles in depth order
+    for (let i = 0; i < this.levelData.length; i++) {
+      for (let j = 0; j < this.levelData[i].length; j++) {
+        this.drawTileIso(i, j);
+        
+        // Draw selector if at this position
+        if (i === this.selectedTile.y && j === this.selectedTile.x) {
+          this.drawSelectorIso();
+        }
+      }
     }
-    
-    const nodeBackground = this.add.circle(0, 0, nodeSize / 2, nodeColor);
-    nodeBackground.setStrokeStyle(3, 0xffffff, 0.8);
-    container.add(nodeBackground);
-    
-    // Node icon/text
-    if (scenario.isLocked) {
-      const lockIcon = this.add.text(0, 0, '🔒', {
-        fontSize: '20px',
-        color: '#ffffff'
-      }).setOrigin(0.5);
-      container.add(lockIcon);
-    } else if (scenario.isCompleted) {
-      const checkIcon = this.add.text(0, 0, '✓', {
-        fontSize: '24px',
-        color: '#ffffff',
-        fontStyle: 'bold'
-      }).setOrigin(0.5);
-      container.add(checkIcon);
-    } else {
-      const levelText = this.add.text(0, 0, scenario.level.toString(), {
-        fontSize: '18px',
-        color: '#ffffff',
-        fontStyle: 'bold'
-      }).setOrigin(0.5);
-      container.add(levelText);
-    }
-    
-    // Node title
-    const titleText = this.add.text(0, nodeSize / 2 + 20, scenario.title, {
-      fontSize: '12px',
-      color: '#ffffff',
-      align: 'center',
-      wordWrap: { width: 100 }
-    }).setOrigin(0.5);
-    container.add(titleText);
-    
-    // Client name
-    const clientText = this.add.text(0, nodeSize / 2 + 40, scenario.clientName, {
-      fontSize: '10px',
-      color: '#a0a0a0',
-      align: 'center'
-    }).setOrigin(0.5);
-    container.add(clientText);
-    
-    // Score (if completed)
-    if (scenario.isCompleted && scenario.bestScore) {
-      const scoreText = this.add.text(0, nodeSize / 2 + 55, `${scenario.bestScore}%`, {
-        fontSize: '10px',
-        color: '#22c55e',
-        align: 'center'
-      }).setOrigin(0.5);
-      container.add(scoreText);
-    }
-    
-    // Make interactive if not locked
-    if (!scenario.isLocked) {
-      container.setInteractive(new Phaser.Geom.Circle(0, 0, nodeSize / 2), Phaser.Geom.Circle.Contains);
-      container.on('pointerdown', () => {
-        this.onScenarioClick(scenario.id);
-      });
-      
-      container.on('pointerover', () => {
-        nodeBackground.setScale(1.1);
-        this.tweens.add({
-          targets: nodeBackground,
-          scale: 1.1,
-          duration: 200,
-          ease: 'Power2'
-        });
-      });
-      
-      container.on('pointerout', () => {
-        this.tweens.add({
-          targets: nodeBackground,
-          scale: 1,
-          duration: 200,
-          ease: 'Power2'
-        });
-      });
-    }
-    
-    this.nodeSprites.set(scenario.id, container);
   }
+
+  private drawTileIso(i: number, j: number) {
+    const cartPt = { x: j * this.TILE_WIDTH, y: i * this.TILE_WIDTH };
+    const isoPt = this.cartesianToIsometric(cartPt);
+    
+    this.gameScene.draw(
+      this.floorSprite,
+      isoPt.x + this.BORDER_OFFSET.x,
+      isoPt.y + this.BORDER_OFFSET.y
+    );
+  }
+
+  private drawSelectorIso() {
+    const cartPt = { 
+      x: this.selectedTile.x * this.TILE_WIDTH, 
+      y: this.selectedTile.y * this.TILE_WIDTH 
+    };
+    const isoPt = this.cartesianToIsometric(cartPt);
+    
+    this.gameScene.draw(
+      this.selectorSprite,
+      isoPt.x + this.BORDER_OFFSET.x,
+      isoPt.y + this.BORDER_OFFSET.y - 10 // Slightly elevated
+    );
+  }
+
+  private cartesianToIsometric(cartPt: { x: number; y: number }): { x: number; y: number } {
+    return {
+      x: cartPt.x - cartPt.y,
+      y: (cartPt.x + cartPt.y) / 2
+    };
+  }
+
+  private isometricToCartesian(isoPt: { x: number; y: number }): { x: number; y: number } {
+    return {
+      x: (2 * isoPt.y + isoPt.x) / 2,
+      y: (2 * isoPt.y - isoPt.x) / 2
+    };
+  }
+
+  private getTileCoordinates(cartPt: { x: number; y: number }): { x: number; y: number } {
+    return {
+      x: Math.floor(cartPt.x / this.TILE_WIDTH),
+      y: Math.floor(cartPt.y / this.TILE_WIDTH)
+    };
+  }
+
+  update() {
+    // Handle keyboard input for tile selection
+    if (Phaser.Input.Keyboard.JustDown(this.cursors.left!) && this.selectedTile.x > 0) {
+      this.selectedTile.x--;
+      this.updateLevel();
+    }
+    else if (Phaser.Input.Keyboard.JustDown(this.cursors.right!) && this.selectedTile.x < this.GRID_WIDTH - 1) {
+      this.selectedTile.x++;
+      this.updateLevel();
+    }
+    else if (Phaser.Input.Keyboard.JustDown(this.cursors.up!) && this.selectedTile.y > 0) {
+      this.selectedTile.y--;
+      this.updateLevel();
+    }
+    else if (Phaser.Input.Keyboard.JustDown(this.cursors.down!) && this.selectedTile.y < this.GRID_HEIGHT - 1) {
+      this.selectedTile.y++;
+      this.updateLevel();
+    }
+  }
+
+  private updateLevel() {
+    // Update level data to reflect new selector position
+    for (let i = 0; i < this.levelData.length; i++) {
+      for (let j = 0; j < this.levelData[i].length; j++) {
+        if (this.levelData[i][j] === 2) {
+          this.levelData[i][j] = 0; // Clear old position
+        }
+      }
+    }
+    this.levelData[this.selectedTile.y][this.selectedTile.x] = 2; // Set new position
+    
+    // Re-render the scene
+    this.renderScene();
+  }
+
+  private addSystemComponents() {
+    const components = ['api', 'cache', 'compute', 'database', 'load_balancer'];
+    const componentPositions = [
+      { x: 50, y: 50 },
+      { x: 900, y: 100 },
+      { x: 200, y: 400 },
+      { x: 750, y: 350 },
+      { x: 400, y: 500 },
+      { x: 100, y: 300 },
+      { x: 850, y: 450 },
+      { x: 300, y: 150 },
+    ];
+
+    componentPositions.forEach((pos, index) => {
+      const componentKey = components[index % components.length];
+      const component = this.add.image(pos.x, pos.y, componentKey);
+      component.setScale(0.3);
+      component.setAlpha(0.4);
+      component.setDepth(-1); // Place behind other elements
+      
+      // Add subtle floating animation
+      this.tweens.add({
+        targets: component,
+        y: pos.y + 10,
+        duration: 3000 + Math.random() * 2000,
+        ease: 'Sine.easeInOut',
+        yoyo: true,
+        repeat: -1,
+        delay: Math.random() * 1000
+      });
+    });
+  }
+
+
 
   private setupCameraControls() {
     // Enable camera dragging
@@ -224,9 +298,7 @@ class CareerMapScene extends Phaser.Scene {
     });
   }
 
-  update() {
-    // Update logic if needed
-  }
+
 }
 
 export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progress, onScenarioClick }) => {
