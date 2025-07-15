@@ -5,8 +5,9 @@ import { GameHUD } from '../organisms/GameHUD';
 export const GameLayout: React.FC = () => {
   const location = useLocation();
   
-  // Hide GameHUD on career page since it has its own PhaseHeader
-  const shouldShowGameHUD = !location.pathname.startsWith('/career');
+  // Hide GameHUD on career and design pages since they have their own integrated HUD
+  const shouldShowGameHUD = !location.pathname.startsWith('/career') && 
+                           !location.pathname.startsWith('/design');
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">

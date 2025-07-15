@@ -336,7 +336,7 @@ export const LandingPage: React.FC = () => {
         <div className="landing-page__hero-container">
           <div className="landing-page__hero-content">
             <h1 className="landing-page__hero-title">
-              Transform Problems into Solutions
+              Turn Requirements into Applications
             </h1>
             <p className="landing-page__hero-subtitle">
               Master system design through engaging visual gameplay
@@ -357,22 +357,13 @@ export const LandingPage: React.FC = () => {
               {/* ProblemVille Layer */}
               <div className="landing-page__world-layer landing-page__world-layer--problem">
                 <div className="landing-page__world-content">
-                  <div className="landing-page__world-header">
-                    <h2 className="landing-page__world-title">ProblemVille</h2>
-                    <p className="landing-page__world-subtitle">Where real-world challenges await</p>
-                  </div>
                   <div className="landing-page__world-scene landing-page__world-scene--green">
-                    <img src="/assets/tree_pine.png" alt="Pine Tree" className="landing-page__scene-asset landing-page__scene-asset--tree-pine-1" />
-                    <img src="/assets/tree_round.png" alt="Round Tree" className="landing-page__scene-asset landing-page__scene-asset--tree-round-1" />
-                    <img src="/assets/tree_pine.png" alt="Pine Tree" className="landing-page__scene-asset landing-page__scene-asset--tree-pine-2" />
-                    <img src="/assets/rock_small.png" alt="Small Rock" className="landing-page__scene-asset landing-page__scene-asset--rock" />
-                    <img src="/assets/boulder.png" alt="Boulder" className="landing-page__scene-asset landing-page__scene-asset--boulder" />
-                    <img src="/assets/tree_round.png" alt="Round Tree" className="landing-page__scene-asset landing-page__scene-asset--tree-round-2" />
-                    <div className="landing-page__problem-bubbles">
-                      <div className="landing-page__bubble">Scale to millions</div>
-                      <div className="landing-page__bubble">Handle traffic spikes</div>
-                      <div className="landing-page__bubble">Reduce latency</div>
-                      <div className="landing-page__bubble">Real-time sync</div>
+                    <img src="/hero_hand.png" alt="Hero Hand" className="landing-page__hero-hand" />
+                    <div className="landing-page__chat-bubble">
+                      <div className="landing-page__chat-bubble-tail"></div>
+                      <div className="landing-page__chat-bubble-content">
+                        I need an app so I can share my recipes and find others I might like!!!
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -384,10 +375,6 @@ export const LandingPage: React.FC = () => {
                 style={{ clipPath: `inset(0 0 0 ${sliderPosition}%)` }}
               >
                 <div className="landing-page__world-content">
-                  <div className="landing-page__world-header">
-                    <h2 className="landing-page__world-title">DataWorld</h2>
-                    <p className="landing-page__world-subtitle">Build elegant system architectures</p>
-                  </div>
                   <div className="landing-page__world-scene landing-page__world-scene--blue">
                     <div className="landing-page__react-flow-container">
                       <ReactFlow

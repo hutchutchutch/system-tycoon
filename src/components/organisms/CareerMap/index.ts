@@ -1,2 +1,2 @@
-export { CareerMap } from './CareerMap';
-export type { CareerMapProps } from './CareerMap';
+export { CareerMapGame } from './CareerMap';
+export { MentorSelectionScene } from './MentorSelectionScene';

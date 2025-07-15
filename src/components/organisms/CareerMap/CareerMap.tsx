@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Phaser from 'phaser';
 import { MentorCard, type Mentor } from '../../molecules/MentorCard';
 import { supabase } from '../../../services/supabase';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { updateCareerMapViewport, updateCareerMapData, selectCareerMapData } from '../../../features/game/gameSlice';
+import { MentorSelectionScene } from './MentorSelectionScene';
 
 interface CareerMapGameProps {
   scenarios: any[];
@@ -38,154 +40,7 @@ interface SceneState {
   scenarioId?: string;
 }
 
-// Specialized Mentor Selection Overlay Component
-const MentorSelectionOverlay: React.FC<{
-  componentType: string;
-  onMentorSelected: (mentor: Mentor) => void;
-  onBack: () => void;
-}> = ({ componentType, onMentorSelected, onBack }) => {
-  const [mentors, setMentors] = useState<Mentor[]>([]);
-  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchMentors();
-  }, []);
-
-  const fetchMentors = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const { data, error: supabaseError } = await supabase
-        .from('mentors')
-        .select('*')
-        .order('name');
-
-      if (supabaseError) {
-        throw supabaseError;
-      }
-
-      setMentors(data || []);
-    } catch (err) {
-      console.error('Error fetching mentors:', err);
-      setError('Failed to load mentors. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleMentorSelect = (mentor: Mentor) => {
-    setSelectedMentor(mentor);
-  };
-
-  const handleConfirmSelection = () => {
-    if (selectedMentor) {
-      onMentorSelected(selectedMentor);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-lg text-gray-300">Loading mentors...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center max-w-md p-8">
-          <div className="text-red-400 mb-4">
-            <svg className="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <h2 className="text-xl font-bold mb-2">Failed to Load Mentors</h2>
-          <p className="text-gray-400 mb-4">{error}</p>
-          <button
-            onClick={fetchMentors}
-            className="btn btn--primary"
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mentor-selection text-white overflow-auto h-full">
-      <div className="max-w-7xl mx-auto p-8">
-        <div className="mentor-selection__header">
-          <h1 className="mentor-selection__title">
-            Choose Your Mentor
-          </h1>
-          <p className="mentor-selection__subtitle">
-            Select an expert to guide you through this {componentType.replace('_', ' ')} challenge
-          </p>
-          <p className="mentor-selection__description">
-            Each mentor brings unique expertise and perspective to help you succeed
-          </p>
-        </div>
-
-        {mentors.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="w-16 h-16 mx-auto" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No Mentors Available</h3>
-            <p className="text-gray-400">
-              Mentors are currently being prepared for your journey.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="mentor-selection__grid">
-              {mentors.map((mentor) => (
-                <MentorCard
-                  key={mentor.id}
-                  mentor={mentor}
-                  selected={selectedMentor?.id === mentor.id}
-                  onSelect={handleMentorSelect}
-                />
-              ))}
-            </div>
-
-            {selectedMentor && (
-              <div className="mentor-selection__confirmation">
-                <div className="mentor-selection__confirmation-content">
-                  <div className="mentor-selection__confirmation-info">
-                    <div className="mentor-selection__confirmation-avatar">
-                      {selectedMentor.name.split(' ').map(n => n[0]).join('')}
-                    </div>
-                    <div className="mentor-selection__confirmation-details">
-                      <h4>{selectedMentor.name}</h4>
-                      <p>{selectedMentor.title}</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleConfirmSelection}
-                    className="btn btn--primary px-6 py-2"
-                  >
-                    Continue with {selectedMentor.name.split(' ')[0]}
-                  </button>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
-};
 
 class CareerMapScene extends Phaser.Scene {
   private scenarios: ScenarioNode[] = [];
@@ -578,9 +433,21 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   private handleResize(gameSize: Phaser.Structs.Size) {
+    // Check if camera is available before accessing bounds
+    if (!this.cameras.main) {
+      console.warn('⚠️ Camera not available during resize, skipping...');
+      return;
+    }
+    
     // Store current camera position as a percentage of the world
-    const currentWorldWidth = this.cameras.main.getBounds().width;
-    const currentWorldHeight = this.cameras.main.getBounds().height;
+    const bounds = this.cameras.main.getBounds();
+    if (!bounds) {
+      console.warn('⚠️ Camera bounds not available during resize, skipping...');
+      return;
+    }
+    
+    const currentWorldWidth = bounds.width;
+    const currentWorldHeight = bounds.height;
     const scrollXPercent = this.cameras.main.scrollX / currentWorldWidth;
     const scrollYPercent = this.cameras.main.scrollY / currentWorldHeight;
     
@@ -1073,6 +940,7 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
   const gameRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
   const sceneRef = useRef<CareerMapScene | null>(null);
+  const navigate = useNavigate();
   const [sceneState, setSceneState] = useState<SceneState>({ mode: 'career-map' });
   const dispatch = useAppDispatch();
   const careerMapViewport = useAppSelector(state => state.game.careerMapViewport);
@@ -1089,35 +957,64 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
   }, [scenarios, progress]);
 
   const handleShowMentorSelection = (componentType: string) => {
-    setSceneState({ 
-      mode: 'mentor-selection', 
+    console.log(`🎯 Switching to mentor selection for: ${componentType}`);
+    
+    // Update scene state first
+    const mentorSelectionData = {
+      mode: 'mentor-selection' as const,
       selectedComponent: componentType,
-      scenarioId: 'demo-scenario' // You can make this dynamic based on your needs
-    });
+      scenarioId: 'demo-scenario'
+    };
+    setSceneState(mentorSelectionData);
+    
+    if (phaserGameRef.current) {
+      // Switch to MentorSelectionScene with mentor selection handler that has access to componentType
+      phaserGameRef.current.scene.start('MentorSelectionScene', {
+        onMentorSelected: (mentor: Mentor) => handleMentorSelected(mentor, componentType, 'demo-scenario'),
+        onBack: handleMentorSelectionBack,
+        componentType: componentType,
+        scenarioId: 'demo-scenario'
+      });
+      // Stop the current CareerMapScene
+      phaserGameRef.current.scene.stop('CareerMapScene');
+    }
   };
 
   const handleMentorSelectionBack = () => {
+    console.log(`🔙 Returning to career map`);
+    if (phaserGameRef.current) {
+      // Switch back to CareerMapScene
+      phaserGameRef.current.scene.start('CareerMapScene', { 
+        onScenarioClick,
+        onComponentClick,
+        onShowMentorSelection: handleShowMentorSelection,
+        dispatch
+      });
+      // Stop the MentorSelectionScene
+      phaserGameRef.current.scene.stop('MentorSelectionScene');
+    }
     setSceneState({ mode: 'career-map' });
   };
 
-  const handleMentorSelected = (mentor: Mentor) => {
-    console.log(`✅ Mentor selected: ${mentor.name} for ${sceneState.selectedComponent}`);
+  const handleMentorSelected = (mentor: Mentor, componentType?: string, scenarioId?: string) => {
+    const finalComponentType = componentType || sceneState.selectedComponent;
+    const finalScenarioId = scenarioId || sceneState.scenarioId || 'demo-scenario';
+    
+    console.log(`✅ Mentor selected: ${mentor.name} for ${finalComponentType}`);
     
     // Store selected mentor in localStorage or state management
     localStorage.setItem('selectedMentor', JSON.stringify(mentor));
     localStorage.setItem('mentorContext', JSON.stringify({
-      componentType: sceneState.selectedComponent,
-      scenarioId: sceneState.scenarioId,
+      componentType: finalComponentType,
+      scenarioId: finalScenarioId,
       timestamp: Date.now()
     }));
     
-    // You could trigger additional logic here, like:
-    // - Show a success toast
-    // - Navigate to a design screen
-    // - Update game state
+    // Show success feedback
+    console.log(`🎉 Mentor ${mentor.name} is now guiding you through ${finalComponentType} design!`);
     
-    // For now, return to the career map
-    setSceneState({ mode: 'career-map' });
+    // Navigate to the SystemDesignCanvas with the scenario ID
+    navigate(`/design/${finalScenarioId}`);
   };
 
   useEffect(() => {
@@ -1130,7 +1027,7 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         height: window.innerHeight,
         parent: gameRef.current,
         backgroundColor: '#1a1a1a',
-        scene: CareerMapScene,
+        scene: [CareerMapScene, MentorSelectionScene], // Add MentorSelectionScene to the config
         physics: {
           default: 'arcade',
           arcade: {
@@ -1206,45 +1103,6 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
   return (
     <div className="career-map__phaser-container relative">
       <div ref={gameRef} className="w-full h-full" />
-      
-      {/* Mentor Selection Overlay */}
-      {sceneState.mode === 'mentor-selection' && (
-        <div className="absolute inset-0 z-50 bg-black bg-opacity-75 backdrop-blur-sm">
-          <div className="relative w-full h-full">
-            {/* Back Button */}
-            <button
-              onClick={handleMentorSelectionBack}
-              className="absolute top-4 left-4 z-60 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back to Map
-            </button>
-            
-            {/* Component Context Banner */}
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-60">
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg shadow-lg">
-                <div className="text-center">
-                  <div className="text-sm opacity-90">Selecting mentor for</div>
-                  <div className="text-lg font-semibold capitalize">
-                    {sceneState.selectedComponent?.replace('_', ' ')} Component
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Mentor Selection Screen */}
-            <div className="pt-20 h-full">
-              <MentorSelectionOverlay 
-                componentType={sceneState.selectedComponent || ''} 
-                onMentorSelected={handleMentorSelected}
-                onBack={handleMentorSelectionBack}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }; 
