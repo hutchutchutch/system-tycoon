@@ -10,15 +10,15 @@ export interface User {
 
 export interface Profile {
   id: string;
-  userId: string;
   username: string;
-  avatarUrl?: string;
-  currentLevel: number;
-  reputationPoints: number;
-  careerTitle: string;
-  preferredMentorId?: string;
-  createdAt: string;
-  updatedAt: string;
+  display_name?: string;
+  avatar_url?: string;
+  current_level: number;
+  reputation_points: number;
+  career_title: string;
+  preferred_mentor_id?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface UserStats {

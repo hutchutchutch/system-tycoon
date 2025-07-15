@@ -1,0 +1,220 @@
+/* Career Map Screen Styles - Following Design System */
+
+/* Career Map Container */
+.career-map {
+  height: 100vh;
+  background: var(--color-neutral-900);
+  color: var(--color-white);
+  padding: var(--space-8);
+  overflow: hidden;
+}
+
+.career-map__container {
+  max-width: 1280px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Career Map Header */
+.career-map__header {
+  margin-bottom: var(--space-6);
+  flex-shrink: 0;
+}
+
+.career-map__title {
+  font-size: var(--text-h1);
+  font-weight: var(--font-bold);
+  margin-bottom: var(--space-2);
+  color: var(--color-white);
+}
+
+.career-map__subtitle {
+  font-size: var(--text-base);
+  color: var(--color-neutral-400);
+  margin-bottom: 0;
+}
+
+/* Loading State */
+.career-map__loading {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.career-map__spinner {
+  width: 48px;
+  height: 48px;
+  border: 2px solid transparent;
+  border-top: 2px solid var(--color-primary-500);
+  border-bottom: 2px solid var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Phaser.js Game Container */
+.career-map__game-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: var(--space-6);
+  min-height: 0;
+}
+
+.career-map__phaser-container {
+  width: 100%;
+  height: 100%;
+  max-width: 1000px;
+  max-height: 700px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-neutral-700);
+}
+
+.career-map__phaser-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Controls and Legend */
+.career-map__controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-8);
+  flex-shrink: 0;
+  padding: var(--space-6);
+  background: var(--color-neutral-800);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-700);
+}
+
+.career-map__controls-section {
+  flex: 1;
+}
+
+.career-map__controls-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-white);
+  margin-bottom: var(--space-3);
+}
+
+.career-map__controls-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.career-map__controls-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-300);
+}
+
+.career-map__controls-item:last-child {
+  margin-bottom: 0;
+}
+
+.career-map__controls-item strong {
+  color: var(--color-white);
+  margin-right: var(--space-2);
+}
+
+/* Legend Icons */
+.career-map__legend-icon {
+  display: inline-block;
+  margin-right: var(--space-2);
+  font-size: var(--text-base);
+  width: 20px;
+  text-align: center;
+}
+
+.career-map__legend-icon--available {
+  color: var(--color-primary-500);
+}
+
+.career-map__legend-icon--completed {
+  color: var(--color-success-500);
+}
+
+.career-map__legend-icon--locked {
+  color: var(--color-neutral-500);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .career-map {
+    padding: var(--space-4);
+  }
+  
+  .career-map__controls {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .career-map__header {
+    margin-bottom: var(--space-4);
+  }
+  
+  .career-map__title {
+    font-size: var(--text-h2);
+  }
+  
+  .career-map__subtitle {
+    font-size: var(--text-sm);
+  }
+  
+  .career-map__game-container {
+    margin-bottom: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .career-map {
+    padding: var(--space-2);
+  }
+  
+  .career-map__controls {
+    padding: var(--space-4);
+  }
+  
+  .career-map__phaser-container {
+    border-radius: var(--radius-md);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .career-map__spinner {
+    animation: none;
+  }
+}
+
+/* Focus States */
+.career-map__phaser-container:focus-within {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Dark theme adjustments for better contrast */
+.career-map__phaser-container {
+  background: var(--color-neutral-950);
+}
+
+/* Ensure proper z-index for phaser game */
+.career-map__phaser-container {
+  position: relative;
+  z-index: 1;
+} 

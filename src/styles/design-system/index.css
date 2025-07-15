@@ -16,6 +16,15 @@
 /* Import additional UI component styles */
 @import './ui-components.css';
 
+/* Import landing page styles */
+@import './landing-page.css';
+
+/* Import authentication pages styles */
+@import './auth-pages.css';
+
+/* Import career map screen styles */
+@import './career-map.css';
+
 /* Global Reset and Base Styles */
 *, *::before, *::after {
   box-sizing: border-box;

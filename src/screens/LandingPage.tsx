@@ -1,12 +1,109 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../hooks/redux';
 import { Button } from '../components/ui/Button';
 import { Card, CardBody } from '../components/ui/Card';
+import { ReactFlow, useNodesState, useEdgesState, Handle, Position } from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+// Custom node components following the design system structure
+const SystemNode: React.FC<{ data: any }> = ({ data }) => {
+  return (
+    <div className={`react-flow__node-component react-flow__node-component--${data.category}`}>
+      <Handle type="target" position={Position.Top} className="react-flow__handle react-flow__handle-target" />
+      <div className="react-flow__node-component__header">
+        <div className="react-flow__node-component__icon">
+          {data.icon}
+        </div>
+        <div className="react-flow__node-component__title">
+          {data.label}
+        </div>
+      </div>
+      <div className="react-flow__node-component__body">
+        <div className="react-flow__node-component__metrics">
+          <div className="react-flow__node-component__metric">
+            <div className="react-flow__node-component__metric-label">Load</div>
+            <div className="react-flow__node-component__metric-value">{data.load}%</div>
+          </div>
+          <div className="react-flow__node-component__metric">
+            <div className="react-flow__node-component__metric-label">Status</div>
+            <div className="react-flow__node-component__metric-value">{data.status}</div>
+          </div>
+        </div>
+      </div>
+      <Handle type="source" position={Position.Bottom} className="react-flow__handle react-flow__handle-source" />
+    </div>
+  );
+};
+
+// Define nodeTypes outside component following best practices
+const nodeTypes = {
+  system: SystemNode,
+};
+
+// Initial nodes and edges for the demo - following design system categories
+const initialNodes = [
+  {
+    id: 'frontend',
+    type: 'system',
+    position: { x: 50, y: 50 },
+    data: {
+      label: 'Frontend',
+      icon: '🌐',
+      category: 'compute',
+      load: 45,
+      status: 'Healthy'
+    },
+  },
+  {
+    id: 'backend',
+    type: 'system',
+    position: { x: 200, y: 200 },
+    data: {
+      label: 'Backend',
+      icon: '⚙️',
+      category: 'compute',
+      load: 68,
+      status: 'Active'
+    },
+  },
+  {
+    id: 'database',
+    type: 'system',
+    position: { x: 350, y: 350 },
+    data: {
+      label: 'Database',
+      icon: '🗄️',
+      category: 'storage',
+      load: 23,
+      status: 'Optimal'
+    },
+  },
+];
+
+const initialEdges = [
+  {
+    id: 'frontend-backend',
+    source: 'frontend',
+    target: 'backend',
+    animated: false,
+    className: 'react-flow__edge--medium-traffic',
+  },
+  {
+    id: 'backend-database',
+    source: 'backend',
+    target: 'database',
+    animated: true,
+    className: 'react-flow__edge--low-traffic',
+  },
+];
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
@@ -17,18 +114,18 @@ export const LandingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div className="landing-page">
       {/* Navigation */}
-      <nav className="absolute top-0 left-0 right-0 z-10 p-6">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <div className="text-2xl font-bold text-white">System Design Tycoon</div>
-          <div className="space-x-4">
+      <nav className="landing-page__nav">
+        <div className="landing-page__nav-container">
+          <div className="landing-page__logo">System Design Tycoon</div>
+          <div className="landing-page__nav-actions">
             {!isAuthenticated && (
               <>
                 <Button
                   variant="ghost"
                   onClick={() => navigate('/auth/signin')}
-                  className="text-white hover:text-gray-300"
+                  className="landing-page__nav-button"
                 >
                   Sign In
                 </Button>
@@ -53,53 +150,72 @@ export const LandingPage: React.FC = () => {
       </nav>
 
       {/* Hero Section */}
-      <div className="relative min-h-screen flex items-center justify-center px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 animate-fade-in">
-            Build the Digital World
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-300 mb-8 animate-fade-in-delay">
-            Where every line of code flows like a theme park ride
-          </p>
-          <p className="text-lg text-gray-400 mb-12 max-w-2xl mx-auto animate-fade-in-delay-2">
-            Master system design through engaging visual gameplay. Design architectures 
-            for real companies, watch data flow through your systems, and learn from 
-            industry experts.
-          </p>
-          <Button
-            size="large"
-            onClick={handleGetStarted}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transform hover:scale-105 animate-fade-in-delay-3"
-          >
-            Start Your Journey
-          </Button>
-        </div>
+      <div className="landing-page__hero">
+        <div className="landing-page__hero-container">
+          {/* Left side - Hero text */}
+          <div className="landing-page__hero-content">
+            <h1 className="landing-page__hero-title">
+              Build the Digital World
+            </h1>
+            <p className="landing-page__hero-subtitle">
+              Where every line of code flows like a theme park ride
+            </p>
+            <p className="landing-page__hero-description">
+              Master system design through engaging visual gameplay. Design architectures 
+              for real companies, watch data flow through your systems, and learn from 
+              industry experts.
+            </p>
+            <Button
+              size="large"
+              onClick={handleGetStarted}
+              className="landing-page__hero-cta"
+            >
+              Start Your Journey
+            </Button>
+          </div>
 
-        {/* Animated System Visualization */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 left-10 w-32 h-32 bg-blue-500 rounded-full opacity-10 animate-float"></div>
-          <div className="absolute bottom-20 right-10 w-48 h-48 bg-purple-500 rounded-full opacity-10 animate-float-delayed"></div>
-          <div className="absolute top-1/2 left-1/4 w-24 h-24 bg-green-500 rounded-full opacity-10 animate-float"></div>
+          {/* Right side - React Flow diagram */}
+          <div className="landing-page__hero-demo">
+            <div className="landing-page__demo-container">
+              <ReactFlow
+                nodes={nodes}
+                edges={edges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                nodeTypes={nodeTypes}
+                fitView
+                fitViewOptions={{ padding: 0.2 }}
+                nodesDraggable={false}
+                nodesConnectable={false}
+                elementsSelectable={false}
+                panOnDrag={false}
+                zoomOnScroll={false}
+                zoomOnPinch={false}
+                zoomOnDoubleClick={false}
+                className="landing-page__demo-flow"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Value Proposition Cards */}
-      <div className="bg-gray-900 py-20 px-6">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold text-white text-center mb-12">
+      <div className="landing-page__features">
+        <div className="landing-page__features-container">
+          <h2 className="landing-page__features-title">
             Learn System Design the Fun Way
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="landing-page__features-grid">
             {valueProps.map((prop, index) => (
               <Card
                 key={index}
                 interactive
-                className="bg-gray-800 border-gray-700 hover:border-blue-500"
+                className="landing-page__feature-card"
               >
                 <CardBody>
-                  <div className="text-4xl mb-4">{prop.icon}</div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{prop.title}</h3>
-                  <p className="text-gray-400">{prop.description}</p>
+                  <div className="landing-page__feature-icon">{prop.icon}</div>
+                  <h3 className="landing-page__feature-title">{prop.title}</h3>
+                  <p className="landing-page__feature-description">{prop.description}</p>
                 </CardBody>
               </Card>
             ))}
@@ -108,20 +224,20 @@ export const LandingPage: React.FC = () => {
       </div>
 
       {/* Social Proof */}
-      <div className="bg-gray-800 py-16 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="grid grid-cols-3 gap-8">
-            <div>
-              <div className="text-4xl font-bold text-blue-400">10K+</div>
-              <div className="text-gray-400">Active Players</div>
+      <div className="landing-page__social-proof">
+        <div className="landing-page__social-proof-container">
+          <div className="landing-page__stats-grid">
+            <div className="landing-page__stat">
+              <div className="landing-page__stat-value landing-page__stat-value--primary">10K+</div>
+              <div className="landing-page__stat-label">Active Players</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-green-400">50K+</div>
-              <div className="text-gray-400">Systems Designed</div>
+            <div className="landing-page__stat">
+              <div className="landing-page__stat-value landing-page__stat-value--secondary">50K+</div>
+              <div className="landing-page__stat-label">Systems Designed</div>
             </div>
-            <div>
-              <div className="text-4xl font-bold text-purple-400">4.8/5</div>
-              <div className="text-gray-400">Player Rating</div>
+            <div className="landing-page__stat">
+              <div className="landing-page__stat-value landing-page__stat-value--premium">4.8/5</div>
+              <div className="landing-page__stat-label">Player Rating</div>
             </div>
           </div>
         </div>
@@ -152,42 +268,3 @@ const valueProps = [
     description: 'Progress from consultant to industry expert through referrals',
   },
 ];
-
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-  
-  .animate-fade-in {
-    animation: fadeIn 1s ease-out;
-  }
-  
-  .animate-fade-in-delay {
-    animation: fadeIn 1s ease-out 0.3s both;
-  }
-  
-  .animate-fade-in-delay-2 {
-    animation: fadeIn 1s ease-out 0.6s both;
-  }
-  
-  .animate-fade-in-delay-3 {
-    animation: fadeIn 1s ease-out 0.9s both;
-  }
-  
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-  
-  .animate-float-delayed {
-    animation: float 6s ease-in-out 3s infinite;
-  }
-`;
-document.head.appendChild(style);

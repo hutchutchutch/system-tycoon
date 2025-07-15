@@ -70,46 +70,41 @@ export const SignUpPage: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-xl p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Create Your Account</h1>
-        <p className="text-gray-600 mt-2">Start your system design journey today</p>
+    <div className="auth-page">
+      <div className="auth-page__header">
+        <h1 className="auth-page__title">Create Your Account</h1>
+        <p className="auth-page__subtitle">Start your system design journey today</p>
       </div>
 
       {/* OAuth Providers */}
-      <div className="space-y-3 mb-6">
+      <div className="auth-page__oauth-providers">
         {Object.entries(OAUTH_PROVIDERS).map(([key, provider]) => (
           <button
             key={key}
             onClick={() => handleOAuthSignIn(key.toLowerCase() as any)}
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+            className="auth-page__oauth-button"
           >
-            <span className="text-xl">{getProviderIcon(provider.name)}</span>
-            <span className="font-medium">Continue with {provider.name}</span>
+            <span className="auth-page__oauth-icon">{getProviderIcon(provider.name)}</span>
+            <span>Continue with {provider.name}</span>
           </button>
         ))}
       </div>
 
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300"></div>
-        </div>
-        <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">Or sign up with email</span>
-        </div>
+      <div className="auth-page__divider">
+        <span className="auth-page__divider-text">Or sign up with email</span>
       </div>
 
       {/* Sign Up Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="auth-page__form">
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+          <div className="auth-page__error-message">
             {error}
           </div>
         )}
 
-        <div>
-          <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="auth-page__form-group">
+          <label htmlFor="username" className="auth-page__form-label">
             Username
           </label>
           <input
@@ -119,18 +114,18 @@ export const SignUpPage: React.FC = () => {
             value={formData.username}
             onChange={handleInputChange}
             required
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              validationErrors.username ? 'border-red-300' : 'border-gray-300'
+            className={`auth-page__form-input ${
+              validationErrors.username ? 'auth-page__form-input--error' : ''
             }`}
             placeholder="johndoe"
           />
           {validationErrors.username && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.username}</p>
+            <div className="auth-page__form-error-text">{validationErrors.username}</div>
           )}
         </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="auth-page__form-group">
+          <label htmlFor="email" className="auth-page__form-label">
             Email
           </label>
           <input
@@ -140,18 +135,18 @@ export const SignUpPage: React.FC = () => {
             value={formData.email}
             onChange={handleInputChange}
             required
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              validationErrors.email ? 'border-red-300' : 'border-gray-300'
+            className={`auth-page__form-input ${
+              validationErrors.email ? 'auth-page__form-input--error' : ''
             }`}
             placeholder="you@example.com"
           />
           {validationErrors.email && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.email}</p>
+            <div className="auth-page__form-error-text">{validationErrors.email}</div>
           )}
         </div>
 
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="auth-page__form-group">
+          <label htmlFor="password" className="auth-page__form-label">
             Password
           </label>
           <input
@@ -161,18 +156,18 @@ export const SignUpPage: React.FC = () => {
             value={formData.password}
             onChange={handleInputChange}
             required
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              validationErrors.password ? 'border-red-300' : 'border-gray-300'
+            className={`auth-page__form-input ${
+              validationErrors.password ? 'auth-page__form-input--error' : ''
             }`}
             placeholder="••••••••"
           />
           {validationErrors.password && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.password}</p>
+            <div className="auth-page__form-error-text">{validationErrors.password}</div>
           )}
         </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+        <div className="auth-page__form-group">
+          <label htmlFor="confirmPassword" className="auth-page__form-label">
             Confirm Password
           </label>
           <input
@@ -182,50 +177,50 @@ export const SignUpPage: React.FC = () => {
             value={formData.confirmPassword}
             onChange={handleInputChange}
             required
-            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-              validationErrors.confirmPassword ? 'border-red-300' : 'border-gray-300'
+            className={`auth-page__form-input ${
+              validationErrors.confirmPassword ? 'auth-page__form-input--error' : ''
             }`}
             placeholder="••••••••"
           />
           {validationErrors.confirmPassword && (
-            <p className="mt-1 text-sm text-red-600">{validationErrors.confirmPassword}</p>
+            <div className="auth-page__form-error-text">{validationErrors.confirmPassword}</div>
           )}
         </div>
 
-        <div className="flex items-start">
+        <div className="auth-page__terms-group">
           <input
             type="checkbox"
             id="terms"
             required
-            className="mt-1 rounded border-gray-300 text-blue-600"
+            className="auth-page__terms-checkbox auth-page__checkbox"
           />
-          <label htmlFor="terms" className="ml-2 text-sm text-gray-600">
+          <label htmlFor="terms" className="auth-page__terms-label">
             I agree to the{' '}
-            <a href="/terms" className="text-blue-600 hover:underline">
-              Terms of Service
-            </a>{' '}
+            <a href="/terms">Terms of Service</a>{' '}
             and{' '}
-            <a href="/privacy" className="text-blue-600 hover:underline">
-              Privacy Policy
-            </a>
+            <a href="/privacy">Privacy Policy</a>
           </label>
         </div>
 
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+          className="auth-page__submit-button"
         >
-          {isLoading ? 'Creating account...' : 'Create Account'}
+          {isLoading ? (
+            <span className="auth-page__loading">Creating account...</span>
+          ) : (
+            'Create Account'
+          )}
         </button>
       </form>
 
-      <p className="text-center text-sm text-gray-600 mt-6">
+      <div className="auth-page__footer">
         Already have an account?{' '}
-        <Link to="/auth/signin" className="text-blue-600 hover:underline">
+        <Link to="/auth/signin" className="auth-page__link">
           Sign in
         </Link>
-      </p>
+      </div>
     </div>
   );
 };

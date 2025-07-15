@@ -30,11 +30,11 @@ export const signInWithEmail = createAsyncThunk(
     
     if (error) throw error;
     
-    // Fetch profile
+    // Fetch profile - using 'id' column instead of 'user_id'
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', data.user.id)
+      .eq('id', data.user.id)
       .single();
     
     if (profileError) throw profileError;
@@ -55,6 +55,25 @@ export const signUpWithEmail = createAsyncThunk(
     });
     
     if (error) throw error;
+    
+    if (data.user) {
+      // Create profile record in profiles table - database defaults will handle most fields
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .insert([{
+          id: data.user.id,
+          username: username,
+        }])
+        .select()
+        .single();
+      
+      if (profileError) {
+        console.error('Profile creation error:', profileError);
+        // Don't throw here as the user was created successfully
+      }
+      
+      return { user: data.user, profile };
+    }
     
     return { user: data.user };
   }
@@ -85,22 +104,62 @@ export const signOut = createAsyncThunk(
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    if (!session) return null;
+    if (error || !user) {
+      return null;
+    }
     
-    const { data: profile, error } = await supabase
+    // Fetch profile
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('id', user.id)
       .single();
     
-    if (error) throw error;
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      return null;
+    }
     
-    return { user: session.user, profile };
+    return { user, profile };
   }
 );
 
+export const demoSignIn = createAsyncThunk(
+  'auth/demoSignIn',
+  async (profileId: string) => {
+    // Create a mock user for demo purposes
+    const mockUser = {
+      id: profileId,
+      email: 'demo@example.com',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      aud: 'authenticated',
+      role: 'authenticated',
+      app_metadata: {},
+      user_metadata: {},
+    };
+    
+    // Create a mock profile based on the expected structure
+    const mockProfile = {
+      id: profileId,
+      username: 'hutchenbach',
+      display_name: undefined,
+      avatar_url: undefined,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      current_level: 1,
+      reputation_points: 0,
+      career_title: 'Aspiring Developer',
+      preferred_mentor_id: undefined,
+    };
+    
+    return { user: mockUser, profile: mockProfile };
+  }
+);
+
+// Slice definition
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -141,6 +200,7 @@ const authSlice = createSlice({
       .addCase(signUpWithEmail.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload.user as any;
+        state.profile = action.payload.profile;
         state.isAuthenticated = true;
       })
       .addCase(signUpWithEmail.rejected, (state, action) => {
@@ -183,6 +243,23 @@ const authSlice = createSlice({
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
         state.isAuthenticated = false;
+      });
+    
+    // Demo sign in
+    builder
+      .addCase(demoSignIn.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(demoSignIn.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user as any;
+        state.profile = action.payload.profile;
+        state.isAuthenticated = true;
+      })
+      .addCase(demoSignIn.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'Demo sign in failed';
       });
   },
 });
