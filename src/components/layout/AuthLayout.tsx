@@ -10,7 +10,7 @@ export const AuthLayout: React.FC = () => {
 
   // If already authenticated, redirect to career map
   if (isAuthenticated) {
-    return <Navigate to="/career" replace />;
+    return <Navigate to="/game" replace />;
   }
 
   const isSignIn = location.pathname === '/auth/signin';
@@ -25,7 +25,7 @@ export const AuthLayout: React.FC = () => {
             className="auth-layout__logo"
             onClick={() => navigate('/')}
           >
-            System Design Tycoon
+            System Tycoon
           </button>
           <div className="auth-layout__nav-actions">
             <Button
