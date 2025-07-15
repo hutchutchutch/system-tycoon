@@ -1,14 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
-
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'small' | 'medium' | 'large' | 'icon-only';
-  loading?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: 'left' | 'right';
-  fullWidth?: boolean;
-}
+import { ButtonProps } from './Button.types';
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
