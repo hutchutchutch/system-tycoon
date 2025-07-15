@@ -4,6 +4,12 @@
 
 This document details the Redux state management implementation for component selection and collaboration mode tracking in the System Tycoon application. The implementation follows Redux best practices and provides a predictable state management solution for managing component-specific scenarios, mentor selection, and collaboration features.
 
+**Recent Updates:**
+- Theme Management with Dark Mode Toggle
+- Browser Navigation State Management  
+- Email-to-Canvas Navigation Flow
+- Component Prop Passing Improvements
+
 ## Architecture Overview
 
 ```
@@ -25,6 +31,21 @@ This document details the Redux state management implementation for component se
                        │   Context        │
                        │ - Mode Display   │
                        └──────────────────┘
+
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│   ThemeContext  │───▶│   Theme State    │◀───│    GameHUD          │
+│                 │    │                  │    │                     │
+│ - Theme Toggle  │    │ - currentTheme   │    │ - Dark Mode Toggle  │
+│ - Provider      │    │ - toggleTheme    │    │ - Visual Feedback   │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│ BrowserWindow   │───▶│ Navigation State │◀───│ Email-Canvas Flow   │
+│                 │    │                  │    │                     │
+│ - Tab Props     │    │ - activeTab      │    │ - Email Links       │
+│ - Prop Passing  │    │ - tabs[]         │    │ - System Design     │
+└─────────────────┘    │ - tabProps       │    │ - Mission Complete  │
+                       └──────────────────┘    └─────────────────────┘
 ```
 
 ## State Structure
@@ -435,4 +456,246 @@ if (isCollaborationMode && collaborationSettings) {
 }
 ```
 
-This implementation provides a robust, scalable foundation for component selection and collaboration mode management, following Redux best practices while maintaining excellent developer and user experience. 
+This implementation provides a robust, scalable foundation for component selection and collaboration mode management, following Redux best practices while maintaining excellent developer and user experience.
+
+---
+
+## Recent Implementations: Theme Management & Navigation
+
+### Theme Management System
+
+#### ThemeContext Implementation
+```typescript
+interface ThemeContextType {
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+```
+
+#### GameHUD Dark Mode Toggle
+The GameHUD component now includes a prominent dark mode toggle button that provides visual feedback and switches the entire application theme:
+
+```typescript
+const { theme, toggleTheme } = useTheme();
+
+// Toggle button with Sun/Moon icons
+<button
+  className="game-hud__action-button game-hud__action-button--theme"
+  onClick={toggleTheme}
+  title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+  aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+>
+  {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+</button>
+```
+
+#### CSS Theme Variables System
+The design system now supports comprehensive theming through CSS custom properties:
+
+```css
+/* Light mode variables */
+:root {
+  --color-surface: #ffffff;
+  --color-neutral-50: #f9fafb;
+  --color-neutral-100: #f3f4f6;
+  /* ... more variables */
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --color-surface: #1f2937;
+  --color-neutral-50: #374151;
+  --color-neutral-100: #4b5563;
+  /* ... dark mode values */
+}
+```
+
+#### Application-Wide Theme Integration
+- **Main App**: Wrapped with ThemeProvider in `main.tsx`
+- **GameHUD**: Toggle button with visual feedback
+- **BrowserWindow**: Dark chrome and content areas
+- **EmailClient**: Dark mode email interface
+- **SystemDesignCanvas**: Dark mode canvas and tools
+- **AuthPages**: Enhanced dark mode styling
+
+### Browser Navigation State Management
+
+#### Enhanced BrowserWindow Architecture
+The BrowserWindow component now supports flexible prop passing to child components:
+
+```typescript
+interface BrowserTab {
+  id: string;
+  title: string;
+  url: string;
+  component: React.ComponentType<any>;
+  hasNotification?: boolean;
+  // Allow additional props to be passed to components
+  [key: string]: any;
+}
+
+// Dynamic prop passing to rendered components
+<ActiveComponent 
+  {...(activeTabData && Object.fromEntries(
+    Object.entries(activeTabData).filter(([key]) => 
+      !['id', 'title', 'url', 'component', 'hasNotification'].includes(key)
+    )
+  ))}
+/>
+```
+
+#### Tab State Management
+The Initial Experience now manages browser tabs with proper state flow:
+
+```typescript
+const [activeTab, setActiveTab] = useState<string>('');
+const [tabs, setTabs] = useState<BrowserTab[]>([]);
+
+// Email tab creation
+const handleEmailIconClick = useCallback(() => {
+  setShowBrowser(true);
+  setActiveTab('email');
+  setTabs([{
+    id: 'email',
+    title: 'ProMail - Inbox',
+    url: 'https://promail.com/inbox',
+    component: EmailClientWrapper,
+  }]);
+}, []);
+
+// System design tab creation with props
+const handleOpenSystemDesignTab = useCallback(() => {
+  const newTab = {
+    id: 'system-design',
+    title: 'System Builder - Emergency: Alex\'s Site',
+    url: 'https://systembuilder.tech/emergency/alexsite',
+    component: SystemDesignCanvasWrapper,
+  };
+  
+  setTabs(prev => [...prev, newTab]);
+  setActiveTab('system-design');
+}, []);
+```
+
+### Email-to-Canvas Navigation Flow
+
+#### Mission-Critical Navigation Chain
+The email client now seamlessly navigates to the crisis system design canvas:
+
+```
+1. Email Icon Click → Browser Opens with Email Tab
+   ↓
+2. Alex Chen Email → Click "systembuilder.tech/emergency/alexsite"
+   ↓  
+3. onOpenSystemDesign() → Creates System Design Tab
+   ↓
+4. CrisisSystemDesignCanvas → Load Alex's Broken System
+   ↓
+5. Mission Complete → Save the Community Health Crisis
+```
+
+#### Component Prop Flow
+```typescript
+// Tab creation with mission props
+tabs={tabs.map(tab => ({
+  ...tab,
+  onOpenSystemDesign: tab.id === 'email' ? handleOpenSystemDesignTab : undefined,
+  onMissionComplete: tab.id === 'system-design' ? handleMissionComplete : undefined,
+}))}
+
+// EmailClientWrapper receives navigation prop
+interface EmailClientWrapperProps {
+  onOpenSystemDesign?: () => void;
+}
+
+// Link handler in Alex Chen email
+<a 
+  href="#" 
+  onClick={(e) => {
+    e.preventDefault();
+    onOpenSystemDesign?.();
+  }}
+  className="email-link crisis-link"
+>
+  systembuilder.tech/emergency/alexsite
+</a>
+```
+
+#### Mission State Integration
+The system integrates with the existing mission state management:
+
+```typescript
+// Crisis mission completion flow
+const handleMissionComplete = () => {
+  dispatch(updateMetrics({
+    totalReportsSaved: 153,
+    familiesHelped: 153, 
+    systemUptime: 94,
+  }));
+  
+  dispatch(completeStep(missionId));
+  onMissionComplete?.();
+};
+```
+
+### State Flow Benefits
+
+#### Enhanced User Experience
+1. **Seamless Navigation**: Email links directly open relevant system design tools
+2. **Context Preservation**: Mission state maintained across browser tabs
+3. **Visual Consistency**: Theme applies across all components instantly
+4. **Progressive Disclosure**: Tabs reveal functionality as needed
+
+#### Developer Experience
+1. **Type Safety**: Full TypeScript integration across all new features
+2. **Prop Flexibility**: Dynamic prop passing without rigid interfaces
+3. **Theme Consistency**: CSS custom properties for maintainable theming
+4. **State Predictability**: Clear data flow from email to mission completion
+
+#### Performance Optimizations
+1. **Memoized Callbacks**: Prevent unnecessary re-renders
+2. **Conditional Rendering**: Only render active tab content
+3. **Theme Persistence**: Document-level theme attributes
+4. **Lazy Component Loading**: Components loaded only when tabs are active
+
+### Future Enhancements
+
+#### Planned Theme Features
+1. **System Preference Detection**: Auto-detect OS dark mode preference
+2. **Theme Persistence**: Remember user theme choice across sessions
+3. **Custom Themes**: Support for additional theme variants
+4. **Transition Animations**: Smooth theme switching animations
+
+#### Navigation Improvements
+1. **Tab History**: Browser-like back/forward navigation within tabs
+2. **Tab Persistence**: Maintain tab state across app refreshes
+3. **Bookmark System**: Save frequently accessed system design scenarios
+4. **Split View**: Side-by-side tab viewing for complex workflows
+
+#### Mission Flow Enhancements
+1. **Progress Tracking**: Visual indicators of mission completion steps
+2. **Branching Narratives**: Multiple mission paths based on user choices
+3. **Real-time Updates**: Live mission status updates across tabs
+4. **Achievement Integration**: Unlock rewards for mission completions
+
+This comprehensive state management approach provides a solid foundation for the game's core learning experiences while maintaining excellent performance and user experience standards. 

@@ -4,8 +4,10 @@ export interface BrowserTab {
   id: string;
   title: string;
   url: string;
-  component: React.ComponentType;
+  component: React.ComponentType<any>;
   hasNotification?: boolean;
+  // Allow additional props to be passed to the component
+  [key: string]: any;
 }
 
 export interface BrowserWindowProps {

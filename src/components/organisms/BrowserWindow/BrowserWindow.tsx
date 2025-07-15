@@ -85,7 +85,15 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
       </div>
 
       <div className="browser-window__content">
-        {ActiveComponent ? <ActiveComponent /> : children}
+        {ActiveComponent ? (
+          <ActiveComponent 
+            {...(activeTabData && Object.fromEntries(
+              Object.entries(activeTabData).filter(([key]) => 
+                !['id', 'title', 'url', 'component', 'hasNotification'].includes(key)
+              )
+            ))}
+          />
+        ) : children}
       </div>
     </div>
   );
