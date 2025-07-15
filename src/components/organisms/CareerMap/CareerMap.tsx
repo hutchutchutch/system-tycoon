@@ -5,6 +5,7 @@ interface CareerMapGameProps {
   scenarios: any[];
   progress: any[];
   onScenarioClick: (scenarioId: string) => void;
+  onComponentClick?: (componentType: string) => void;
 }
 
 interface ScenarioNode {
@@ -22,11 +23,13 @@ interface ScenarioNode {
 class CareerMapScene extends Phaser.Scene {
   private scenarios: ScenarioNode[] = [];
   private onScenarioClick: (scenarioId: string) => void;
+  private onComponentClick: (componentType: string) => void;
   private gameScene!: Phaser.GameObjects.RenderTexture;
   private floorSprite!: Phaser.GameObjects.Sprite;
   private selectorSprite!: Phaser.GameObjects.Sprite;
   private cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
   private selectedTile: { x: number; y: number } = { x: 2, y: 2 };
+  private backgroundSprite!: Phaser.GameObjects.TileSprite;
   
   // Isometric grid settings
   private readonly GRID_WIDTH = 8;
@@ -49,10 +52,12 @@ class CareerMapScene extends Phaser.Scene {
   constructor() {
     super({ key: 'CareerMapScene' });
     this.onScenarioClick = () => {};
+    this.onComponentClick = () => {};
   }
 
-  init(data: { scenarios: any[]; progress: any[]; onScenarioClick: (scenarioId: string) => void }) {
+  init(data: { scenarios: any[]; progress: any[]; onScenarioClick: (scenarioId: string) => void; onComponentClick?: (componentType: string) => void }) {
     this.onScenarioClick = data.onScenarioClick;
+    this.onComponentClick = data.onComponentClick || (() => {});
     this.scenarios = this.processScenarios(data.scenarios, data.progress);
   }
 
@@ -92,6 +97,9 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   preload() {
+    // Load background image
+    this.load.image('day_background', 'src/assets/day_background.png');
+    
     // Load system component images with proper asset paths
     this.load.image('api', 'src/assets/api.png');
     this.load.image('cache', 'src/assets/cache.png');
@@ -106,8 +114,17 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   create() {
-    // Set up the camera
-    this.cameras.main.setBackgroundColor('#1a1a1a');
+    // Add tiled background that covers the entire world - ensure minimum panning space
+    const worldWidth = Math.max(2000, this.cameras.main.width * 3);
+    const worldHeight = Math.max(1500, this.cameras.main.height * 3);
+    
+    // Create tile sprite that covers the entire world, positioned at origin
+    this.backgroundSprite = this.add.tileSprite(0, 0, worldWidth, worldHeight, 'day_background');
+    this.backgroundSprite.setOrigin(0, 0);
+    this.backgroundSprite.setDepth(-10);
+    
+    // Set camera bounds based on world size - ensure there's room to pan
+    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
     
     // Create render texture for depth sorting - use viewport dimensions
     this.gameScene = this.add.renderTexture(0, 0, this.cameras.main.width, this.cameras.main.height);
@@ -144,6 +161,19 @@ class CareerMapScene extends Phaser.Scene {
   private handleResize(gameSize: Phaser.Structs.Size) {
     // Update render texture size
     this.gameScene.setSize(gameSize.width, gameSize.height);
+    
+    // Update background tile sprite to ensure it covers the entire world - maintain panning space
+    const worldWidth = Math.max(2000, gameSize.width * 3);
+    const worldHeight = Math.max(1500, gameSize.height * 3);
+    if (this.backgroundSprite) {
+      this.backgroundSprite.setSize(worldWidth, worldHeight);
+      this.backgroundSprite.setPosition(0, 0);
+      this.backgroundSprite.setOrigin(0, 0);
+    }
+    
+    // Update camera bounds to maintain panning space
+    this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+    
     // Re-render scene with new dimensions
     this.renderScene();
   }
@@ -276,6 +306,45 @@ class CareerMapScene extends Phaser.Scene {
       component.setAlpha(0.4);
       component.setDepth(-1); // Place behind other elements
       
+      // Make all components clickable
+      component.setInteractive();
+      component.setAlpha(0.6); // Make it slightly more visible
+      
+      let componentClickStart = { x: 0, y: 0, time: 0 };
+      
+      component.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+        componentClickStart = { x: pointer.x, y: pointer.y, time: Date.now() };
+      });
+      
+      component.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+        const dragDistance = Phaser.Math.Distance.Between(componentClickStart.x, componentClickStart.y, pointer.x, pointer.y);
+        const clickTime = Date.now() - componentClickStart.time;
+        
+        // Only trigger click if it's not a drag (small movement and quick)
+        if (dragDistance < 5 && clickTime < 500) {
+          console.log(`🖱️ Component clicked: ${componentKey.toUpperCase()}`);
+          console.log(`📊 Click details:`, {
+            component: componentKey,
+            position: { x: pos.x, y: pos.y },
+            dragDistance,
+            clickTime,
+            timestamp: new Date().toISOString()
+          });
+          this.onComponentClick(componentKey);
+        }
+      });
+      
+      // Add hover effect
+      component.on('pointerover', () => {
+        component.setAlpha(0.8);
+        component.setTint(0xffffff);
+      });
+      
+      component.on('pointerout', () => {
+        component.setAlpha(0.6);
+        component.clearTint();
+      });
+      
       // Add subtle floating animation
       this.tweens.add({
         targets: component,
@@ -292,12 +361,38 @@ class CareerMapScene extends Phaser.Scene {
 
 
   private setupCameraControls() {
-    // Enable camera dragging
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+    let clickStartTime = 0;
+    
+    // Enable camera dragging with proper drag detection
+    this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
+      isDragging = false;
+      dragStartX = pointer.x;
+      dragStartY = pointer.y;
+      clickStartTime = Date.now();
+    });
+    
     this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
       if (pointer.isDown) {
-        this.cameras.main.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameras.main.zoom;
-        this.cameras.main.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameras.main.zoom;
+        const dragDistance = Phaser.Math.Distance.Between(dragStartX, dragStartY, pointer.x, pointer.y);
+        const dragTime = Date.now() - clickStartTime;
+        
+        // Consider it a drag if moved more than 5 pixels or held for more than 100ms
+        if (dragDistance > 5 || dragTime > 100) {
+          isDragging = true;
+        }
+        
+        if (isDragging) {
+          this.cameras.main.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameras.main.zoom;
+          this.cameras.main.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameras.main.zoom;
+        }
       }
+    });
+    
+    this.input.on('pointerup', () => {
+      isDragging = false;
     });
 
     // Enable zoom with mouse wheel
@@ -311,7 +406,7 @@ class CareerMapScene extends Phaser.Scene {
 
 }
 
-export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progress, onScenarioClick }) => {
+export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progress, onScenarioClick, onComponentClick }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
 
@@ -343,7 +438,8 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
       phaserGameRef.current.scene.start('CareerMapScene', { 
         scenarios, 
         progress, 
-        onScenarioClick 
+        onScenarioClick,
+        onComponentClick
       });
 
       // Handle window resize
@@ -366,17 +462,17 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
         phaserGameRef.current = null;
       }
     };
-  }, [scenarios, progress, onScenarioClick]);
+  }, [scenarios, progress, onScenarioClick, onComponentClick]);
 
   // Update scene data when props change
   useEffect(() => {
     if (phaserGameRef.current) {
       const scene = phaserGameRef.current.scene.getScene('CareerMapScene') as CareerMapScene;
       if (scene) {
-        scene.scene.restart({ scenarios, progress, onScenarioClick });
+        scene.scene.restart({ scenarios, progress, onScenarioClick, onComponentClick });
       }
     }
-  }, [scenarios, progress, onScenarioClick]);
+  }, [scenarios, progress, onScenarioClick, onComponentClick]);
 
   return <div ref={gameRef} className="career-map__phaser-container" />;
 }; 

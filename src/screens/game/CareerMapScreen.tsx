@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { fetchScenarios, fetchUserProgress } from '../../features/game/gameSlice';
-import { CareerMapGame } from '../../components/game/CareerMapGame';
+import { CareerMapGame } from '../../components/organisms/CareerMap/CareerMap';
 
 export const CareerMapScreen: React.FC = () => {
   const navigate = useNavigate();
