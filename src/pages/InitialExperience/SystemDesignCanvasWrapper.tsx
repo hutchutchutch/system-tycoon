@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { SystemDesignCanvas } from '../../components/organisms/SystemDesignCanvas';
+import { CrisisSystemDesignCanvas } from './CrisisSystemDesignCanvas';
 import './SystemDesignCanvasWrapper.css';
 
-export const SystemDesignCanvasWrapper: React.FC = () => {
+interface SystemDesignCanvasWrapperProps {
+  onMissionComplete?: () => void;
+}
+
+export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps> = ({ onMissionComplete }) => {
   const [loading, setLoading] = useState(true);
+  const [currentMission, setCurrentMission] = useState('separate_concerns');
 
   React.useEffect(() => {
     // Simulate loading the broken system
@@ -14,12 +19,18 @@ export const SystemDesignCanvasWrapper: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
+  const handleMissionComplete = () => {
+    // For now, just call the parent handler
+    // In a full implementation, this would advance to the next mission
+    onMissionComplete?.();
+  };
+
   if (loading) {
     return (
       <div className="system-design-wrapper">
         <div className="system-design-loading">
           <div className="system-design-loading__spinner"></div>
-          <p>Loading Sarah's broken website configuration...</p>
+          <p>Analyzing Alex's broken system...</p>
         </div>
       </div>
     );
@@ -27,32 +38,16 @@ export const SystemDesignCanvasWrapper: React.FC = () => {
 
   return (
     <div className="system-design-wrapper">
-      <div className="system-design-header">
-        <h2>Sarah's Bakery Website - System Configuration</h2>
+      <div className="system-design-header crisis-header">
+        <h2>Community Health Crisis - Emergency System Repair</h2>
         <p className="system-design-header__error">
-          ⚠️ System is over-engineered and not working properly!
+          ⚠️ CRITICAL: System failing! 200+ families can't report symptoms!
         </p>
       </div>
       
-      <SystemDesignCanvas
-        projectId="sarahsbakery"
-        requirements={[
-          { id: '1', name: 'View blog posts', met: false },
-          { id: '2', name: 'Images load quickly (<3s)', met: false },
-          { id: '3', name: 'Handle 100 concurrent visitors', met: false },
-          { id: '4', name: 'Cost under $50/month', met: false },
-        ]}
-        budget={{
-          monthly: 50,
-          setup: 0,
-        }}
-        onValidate={(system) => {
-          // Validation logic would go here
-          return {
-            isValid: false,
-            errors: ['No storage for images', 'Databases not connected properly', 'Excessive redundancy ($847/month)'],
-          };
-        }}
+      <CrisisSystemDesignCanvas
+        missionId={currentMission}
+        onMissionComplete={handleMissionComplete}
       />
     </div>
   );
