@@ -1,4 +1,6 @@
 // Atoms - Stateless building blocks
+
+// Base UI components (keep existing)
 export { Button } from './Button';
 export type { ButtonProps } from './Button';
 
@@ -16,3 +18,17 @@ export type { IconProps, IconName } from './Icon';
 
 export { Input } from './Input';
 export type { InputProps } from './Input';
+
+// New browser-focused atoms
+export { BrowserTab } from './BrowserTab';
+export type { BrowserTabProps } from './BrowserTab';
+
+export { EmailStatus } from './EmailStatus';
+export type { EmailStatusProps, EmailStatusType } from './EmailStatus';
+
+export { NotificationDot } from './NotificationDot';
+export type { NotificationDotProps, NotificationVariant } from './NotificationDot';
+
+// React Flow handles (for system design) (TODO: Implement)
+// export { Handle } from './Handle';
+// export type { HandleProps } from './Handle';
