@@ -9,7 +9,6 @@ import { LandingPage } from './pages/LandingPage';
 import { SignInPage } from './pages/auth/SignInPage';
 import { SignUpPage } from './pages/auth/SignUpPage';
 import { InitialExperience } from './pages/InitialExperience';
-import { CareerMapPage } from './pages/game/CareerMapPage';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
 import { SystemDesignPage } from './pages/game/SystemDesignPage';
@@ -58,20 +57,6 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <InitialExperience />,
-          },
-        ],
-      },
-      {
-        path: 'career',
-        element: (
-          <ProtectedRoute>
-            <GameLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <CareerMapPage />,
           },
         ],
       },

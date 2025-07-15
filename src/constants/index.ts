@@ -54,7 +54,7 @@ export const ROUTES = {
   AUTH: '/auth',
   SIGN_IN: '/auth/signin',
   SIGN_UP: '/auth/signup',
-  CAREER_MAP: '/career',
+  GAME: '/game',
   MEETING: '/meeting/:scenarioId',
   MENTOR_SELECT: '/mentor/:scenarioId',
   DESIGN: '/design/:scenarioId',

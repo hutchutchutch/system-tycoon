@@ -18,7 +18,7 @@ export const SignInPage: React.FC = () => {
     e.preventDefault();
     const result = await dispatch(signInWithEmail(formData));
     if (signInWithEmail.fulfilled.match(result)) {
-      navigate('/career');
+      navigate('/game');
     }
   };
 
@@ -29,7 +29,7 @@ export const SignInPage: React.FC = () => {
   const handleDemoSignIn = async () => {
     const result = await dispatch(demoSignIn('1c8d0b3a-0fae-4916-9c8a-987473c0a24e'));
     if (demoSignIn.fulfilled.match(result)) {
-      navigate('/career');
+      navigate('/game');
     }
   };
 

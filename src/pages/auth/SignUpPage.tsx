@@ -53,7 +53,7 @@ export const SignUpPage: React.FC = () => {
     }));
 
     if (signUpWithEmail.fulfilled.match(result)) {
-      navigate('/career');
+      navigate('/game');
     }
   };
 

@@ -49,7 +49,7 @@ export const ResultsPage: React.FC = () => {
           
           <div className="flex gap-4 justify-center">
             <button
-              onClick={() => navigate('/career')}
+              onClick={() => navigate('/game')}
               className="px-6 py-3 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors"
             >
               Return to Map
