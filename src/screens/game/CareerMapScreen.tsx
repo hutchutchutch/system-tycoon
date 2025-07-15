@@ -26,6 +26,19 @@ export const CareerMapScreen: React.FC = () => {
     navigate(`/simulation/${scenarioId}`);
   };
 
+  const handleComponentClick = (componentType: string) => {
+    console.log(`🎮 Career Map - Component interaction: ${componentType}`);
+    
+    // You can add additional logic here based on your game design:
+    // - Track analytics
+    // - Update game state
+    // - Show additional information
+    // - Trigger achievements
+    
+    // For now, this provides a hook for future functionality
+    // The main mentor selection logic is handled within the CareerMapGame component
+  };
+
   if (isLoading) {
     return (
       <div className="career-map__loading">
@@ -69,6 +82,7 @@ export const CareerMapScreen: React.FC = () => {
         scenarios={scenarios} 
         progress={progress} 
         onScenarioClick={handleScenarioClick}
+        onComponentClick={handleComponentClick}
       />
     </div>
   );
