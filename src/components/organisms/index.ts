@@ -32,3 +32,16 @@ export * from './CareerMap';
 export { ComponentDrawer } from './ComponentDrawer';
 export { GameHUD } from './GameHUD';
 export { MetricsDashboard } from './MetricsDashboard';
+
+// Landing page organisms
+export { LandingHero } from './LandingHero';
+export { CrisisAlert } from './CrisisAlert';
+export { HowItWorks } from './HowItWorks';
+export { MissionShowcase } from './MissionShowcase';
+export { ImpactDashboard } from './ImpactDashboard';
+export { LearningPaths } from './LearningPaths';
+export { Partners } from './Partners';
+export { CollaborationFeature } from './CollaborationFeature';
+export { Certification } from './Certification';
+export { Pricing } from './Pricing';
+export { FooterCTA } from './FooterCTA';

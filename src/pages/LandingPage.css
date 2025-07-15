@@ -1,3 +1,5 @@
+@import '../styles/landing-animations.css';
+
 .landing-page {
   min-height: 100vh;
   background: #ffffff;

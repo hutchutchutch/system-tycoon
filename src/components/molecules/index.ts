@@ -40,3 +40,13 @@ export type { PhaseHeaderProps } from './PhaseHeader';
 
 export { QuestionCard } from './QuestionCard';
 export type { QuestionCardProps } from './QuestionCard';
+
+// Landing page molecules
+export { MissionCard } from './MissionCard';
+export { LearningTrackCard } from './LearningTrackCard';
+export { PricingCard } from './PricingCard';
+export { StatCounter } from './StatCounter';
+export { CountdownTimer } from './CountdownTimer';
+export { AnimatedCounter } from './AnimatedCounter';
+export { SkillTree } from './SkillTree';
+export { StepCard } from './StepCard';
