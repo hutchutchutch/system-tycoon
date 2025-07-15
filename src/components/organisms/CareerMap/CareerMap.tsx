@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { MentorCard, type Mentor } from '../../molecules/MentorCard';
 import { supabase } from '../../../services/supabase';
+import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
+import { updateCareerMapViewport, updateCareerMapData, selectCareerMapData } from '../../../features/game/gameSlice';
 
 interface CareerMapGameProps {
   scenarios: any[];
@@ -190,6 +192,7 @@ class CareerMapScene extends Phaser.Scene {
   private onScenarioClick: (scenarioId: string) => void;
   private onComponentClick: (componentType: string) => void;
   private onShowMentorSelection: (componentType: string) => void;
+  private dispatch: any; // Redux dispatch function
   private gameScene!: Phaser.GameObjects.RenderTexture;
   private floorSprite!: Phaser.GameObjects.Sprite;
   private selectorSprite!: Phaser.GameObjects.Sprite;
@@ -229,34 +232,57 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   init(data: { 
-    scenarios: any[]; 
-    progress: any[]; 
     onScenarioClick: (scenarioId: string) => void; 
     onComponentClick?: (componentType: string) => void;
     onShowMentorSelection?: (componentType: string) => void;
+    dispatch?: any;
   }) {
     this.onScenarioClick = data.onScenarioClick;
     this.onComponentClick = data.onComponentClick || (() => {});
     this.onShowMentorSelection = data.onShowMentorSelection || (() => {});
-    this.scenarios = this.processScenarios(data.scenarios, data.progress);
+    this.dispatch = data.dispatch || (() => {});
+    // Scenarios will be loaded via updateScenariosData from Redux
+    this.scenarios = [];
+  }
+
+  // Method for selective updates without scene restart
+  updateScenariosData(scenarios: any[], progress: any[]) {
+    // Update internal scenarios data
+    this.scenarios = this.processScenarios(scenarios, progress);
+    
+    // Clear existing scenario nodes (find them by a data property)
+    this.children.list.forEach(child => {
+      if (child.getData && child.getData('type') === 'scenario-node') {
+        child.destroy();
+      }
+    });
+    
+    // Re-add scenario nodes with updated data
+    this.addScenarioNodes();
   }
 
   private processScenarios(scenarios: any[], progress: any[]): ScenarioNode[] {
+    // Calculate world center for positioning scenarios
+    const worldWidth = Math.max(2000, this.cameras.main.width * 3);
+    const worldHeight = Math.max(1500, this.cameras.main.height * 3);
+    const centerX = worldWidth / 2;
+    const centerY = worldHeight / 2;
+    
     return scenarios.map((scenario, index) => {
       const scenarioProgress = progress.find(p => p.scenarioId === scenario.id);
       const isLocked = scenario.level > 1 && !scenarioProgress;
       const isCompleted = scenarioProgress?.status === 'completed';
       
-      // Create a path-like layout
-      const pathWidth = 800;
-      const pathHeight = 600;
+      // Create a path-like layout centered in the world
+      const pathWidth = 600;
+      const pathHeight = 400;
       const nodesPerRow = 3;
       const row = Math.floor(index / nodesPerRow);
       const col = index % nodesPerRow;
       
-      // Add some organic spacing and offsets
-      const baseX = 150 + (col * (pathWidth / nodesPerRow));
-      const baseY = 100 + (row * 120);
+      // Position relative to center, creating a path layout
+      const baseX = centerX - pathWidth/2 + (col * (pathWidth / nodesPerRow));
+      const baseY = centerY - pathHeight/2 + (row * 120);
       
       // Add some randomness for a more natural path
       const offsetX = (Math.random() - 0.5) * 60;
@@ -287,6 +313,12 @@ class CareerMapScene extends Phaser.Scene {
     this.load.image('database', 'src/assets/database.png');
     this.load.image('load_balancer', 'src/assets/load_balancer.png');
     
+    // Load nature assets
+    this.load.image('tree_pine', 'src/assets/tree_pine.png');
+    this.load.image('tree_round', 'src/assets/tree_round.png');
+    this.load.image('rocks', 'src/assets/rocks.png');
+    this.load.image('boulder', 'src/assets/boulder.png');
+    
     // Create simple colored rectangles for nodes
     this.load.image('node-available', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
     this.load.image('node-completed', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==');
@@ -305,6 +337,12 @@ class CareerMapScene extends Phaser.Scene {
     
     // Set camera bounds based on world size - ensure there's room to pan
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+    
+    // Center camera initially so user can pan in all directions
+    const centerX = (worldWidth - this.cameras.main.width) / 2;
+    const centerY = (worldHeight - this.cameras.main.height) / 2;
+    this.cameras.main.scrollX = centerX;
+    this.cameras.main.scrollY = centerY;
     
     // Create render texture for depth sorting - use viewport dimensions
     this.gameScene = this.add.renderTexture(0, 0, this.cameras.main.width, this.cameras.main.height);
@@ -331,11 +369,17 @@ class CareerMapScene extends Phaser.Scene {
     // Add system component decorations
     this.addSystemComponents();
     
+    // Add scenario nodes
+    this.addScenarioNodes();
+    
     // Initial render
     this.renderScene();
     
     // Set up camera controls
     this.setupCameraControls();
+    
+    // Initialize Redux state with current camera position
+    this.updateCameraViewportState();
     
     // Handle resize events
     this.scale.on('resize', this.handleResize, this);
@@ -405,7 +449,7 @@ class CareerMapScene extends Phaser.Scene {
     });
   }
 
-  private showTooltip(x: number, y: number, componentType: string) {
+  private showTooltip(worldX: number, worldY: number, componentType: string) {
     this.clearTooltipHideTimeout();
     this.currentHoveredComponent = componentType;
     
@@ -413,11 +457,57 @@ class CareerMapScene extends Phaser.Scene {
     const content = this.getTooltipContent(componentType);
     this.tooltipText.setText(content);
     
-    // Position tooltip near the component but within screen bounds
-    const tooltipX = Math.min(Math.max(x, 150), this.cameras.main.width - 150);
-    const tooltipY = Math.max(y - 80, 80);
+    // Convert world coordinates to screen coordinates
+    const camera = this.cameras.main;
+    const screenX = worldX - camera.scrollX;
+    const screenY = worldY - camera.scrollY;
     
-    this.tooltipContainer.setPosition(tooltipX, tooltipY);
+    // Get current viewport dimensions
+    const viewportWidth = camera.width;
+    const viewportHeight = camera.height;
+    const viewportCenterX = viewportWidth / 2;
+    
+    // Determine if asset is on left or right side of current view
+    const isOnLeftSide = screenX < viewportCenterX;
+    
+    // Calculate tooltip position based on side
+    const tooltipWidth = 300;
+    const tooltipHeight = 120;
+    const padding = 20;
+    
+    let tooltipX: number;
+    let tooltipY: number;
+    
+    if (isOnLeftSide) {
+      // Asset on left side - place tooltip to the right
+      tooltipX = screenX + 50; // 50px to the right of asset
+      // Ensure tooltip doesn't go off right edge
+      if (tooltipX + tooltipWidth > viewportWidth - padding) {
+        tooltipX = viewportWidth - tooltipWidth - padding;
+      }
+    } else {
+      // Asset on right side - place tooltip to the left  
+      tooltipX = screenX - tooltipWidth - 50; // 50px to the left of asset
+      // Ensure tooltip doesn't go off left edge
+      if (tooltipX < padding) {
+        tooltipX = padding;
+      }
+    }
+    
+    // Vertical positioning - prefer above asset, but adjust if off-screen
+    tooltipY = screenY - tooltipHeight - 20; // 20px above asset
+    if (tooltipY < padding) {
+      tooltipY = screenY + 50; // Place below if not enough space above
+    }
+    if (tooltipY + tooltipHeight > viewportHeight - padding) {
+      tooltipY = viewportHeight - tooltipHeight - padding;
+    }
+    
+    // Apply screen coordinates to tooltip (convert back to world for container)
+    const worldTooltipX = tooltipX + camera.scrollX;
+    const worldTooltipY = tooltipY + camera.scrollY;
+    
+    this.tooltipContainer.setPosition(worldTooltipX, worldTooltipY);
     this.tooltipContainer.setVisible(true);
     
     // Add subtle fade-in animation
@@ -448,6 +538,12 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   private handleResize(gameSize: Phaser.Structs.Size) {
+    // Store current camera position as a percentage of the world
+    const currentWorldWidth = this.cameras.main.getBounds().width;
+    const currentWorldHeight = this.cameras.main.getBounds().height;
+    const scrollXPercent = this.cameras.main.scrollX / currentWorldWidth;
+    const scrollYPercent = this.cameras.main.scrollY / currentWorldHeight;
+    
     // Update render texture size
     this.gameScene.setSize(gameSize.width, gameSize.height);
     
@@ -462,6 +558,18 @@ class CareerMapScene extends Phaser.Scene {
     
     // Update camera bounds to maintain panning space
     this.cameras.main.setBounds(0, 0, worldWidth, worldHeight);
+    
+    // Restore camera position proportionally or center if first time
+    if (currentWorldWidth > 0) {
+      this.cameras.main.scrollX = scrollXPercent * worldWidth;
+      this.cameras.main.scrollY = scrollYPercent * worldHeight;
+    } else {
+      // Center camera if this is initial resize
+      const centerX = (worldWidth - gameSize.width) / 2;
+      const centerY = (worldHeight - gameSize.height) / 2;
+      this.cameras.main.scrollX = centerX;
+      this.cameras.main.scrollY = centerY;
+    }
     
     // Re-render scene with new dimensions
     this.renderScene();
@@ -576,16 +684,23 @@ class CareerMapScene extends Phaser.Scene {
   }
 
   private addSystemComponents() {
+    // Calculate world center for positioning components
+    const worldWidth = Math.max(2000, this.cameras.main.width * 3);
+    const worldHeight = Math.max(1500, this.cameras.main.height * 3);
+    const centerX = worldWidth / 2;
+    const centerY = worldHeight / 2;
+    
     const components = ['api', 'cache', 'compute', 'database', 'load_balancer'];
+    // Position components relative to center with spread around the area
     const componentPositions = [
-      { x: 50, y: 50 },
-      { x: 900, y: 100 },
-      { x: 200, y: 400 },
-      { x: 750, y: 350 },
-      { x: 400, y: 500 },
-      { x: 100, y: 300 },
-      { x: 850, y: 450 },
-      { x: 300, y: 150 },
+      { x: centerX - 400, y: centerY - 200 },
+      { x: centerX + 300, y: centerY - 150 },
+      { x: centerX - 200, y: centerY + 100 },
+      { x: centerX + 200, y: centerY + 50 },
+      { x: centerX, y: centerY + 200 },
+      { x: centerX - 350, y: centerY + 50 },
+      { x: centerX + 350, y: centerY + 150 },
+      { x: centerX - 100, y: centerY - 100 },
     ];
 
     componentPositions.forEach((pos, index) => {
@@ -663,6 +778,164 @@ class CareerMapScene extends Phaser.Scene {
         delay: Math.random() * 1000
       });
     });
+    
+    // Add nature assets for environment decoration
+    this.addNatureAssets(centerX, centerY);
+  }
+  
+  private addNatureAssets(centerX: number, centerY: number) {
+    const natureAssets = [
+      { key: 'tree_pine', scale: 0.4, positions: [
+        { x: centerX - 500, y: centerY - 300 },
+        { x: centerX + 450, y: centerY - 250 },
+        { x: centerX - 300, y: centerY + 300 },
+        { x: centerX + 200, y: centerY + 280 }
+      ]},
+      { key: 'tree_round', scale: 0.35, positions: [
+        { x: centerX - 450, y: centerY - 100 },
+        { x: centerX + 400, y: centerY + 100 },
+        { x: centerX - 150, y: centerY + 250 },
+        { x: centerX + 300, y: centerY - 200 }
+      ]},
+      { key: 'rocks', scale: 0.3, positions: [
+        { x: centerX - 350, y: centerY + 150 },
+        { x: centerX + 320, y: centerY - 100 },
+        { x: centerX - 100, y: centerY + 300 },
+        { x: centerX + 150, y: centerY - 250 }
+      ]},
+      { key: 'boulder', scale: 0.4, positions: [
+        { x: centerX - 480, y: centerY + 200 },
+        { x: centerX + 380, y: centerY - 180 },
+        { x: centerX + 100, y: centerY + 320 }
+      ]}
+    ];
+    
+    natureAssets.forEach(asset => {
+      asset.positions.forEach(pos => {
+        const natureSprite = this.add.image(pos.x, pos.y, asset.key);
+        natureSprite.setScale(asset.scale);
+        natureSprite.setAlpha(0.7);
+        natureSprite.setDepth(-2); // Place behind system components
+        
+        // Add subtle swaying animation to trees
+        if (asset.key.includes('tree')) {
+          this.tweens.add({
+            targets: natureSprite,
+            rotation: 0.05,
+            duration: 4000 + Math.random() * 2000,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1,
+            delay: Math.random() * 2000
+          });
+        }
+      });
+    });
+  }
+  
+  private addScenarioNodes() {
+    this.scenarios.forEach((scenario, index) => {
+      // Create scenario node based on status
+      let nodeColor = 0x666666; // locked
+      let nodeAlpha = 0.5;
+      let nodeScale = 0.8;
+      
+      if (scenario.isCompleted) {
+        nodeColor = 0x22c55e; // green - completed
+        nodeAlpha = 1.0;
+        nodeScale = 1.0;
+      } else if (!scenario.isLocked) {
+        nodeColor = 0x3b82f6; // blue - available
+        nodeAlpha = 0.9;
+        nodeScale = 0.9;
+      }
+      
+      // Create main node circle
+      const nodeGraphics = this.add.graphics();
+      nodeGraphics.fillStyle(nodeColor, nodeAlpha);
+      nodeGraphics.fillCircle(0, 0, 30);
+      nodeGraphics.setPosition(scenario.x, scenario.y);
+      nodeGraphics.setScale(nodeScale);
+      nodeGraphics.setDepth(10); // Above background elements
+      nodeGraphics.setData('type', 'scenario-node'); // Mark for selective updates
+      
+      // Add scenario title text
+      const titleText = this.add.text(scenario.x, scenario.y - 50, scenario.title, {
+        fontSize: '14px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+        align: 'center',
+        wordWrap: { width: 120 }
+      });
+      titleText.setOrigin(0.5);
+      titleText.setDepth(11);
+      titleText.setData('type', 'scenario-node'); // Mark for selective updates
+      
+      // Add client name text
+      const clientText = this.add.text(scenario.x, scenario.y + 45, scenario.clientName, {
+        fontSize: '12px',
+        color: '#cccccc',
+        align: 'center'
+      });
+      clientText.setOrigin(0.5);
+      clientText.setDepth(11);
+      clientText.setData('type', 'scenario-node'); // Mark for selective updates
+      
+      // Add completion indicator for completed scenarios
+      if (scenario.isCompleted && scenario.bestScore) {
+        const scoreText = this.add.text(scenario.x, scenario.y + 60, `${scenario.bestScore}%`, {
+          fontSize: '10px',
+          color: '#22c55e',
+          fontStyle: 'bold',
+          align: 'center'
+        });
+        scoreText.setOrigin(0.5);
+        scoreText.setDepth(11);
+        scoreText.setData('type', 'scenario-node'); // Mark for selective updates
+      }
+      
+      // Make clickable if not locked
+      if (!scenario.isLocked) {
+        nodeGraphics.setInteractive(new Phaser.Geom.Circle(0, 0, 30), Phaser.Geom.Circle.Contains);
+        
+        nodeGraphics.on('pointerover', () => {
+          nodeGraphics.setScale(nodeScale * 1.1);
+          nodeGraphics.setAlpha(Math.min(nodeAlpha + 0.2, 1.0));
+        });
+        
+        nodeGraphics.on('pointerout', () => {
+          nodeGraphics.setScale(nodeScale);
+          nodeGraphics.setAlpha(nodeAlpha);
+        });
+        
+        nodeGraphics.on('pointerup', () => {
+          console.log(`🎯 Scenario clicked: ${scenario.title}`);
+          this.onScenarioClick(scenario.id);
+        });
+        
+        // Add pulsing animation for available scenarios
+        if (!scenario.isCompleted) {
+          this.tweens.add({
+            targets: nodeGraphics,
+            alpha: nodeAlpha + 0.3,
+            duration: 1500,
+            ease: 'Sine.easeInOut',
+            yoyo: true,
+            repeat: -1,
+            delay: index * 200
+          });
+        }
+      }
+      
+      // Add lock icon for locked scenarios
+      if (scenario.isLocked) {
+        const lockText = this.add.text(scenario.x, scenario.y, '🔒', {
+          fontSize: '16px'
+        });
+        lockText.setOrigin(0.5);
+        lockText.setDepth(12);
+      }
+    });
   }
 
   private setupCameraControls() {
@@ -692,12 +965,17 @@ class CareerMapScene extends Phaser.Scene {
         if (isDragging) {
           this.cameras.main.scrollX -= (pointer.x - pointer.prevPosition.x) / this.cameras.main.zoom;
           this.cameras.main.scrollY -= (pointer.y - pointer.prevPosition.y) / this.cameras.main.zoom;
+          
+          // Update Redux state when camera moves
+          this.updateCameraViewportState();
         }
       }
     });
     
     this.input.on('pointerup', () => {
       isDragging = false;
+      // Final state update when dragging ends
+      this.updateCameraViewportState();
     });
 
     // Enable zoom with mouse wheel
@@ -705,7 +983,35 @@ class CareerMapScene extends Phaser.Scene {
       const zoomFactor = deltaY > 0 ? 0.9 : 1.1;
       const newZoom = Phaser.Math.Clamp(this.cameras.main.zoom * zoomFactor, 0.5, 2);
       this.cameras.main.setZoom(newZoom);
+      
+      // Update Redux state when zoom changes
+      this.updateCameraViewportState();
     });
+  }
+  
+  private updateCameraViewportState() {
+    if (!this.dispatch) return;
+    
+    const camera = this.cameras.main;
+    const worldWidth = Math.max(2000, camera.width * 3);
+    const worldHeight = Math.max(1500, camera.height * 3);
+    
+    this.dispatch(updateCareerMapViewport({
+      scrollX: camera.scrollX,
+      scrollY: camera.scrollY,
+      zoom: camera.zoom,
+      worldWidth,
+      worldHeight,
+      viewportWidth: camera.width,
+      viewportHeight: camera.height,
+    }));
+  }
+  
+  private isAssetOnLeftSideOfView(worldX: number): boolean {
+    const camera = this.cameras.main;
+    const screenX = worldX - camera.scrollX;
+    const viewportCenterX = camera.width / 2;
+    return screenX < viewportCenterX;
   }
 
   private clearTooltipHideTimeout() {
@@ -726,7 +1032,11 @@ class CareerMapScene extends Phaser.Scene {
 export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progress, onScenarioClick, onComponentClick }) => {
   const gameRef = useRef<HTMLDivElement>(null);
   const phaserGameRef = useRef<Phaser.Game | null>(null);
+  const sceneRef = useRef<CareerMapScene | null>(null);
   const [sceneState, setSceneState] = useState<SceneState>({ mode: 'career-map' });
+  const dispatch = useAppDispatch();
+  const careerMapViewport = useAppSelector(state => state.game.careerMapViewport);
+  const careerMapData = useAppSelector(selectCareerMapData);
 
   const handleShowMentorSelection = (componentType: string) => {
     setSceneState({ 
@@ -784,14 +1094,20 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
 
       phaserGameRef.current = new Phaser.Game(config);
       
-      // Pass data to the scene
+      // Pass callbacks and dispatch to the scene (data will come from Redux)
       phaserGameRef.current.scene.start('CareerMapScene', { 
-        scenarios, 
-        progress, 
         onScenarioClick,
         onComponentClick,
-        onShowMentorSelection: handleShowMentorSelection
+        onShowMentorSelection: handleShowMentorSelection,
+        dispatch
       });
+      
+      // Store scene reference for selective updates
+      const scene = phaserGameRef.current.scene.getScene('CareerMapScene') as CareerMapScene;
+      sceneRef.current = scene;
+      
+      // Initialize Redux state with current data
+      dispatch(updateCareerMapData({ scenarios, progress }));
 
       // Handle window resize
       const handleResize = () => {
@@ -811,25 +1127,23 @@ export const CareerMapGame: React.FC<CareerMapGameProps> = ({ scenarios, progres
       if (phaserGameRef.current) {
         phaserGameRef.current.destroy(true);
         phaserGameRef.current = null;
+        sceneRef.current = null;
       }
     };
-  }, [scenarios, progress, onScenarioClick, onComponentClick]);
+  }, [onScenarioClick, onComponentClick, dispatch]);
 
-  // Update scene data when props change
+  // Update Redux state when props change (but don't restart scene)
   useEffect(() => {
-    if (phaserGameRef.current) {
-      const scene = phaserGameRef.current.scene.getScene('CareerMapScene') as CareerMapScene;
-      if (scene) {
-        scene.scene.restart({ 
-          scenarios, 
-          progress, 
-          onScenarioClick, 
-          onComponentClick,
-          onShowMentorSelection: handleShowMentorSelection
-        });
-      }
+    dispatch(updateCareerMapData({ scenarios, progress }));
+  }, [scenarios, progress, dispatch]);
+
+  // Selectively update scene when Redux state changes
+  useEffect(() => {
+    if (sceneRef.current && careerMapData.lastUpdate > 0) {
+      // Use selective updates instead of restarting the entire scene
+      sceneRef.current.updateScenariosData(careerMapData.scenarios, careerMapData.progress);
     }
-  }, [scenarios, progress, onScenarioClick, onComponentClick]);
+  }, [careerMapData]);
 
   return (
     <div className="career-map__phaser-container relative">

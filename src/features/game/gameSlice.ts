@@ -20,6 +20,21 @@ interface GameSliceState extends GameState {
   progress: ScenarioProgress[];
   isLoading: boolean;
   error: string | null;
+  // Add camera viewport state for Phaser scene tracking
+  careerMapViewport: {
+    scrollX: number;
+    scrollY: number;
+    zoom: number;
+    worldWidth: number;
+    worldHeight: number;
+    viewportWidth: number;
+    viewportHeight: number;
+  };
+  careerMapData: {
+    scenarios: any[];
+    progress: any[];
+    lastUpdate: number;
+  };
 }
 
 const initialState: GameSliceState = {
@@ -29,6 +44,20 @@ const initialState: GameSliceState = {
   progress: [],
   isLoading: false,
   error: null,
+  careerMapViewport: {
+    scrollX: 0,
+    scrollY: 0,
+    zoom: 1,
+    worldWidth: 2000,
+    worldHeight: 1500,
+    viewportWidth: 800,
+    viewportHeight: 600,
+  },
+  careerMapData: {
+    scenarios: [],
+    progress: [],
+    lastUpdate: 0,
+  },
 };
 
 // Async thunks
@@ -190,6 +219,26 @@ const gameSlice = createSlice({
         state.simulationPhase.currentPhase = action.payload;
       }
     },
+    updateCareerMapViewport: (state, action: PayloadAction<{
+      scrollX: number;
+      scrollY: number;
+      zoom: number;
+      worldWidth: number;
+      worldHeight: number;
+      viewportWidth: number;
+      viewportHeight: number;
+    }>) => {
+      state.careerMapViewport = action.payload;
+    },
+    
+    updateCareerMapData: (state, action: PayloadAction<{ scenarios: any[]; progress: any[] }>) => {
+      state.careerMapData = {
+        scenarios: action.payload.scenarios,
+        progress: action.payload.progress,
+        lastUpdate: Date.now(),
+      };
+    },
+    
     resetGameState: (state) => {
       state.currentScenario = undefined;
       state.meetingPhase = undefined;
@@ -255,7 +304,21 @@ export const {
   updateComponentState,
   updatePerformanceMetrics,
   setSimulationPhase,
+  updateCareerMapViewport,
+  updateCareerMapData,
   resetGameState,
 } = gameSlice.actions;
+
+// Selectors for camera viewport state
+export const selectCareerMapViewport = (state: any) => state.game.careerMapViewport;
+
+export const selectCareerMapData = (state: any) => state.game.careerMapData;
+
+export const selectIsAssetOnLeftSide = (worldX: number) => (state: any) => {
+  const viewport = state.game.careerMapViewport;
+  const screenX = worldX - viewport.scrollX;
+  const viewportCenterX = viewport.viewportWidth / 2;
+  return screenX < viewportCenterX;
+};
 
 export default gameSlice.reducer;
