@@ -57,7 +57,7 @@ export const CareerMapScreen: React.FC = () => {
   return (
     <div className="career-map career-map--fullscreen">
       <PhaseHeader
-        title="Career Map"
+        title="ProblemVille"
         subtitle={`Level ${currentLevel} - ${careerTitle}`}
         variant="career-map"
         rightContent={
