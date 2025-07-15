@@ -74,7 +74,6 @@ Several files need `type` imports due to `verbatimModuleSyntax`:
 - Other similar cases
 
 ### Broken Import Paths
-- ComponentShowcase.tsx imports from old paths (`../ui/`, `../game/`)
 - GameLayout.tsx imports from old path (`../game/GameHUD`)
 - Need to update to new atomic structure paths
 
@@ -122,7 +121,7 @@ Several files need `type` imports due to `verbatimModuleSyntax`:
 
 2. **Fix TypeScript imports:**
    - Add `type` keyword to type imports
-   - Update old import paths in ComponentShowcase and GameLayout
+   - Update old import paths in GameLayout
 
 3. **Create missing files:**
    - MeetingRoom.tsx in organisms/MeetingRoom/

@@ -1,75 +1,110 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { Badge } from '../ui/Badge';
 
 export interface Mentor {
   id: string;
   name: string;
   title: string;
-  avatar: string;
-  specializations: string[];
-  advicePreview: string;
-  levelRange: string;
-  isRecommended?: boolean;
-  isLocked?: boolean;
+  tags: string[];
+  tagline: string;
+  quote: string;
+  signature: {
+    legacy: string;
+    knownFor: string;
+  };
+  personality: {
+    style: string;
+    traits: string;
+  };
+  specialty: {
+    tools: string[];
+    domains: string[];
+  };
+  lore: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface MentorCardProps {
   mentor: Mentor;
   selected?: boolean;
   onSelect?: (mentor: Mentor) => void;
+  disabled?: boolean;
 }
 
 export const MentorCard: React.FC<MentorCardProps> = ({
   mentor,
   selected = false,
   onSelect,
+  disabled = false,
 }) => {
   const handleClick = () => {
-    if (!mentor.isLocked && onSelect) {
+    if (!disabled && onSelect) {
       onSelect(mentor);
     }
   };
 
   const classes = clsx(
     'mentor-card',
-    mentor.isRecommended && 'mentor-card--recommended',
-    mentor.isLocked && 'mentor-card--locked',
-    selected && 'mentor-card--selected'
+    selected && 'mentor-card--selected',
+    disabled && 'mentor-card--disabled'
   );
 
   return (
     <div className={classes} onClick={handleClick}>
       <div className="mentor-card__header">
-        <img
-          src={mentor.avatar}
-          alt={mentor.name}
-          className="mentor-card__avatar"
-        />
-        <div>
-          <h3 className="text-lg font-semibold">{mentor.name}</h3>
-          <p className="text-sm text-gray-600">{mentor.title}</p>
-          <p className="text-xs text-gray-500 mt-1">Best for: {mentor.levelRange}</p>
+        <div className="mentor-card__avatar">
+          <span className="text-2xl font-bold">
+            {mentor.name.split(' ').map(n => n[0]).join('')}
+          </span>
+        </div>
+        <div className="mentor-card__info">
+          <h3 className="mentor-card__name">{mentor.name}</h3>
+          <p className="mentor-card__title">{mentor.title}</p>
+          <p className="mentor-card__tagline">{mentor.tagline}</p>
         </div>
       </div>
 
-      <div className="mentor-card__specialization">
-        {mentor.specializations.map((spec) => (
-          <span key={spec} className="mentor-card__specialization-tag">
-            {spec}
+      <div className="mentor-card__tags">
+        {mentor.tags.map((tag) => (
+          <span key={tag} className="mentor-card__tag">
+            {tag}
           </span>
         ))}
       </div>
 
-      <div className="mentor-card__advice-preview">
-        "{mentor.advicePreview}"
+      <div className="mentor-card__quote">
+        <em>"{mentor.quote}"</em>
       </div>
 
-      {mentor.isLocked && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <svg className="w-12 h-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+      <div className="mentor-card__specialty">
+        <h4 className="mentor-card__specialty-title">Specializes in:</h4>
+        <div className="mentor-card__domains">
+          {mentor.specialty.domains.slice(0, 3).map((domain) => (
+            <span key={domain} className="mentor-card__domain">
+              {domain}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="mentor-card__tools">
+        <strong>Key Tools:</strong>
+        <span className="mentor-card__tools-list">
+          {mentor.specialty.tools.slice(0, 4).join(', ')}
+        </span>
+      </div>
+
+      <div className="mentor-card__legacy">
+        <strong>Known for:</strong> {mentor.signature.knownFor}
+      </div>
+
+      {disabled && (
+        <div className="mentor-card__locked-overlay">
+          <svg className="mentor-card__lock-icon" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
           </svg>
+          <span>Unlock at higher level</span>
         </div>
       )}
     </div>

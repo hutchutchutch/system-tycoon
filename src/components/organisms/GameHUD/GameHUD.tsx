@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/redux';
-import { CAREER_TITLES } from '../../constants';
+import { useAppSelector } from '../../../hooks/redux';
+import { CAREER_TITLES } from '../../../constants';
 
 interface GameHUDProps {
   className?: string;

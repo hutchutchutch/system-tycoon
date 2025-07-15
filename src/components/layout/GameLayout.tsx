@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { GameHUD } from '../game/GameHUD';
+import { GameHUD } from '../organisms/GameHUD';
 
 export const GameLayout: React.FC = () => {
   return (
