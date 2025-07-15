@@ -1,30 +1,40 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import styles from './Badge.module.css';
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'premium';
-  size?: 'small' | 'medium';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'destructive' | 'outline';
+  size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
 }
 
+/**
+ * Badge - Atom component for status indicators and labels
+ * 
+ * Redux State Usage:
+ * - Often displays values from state.game.player.level
+ * - Shows achievement counts from state.game.achievements
+ * - Indicates component rarity from state.game.inventory[].rarity
+ * - Displays notification counts from state.ui.notifications.length
+ */
 export const Badge: React.FC<BadgeProps> = ({
-  variant = 'primary',
-  size = 'medium',
+  variant = 'default',
+  size = 'md',
   icon,
   className,
   children,
   ...props
 }) => {
   const classes = clsx(
-    'badge',
-    `badge--${variant}`,
-    size === 'small' && 'text-xs py-0.5 px-1.5',
+    styles.badge,
+    styles[variant],
+    styles[size],
     className
   );
 
   return (
     <span className={classes} {...props}>
-      {icon && <span className="badge__icon">{icon}</span>}
+      {icon && <span className={styles.icon}>{icon}</span>}
       {children}
     </span>
   );

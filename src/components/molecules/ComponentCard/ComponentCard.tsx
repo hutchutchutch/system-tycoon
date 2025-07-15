@@ -3,7 +3,23 @@ import { clsx } from 'clsx';
 import { useDraggable } from '@dnd-kit/core';
 import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
-import { ComponentCardProps } from './ComponentCard.types';
+import type { ComponentCardProps } from './ComponentCard.types';
+
+/**
+ * ComponentCard
+ * 
+ * Purpose: Displays system architecture components in drawer and on canvas
+ * 
+ * State Management:
+ * - Local state for hover effects and UI interactions only
+ * - Component data passed via props from parent
+ * - Dragging state managed by DnD context
+ * - Selection state controlled by parent
+ * 
+ * Redux Integration:
+ * - Parent reads components from design.availableComponents
+ * - Parent dispatches addNode when dropped on canvas
+ */
 
 export const ComponentCard: React.FC<ComponentCardProps> = ({
   data,

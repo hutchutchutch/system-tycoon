@@ -1,0 +1,1 @@
+export { MeetingPhaseTemplate } from './MeetingPhaseTemplate';

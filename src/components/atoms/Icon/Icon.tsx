@@ -1,7 +1,7 @@
 import React from 'react';
 import * as LucideIcons from 'lucide-react';
 import { clsx } from 'clsx';
-import { IconProps } from './Icon.types';
+import type { IconProps } from './Icon.types';
 
 const iconSizes = {
   xs: 12,
@@ -74,7 +74,7 @@ const iconMap: Record<string, React.ComponentType<any>> = {
   'cloud': LucideIcons.Cloud,
   'cloud-off': LucideIcons.CloudOff,
   'link': LucideIcons.Link,
-  'link-off': LucideIcons.LinkOff,
+  'link-off': LucideIcons.Link2Off,
   'external-link': LucideIcons.ExternalLink,
   'trending-up': LucideIcons.TrendingUp,
   'trending-down': LucideIcons.TrendingDown,

@@ -1,0 +1,67 @@
+.progressContainer {
+  width: 100%;
+  height: 0.5rem;
+  background: var(--muted);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBar {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Variants */
+.success .progressBar {
+  background: var(--success);
+}
+
+.warning .progressBar {
+  background: var(--warning);
+}
+
+.destructive .progressBar {
+  background: var(--destructive);
+}
+
+/* Sizes */
+.sm {
+  height: 0.25rem;
+}
+
+.md {
+  height: 0.5rem;
+}
+
+.lg {
+  height: 0.75rem;
+}

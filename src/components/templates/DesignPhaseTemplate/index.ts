@@ -1,0 +1,1 @@
+export { DesignPhaseTemplate } from './DesignPhaseTemplate';

@@ -1,6 +1,20 @@
 import React from 'react';
 import { clsx } from 'clsx';
-import { ButtonProps } from './Button.types';
+import type { ButtonProps } from './Button.types';
+
+/**
+ * Button Component
+ * 
+ * Purpose: Primary interactive element for user actions throughout the game
+ * 
+ * State Management:
+ * - Stateless component - all behavior controlled via props
+ * - No local state or Redux connections
+ * - Parent components handle onClick events and loading states
+ * 
+ * @example
+ * <Button variant="primary" onClick={handleAction}>Start Game</Button>
+ */
 
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',

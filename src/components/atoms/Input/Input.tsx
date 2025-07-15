@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
 import { clsx } from 'clsx';
-import { InputProps } from './Input.types';
+import type { InputProps } from './Input.types';
 
 export const Input: React.FC<InputProps> = ({
   type = 'text',

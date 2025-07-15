@@ -1,0 +1,13 @@
+.mapTemplate {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.mapContent {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
