@@ -3,6 +3,7 @@ import { Card } from '../../atoms/Card';
 import { Badge } from '../../atoms/Badge';
 import { StepCard } from '../../molecules/StepCard';
 import { Mail, Users, Code, Zap } from 'lucide-react';
+import styles from './HowItWorks.module.css';
 
 const HowItWorks: React.FC = () => {
   const steps = [
@@ -27,12 +28,12 @@ const HowItWorks: React.FC = () => {
   ];
   
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">
+    <section className={styles.howItWorks}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           From Crisis to Code to Change
         </h2>
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className={styles.grid}>
           {steps.map((step, index) => (
             <StepCard key={index} {...step} number={index + 1} />
           ))}

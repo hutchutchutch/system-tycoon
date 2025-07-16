@@ -1,0 +1,371 @@
+/* Initial Experience Page Styles */
+
+/* NOTE: Core .browser-window layout styles have been moved to layout/browser-windows.css */
+/* This file contains page-specific styling for the initial experience flow */
+
+/* Main container styles */
+.initial-experience {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.initial-experience--blank {
+  background: var(--color-neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0; /* Remove any padding that might interfere */
+}
+
+.initial-experience--browser {
+  background: var(--color-white);
+  padding: 0; /* Remove any padding that might interfere */
+}
+
+/* Blank browser state (before clicking email) - FULL WIDTH */
+.initial-experience__blank-browser {
+  width: 100%; /* Changed from 90% to 100% */
+  height: 100%; /* Changed from 80% to 100% */
+  background: var(--color-white);
+  border: none; /* Remove border for full width effect */
+  border-radius: 0; /* Remove border radius for full width effect */
+  box-shadow: none; /* Remove shadow for full width effect */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.initial-experience__browser-chrome {
+  background: var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-300);
+  padding: 0;
+  z-index: 1; /* Ensure it's below GameHUD */
+}
+
+.initial-experience__tab-bar {
+  background: var(--color-neutral-200);
+  border-bottom: 1px solid var(--color-neutral-300);
+  padding: var(--space-2) var(--space-3);
+  display: flex;
+  gap: var(--space-2);
+}
+
+.initial-experience__tab {
+  background: var(--color-neutral-300);
+  border: 1px solid var(--color-neutral-400);
+  border-bottom: none;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+  position: relative;
+  top: 1px;
+}
+
+.initial-experience__tab--active {
+  background: var(--color-white);
+  color: var(--color-neutral-900);
+  border-color: var(--color-neutral-300);
+  z-index: 1;
+}
+
+.initial-experience__address-bar {
+  padding: var(--space-3);
+  background: var(--color-white);
+}
+
+.initial-experience__address-bar input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-50);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-500);
+}
+
+.initial-experience__address-bar input:focus {
+  outline: none;
+  border-color: var(--color-primary-400);
+  background: var(--color-white);
+}
+
+.initial-experience__content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-white);
+  padding: var(--space-8);
+  position: relative;
+  z-index: 1; /* Ensure it's below GameHUD */
+}
+
+/* App icon grid */
+.initial-experience__icon-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-8);
+  max-width: 320px;
+  position: relative;
+  z-index: 2; /* Ensure it's clickable */
+}
+
+/* App icon buttons */
+.initial-experience__app-icon {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--color-neutral-100) 0%, var(--color-neutral-200) 100%);
+  border: 2px solid var(--color-neutral-300);
+  border-radius: var(--radius-full);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-700);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.initial-experience__app-icon:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(0, 0, 0, 0.05) 100%);
+  border-radius: var(--radius-full);
+  opacity: 1;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.initial-experience__app-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 8px 20px rgba(0, 0, 0, 0.2),
+    0 4px 8px rgba(0, 0, 0, 0.15);
+  border-color: var(--color-neutral-400);
+}
+
+.initial-experience__app-icon:hover:before {
+  opacity: 0.8;
+}
+
+.initial-experience__app-icon:active {
+  transform: translateY(0);
+  box-shadow: 
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.initial-experience__app-icon svg {
+  margin-bottom: var(--space-2);
+  position: relative;
+  z-index: 1;
+}
+
+.initial-experience__app-icon span {
+  position: relative;
+  z-index: 1;
+}
+
+/* Primary app icon (Email) with special styling */
+.initial-experience__app-icon--primary {
+  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
+  border-color: var(--color-primary-500);
+  color: white;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.initial-experience__app-icon--primary:before {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.1) 100%);
+}
+
+.initial-experience__app-icon--primary:hover {
+  border-color: var(--color-primary-400);
+  animation: none;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+/* Ensure GameHUD is visible above initial experience content */
+.game-hud {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 50 !important; /* High z-index to ensure it's always visible */
+  background: var(--color-white) !important;
+  border-bottom: 1px solid var(--color-neutral-200) !important;
+}
+
+/* Crisis alert styling for initial experience */
+.initial-experience__crisis-alert {
+  position: absolute;
+  top: var(--space-4);
+  left: var(--space-4);
+  right: var(--space-4);
+  background: var(--color-error-600);
+  color: white;
+  padding: var(--space-3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-30);
+  animation: slideInDown 0.5s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.initial-experience__crisis-title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  margin: 0 0 var(--space-2) 0;
+}
+
+.initial-experience__crisis-message {
+  font-size: var(--text-sm);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+/* Loading states */
+.initial-experience__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  color: var(--color-neutral-600);
+}
+
+.initial-experience__loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-neutral-300);
+  border-top-color: var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.initial-experience__loading-text {
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* Transition animations */
+.initial-experience--transition-in {
+  animation: fadeInScale 0.6s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Browser window specific styling for initial experience */
+.initial-experience .browser-window {
+  animation: browserSlideIn 0.8s ease-out;
+  width: 100%; /* Ensure BrowserWindow is also full width */
+  height: 100%;
+}
+
+@keyframes browserSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Email client integration */
+.initial-experience .email-client {
+  border-radius: 0; /* Remove border radius in fullscreen mode */
+  box-shadow: none;
+}
+
+/* System design canvas integration */
+.initial-experience .system-design-canvas {
+  border-radius: 0;
+  border: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .initial-experience__blank-browser {
+    width: 100%; /* Keep full width on mobile */
+    height: 100%;
+  }
+  
+  .initial-experience__email-icon {
+    width: 80px;
+    height: 80px;
+    font-size: var(--text-xs);
+  }
+  
+  .initial-experience__email-icon svg {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .initial-experience__crisis-alert {
+    top: var(--space-2);
+    left: var(--space-2);
+    right: var(--space-2);
+    padding: var(--space-2);
+  }
+  
+  .initial-experience__crisis-title {
+    font-size: var(--text-base);
+  }
+  
+  .initial-experience__crisis-message {
+    font-size: var(--text-xs);
+  }
+} 

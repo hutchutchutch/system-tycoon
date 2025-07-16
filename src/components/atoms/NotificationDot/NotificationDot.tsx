@@ -1,5 +1,7 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import type { NotificationDotProps } from './NotificationDot.types';
+import styles from './NotificationDot.module.css';
 
 export const NotificationDot: React.FC<NotificationDotProps> = ({
   count = 0,
@@ -26,19 +28,21 @@ export const NotificationDot: React.FC<NotificationDotProps> = ({
 
   return (
     <div
-      className={`
-        notification-dot 
-        notification-dot--${variant} 
-        notification-dot--${size}
-        ${hasCount ? 'notification-dot--with-count' : 'notification-dot--simple'}
-        ${pulse ? 'notification-dot--pulse' : ''}
-        ${className}
-      `.trim()}
+      className={clsx(
+        styles['notification-dot'],
+        styles[`notification-dot--${variant}`],
+        styles[`notification-dot--${size}`],
+        {
+          [styles['notification-dot--with-count']]: hasCount,
+          [styles['notification-dot--pulse']]: pulse,
+        },
+        className
+      )}
       role={hasCount ? 'status' : undefined}
       aria-label={hasCount ? `${count} notification${count === 1 ? '' : 's'}` : 'New notification'}
     >
       {hasCount && (
-        <span className="notification-dot__count" aria-hidden="true">
+        <span className={styles['notification-dot__count']} aria-hidden="true">
           {displayCount}
         </span>
       )}

@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { MapTemplate } from '../../templates/MapTemplate';
 import { ComponentDrawer } from '../../organisms/ComponentDrawer';
-import styles from './GamePage.module.css';
 
 /**
  * GamePage - Main gameplay page showing the career map
@@ -24,10 +23,10 @@ export const GamePage: React.FC = () => {
 
   return (
     <MapTemplate>
-      <div className={styles.gameContent}>
+      <div className="game-content">
         {/* Location-specific content and interactions */}
         {currentLocation && (
-          <div className={styles.locationInfo}>
+          <div className="location-info">
             <h2>{currentLocation.name}</h2>
             <p>{currentLocation.description}</p>
           </div>

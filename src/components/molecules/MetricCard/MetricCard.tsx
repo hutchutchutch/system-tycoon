@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
+import styles from './MetricCard.module.css';
 import type { MetricCardProps } from './MetricCard.types';
 
 export const MetricCard: React.FC<MetricCardProps> = ({
@@ -64,22 +65,22 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   return (
     <div
       className={clsx(
-        'metric-card',
-        `metric-card--${data.status || 'normal'}`,
+        styles.metricCard,
+        styles[`metricCard--${data.status || 'normal'}`],
         {
-          'metric-card--animating': isAnimating,
+          [styles['metricCard--animating']]: isAnimating,
         },
         className
       )}
       onMouseEnter={() => onHover?.(data)}
     >
-      <div className="metric-card__header">
-        <span className="metric-card__label">{data.label}</span>
+      <div className={styles.header}>
+        <span className={styles.label}>{data.label}</span>
         {data.trend && (
-          <div className={clsx('metric-card__trend', `metric-card__trend--${data.trend}`)}>
+          <div className={clsx(styles.trend, styles[`trend--${data.trend}`])}>
             {getTrendIcon()}
             {data.trendValue && (
-              <span className="metric-card__trend-value">
+              <span className={styles.trendValue}>
                 {data.trendValue > 0 ? '+' : ''}{data.trendValue}%
               </span>
             )}
@@ -87,17 +88,17 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         )}
       </div>
       
-      <div className="metric-card__value">
-        <span className="metric-card__number">
+      <div className={styles.value}>
+        <span className={styles.number}>
           {displayValue.toFixed(1)}
         </span>
-        <span className="metric-card__unit">{data.unit}</span>
+        <span className={styles.unit}>{data.unit}</span>
       </div>
       
       {data.target && (
-        <div className="metric-card__progress">
+        <div className={styles.progress}>
           <div 
-            className="metric-card__progress-bar"
+            className={styles.progressBar}
             style={{ width: `${progressPercentage}%` }}
             role="progressbar"
             aria-valuenow={data.value}

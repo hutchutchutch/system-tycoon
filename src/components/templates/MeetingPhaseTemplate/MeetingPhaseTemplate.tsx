@@ -1,4 +1,5 @@
 import React from 'react';
+import styles from './MeetingPhaseTemplate.module.css';
 
 /**
  * MeetingPhaseTemplate
@@ -27,21 +28,21 @@ export const MeetingPhaseTemplate: React.FC<MeetingPhaseTemplateProps> = ({
   children
 }) => {
   return (
-    <div className="meeting-phase-template">
-      <header className="meeting-phase-template__header">
+    <div className={styles.meetingPhaseTemplate}>
+      <header className={styles.header}>
         <h1>Requirements Gathering</h1>
         {/* Timer and other header content will be added */}
       </header>
       
-      <main className="meeting-phase-template__content">
+      <main className={styles.content}>
         {children || (
-          <div className="design-phase-template__placeholder">
+          <div className={styles.placeholder}>
             Meeting room content will be rendered here
           </div>
         )}
       </main>
       
-      <footer className="meeting-phase-template__footer">
+      <footer className={styles.footer}>
         <button onClick={onProceedToMentorSelection}>
           Proceed to Mentor Selection
         </button>

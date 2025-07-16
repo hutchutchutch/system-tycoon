@@ -5,6 +5,7 @@ import { Button } from '../../atoms/Button';
 import { Input } from '../../atoms/Input';
 import { Icon } from '../../atoms/Icon';
 import { EmailCard } from '../../molecules/EmailCard';
+import styles from './EmailClient.module.css';
 import type { EmailClientProps } from './EmailClient.types';
 
 export const EmailClient: React.FC<EmailClientProps> = ({
@@ -47,9 +48,9 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   }, [emails, selectedFolder, searchQuery]);
 
   return (
-    <div className={clsx('email-client', className)}>
-      <div className="email-client__sidebar">
-        <div className="email-client__compose">
+    <div className={clsx(styles.emailClient, className)}>
+      <div className={styles.sidebar}>
+        <div className={styles.compose}>
           <Button
             variant="primary"
             fullWidth
@@ -60,29 +61,29 @@ export const EmailClient: React.FC<EmailClientProps> = ({
           </Button>
         </div>
 
-        <nav className="email-client__folders">
+        <nav className={styles.folders}>
           {folders.map(folder => (
             <button
               key={folder.id}
               className={clsx(
-                'email-client__folder',
-                { 'email-client__folder--active': selectedFolder === folder.id }
+                styles.folder,
+                { [styles['folder--active']]: selectedFolder === folder.id }
               )}
               onClick={() => onFolderSelect(folder.id)}
             >
-                             <Icon name="users" size="sm" />
-              <span className="email-client__folder-name">{folder.name}</span>
+              <Icon name={folder.icon as any} size="sm" />
+              <span className={styles.folderName}>{folder.name}</span>
               {folder.count > 0 && (
-                <span className="email-client__folder-count">{folder.count}</span>
+                <span className={styles.folderCount}>{folder.count}</span>
               )}
             </button>
           ))}
         </nav>
       </div>
 
-      <div className="email-client__main">
-        <div className="email-client__toolbar">
-          <div className="email-client__search">
+      <div className={styles.main}>
+        <div className={styles.toolbar}>
+          <div className={styles.search}>
             <Input
               type="search"
               value={searchQuery}
@@ -92,7 +93,7 @@ export const EmailClient: React.FC<EmailClientProps> = ({
             />
           </div>
 
-          <div className="email-client__actions">
+          <div className={styles.actions}>
             <Button
               variant="ghost"
               size="small"
@@ -111,18 +112,18 @@ export const EmailClient: React.FC<EmailClientProps> = ({
             </Button>
           </div>
 
-          <div className="email-client__view-controls">
+          <div className={styles.viewControls}>
             <button
-              className={clsx('email-client__view-toggle', {
-                'email-client__view-toggle--active': viewMode === 'comfortable'
+              className={clsx(styles.viewToggle, {
+                [styles['viewToggle--active']]: viewMode === 'comfortable'
               })}
               onClick={() => setViewMode('comfortable')}
             >
               Comfortable
             </button>
             <button
-              className={clsx('email-client__view-toggle', {
-                'email-client__view-toggle--active': viewMode === 'compact'
+              className={clsx(styles.viewToggle, {
+                [styles['viewToggle--active']]: viewMode === 'compact'
               })}
               onClick={() => setViewMode('compact')}
             >
@@ -131,9 +132,9 @@ export const EmailClient: React.FC<EmailClientProps> = ({
           </div>
         </div>
 
-        <div className="email-client__list">
+        <div className={styles.list}>
           {filteredEmails.length === 0 ? (
-            <div className="email-client__empty">
+            <div className={styles.empty}>
               <p>No emails found</p>
             </div>
           ) : (

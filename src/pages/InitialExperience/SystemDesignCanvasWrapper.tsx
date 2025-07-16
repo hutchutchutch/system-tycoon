@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CrisisSystemDesignCanvas } from './CrisisSystemDesignCanvas';
-import './SystemDesignCanvasWrapper.css';
+// CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
 
 interface SystemDesignCanvasWrapperProps {
   onMissionComplete?: () => void;

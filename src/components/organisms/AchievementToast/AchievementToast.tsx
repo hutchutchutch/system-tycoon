@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { clsx } from 'clsx';
+import styles from './AchievementToast.module.css';
 
 export interface AchievementToastProps {
   title: string;
@@ -7,6 +8,7 @@ export interface AchievementToastProps {
   icon?: React.ReactNode;
   onClose: () => void;
   duration?: number;
+  className?: string;
 }
 
 export const AchievementToast: React.FC<AchievementToastProps> = ({
@@ -15,30 +17,42 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({
   icon = '🏆',
   onClose,
   duration = 5000,
+  className
 }) => {
+  const [isExiting, setIsExiting] = useState(false);
+
+  const handleClose = () => {
+    setIsExiting(true);
+    setTimeout(onClose, 300); // Wait for animation to complete
+  };
+
   useEffect(() => {
-    const timer = setTimeout(onClose, duration);
+    const timer = setTimeout(handleClose, duration);
     return () => clearTimeout(timer);
-  }, [duration, onClose]);
+  }, [duration]);
 
   return (
-    <div className="achievement-toast">
-      <div className="achievement-toast__border" />
-      <div className="achievement-toast__content">
-        <div className="achievement-toast__icon">
+    <div className={clsx(
+      styles.toast,
+      isExiting && styles['toast--exiting'],
+      className
+    )}>
+      <div className={styles.border} />
+      <div className={styles.content}>
+        <div className={styles.icon}>
           {icon}
         </div>
-        <div className="achievement-toast__text">
-          <h4 className="achievement-toast__title">{title}</h4>
-          <p className="achievement-toast__description">{description}</p>
+        <div className={styles.text}>
+          <h4 className={styles.title}>{title}</h4>
+          <p className={styles.description}>{description}</p>
         </div>
       </div>
       <button
-        className="achievement-toast__close"
-        onClick={onClose}
+        className={styles.close}
+        onClick={handleClose}
         aria-label="Close"
       >
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <svg className={styles.closeIcon} fill="currentColor" viewBox="0 0 20 20">
           <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
         </svg>
       </button>

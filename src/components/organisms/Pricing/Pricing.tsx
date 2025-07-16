@@ -1,6 +1,7 @@
 import React from 'react';
 import { PricingCard } from '../../molecules/PricingCard';
 import { Shield } from 'lucide-react';
+import styles from './Pricing.module.css';
 
 const Pricing: React.FC = () => {
   const tiers = [
@@ -50,20 +51,20 @@ const Pricing: React.FC = () => {
   ];
   
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className={styles.pricing}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Choose Your Impact Level
         </h2>
         
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+        <div className={styles.grid}>
           {tiers.map(tier => (
             <PricingCard key={tier.name} {...tier} />
           ))}
         </div>
         
-        <p className="text-center mt-8 text-gray-600 flex items-center justify-center gap-2">
-          <Shield className="w-5 h-5" />
+        <p className={styles.disclaimer}>
+          <Shield className={styles.disclaimerIcon} />
           100% transparent impact reporting. See exactly how your subscription helps.
         </p>
       </div>

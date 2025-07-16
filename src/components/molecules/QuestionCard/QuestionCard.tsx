@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
 import type { QuestionCardProps } from './index';
+import styles from './QuestionCard.module.css';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
@@ -40,11 +41,11 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   return (
     <div
       className={clsx(
-        'question-card',
-        `question-card--${question.category}`,
+        styles.card,
+        styles[`card--${question.category}`],
         {
-          'question-card--selected': isSelected,
-          'question-card--disabled': isDisabled,
+          [styles['card--selected']]: isSelected,
+          [styles['card--disabled']]: isDisabled,
         },
         className
       )}
@@ -57,21 +58,21 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       aria-pressed={isSelected}
       aria-disabled={isDisabled}
     >
-      <div className="question-card__category-indicator" />
+      <div className={styles.categoryIndicator} />
       
-      <div className="question-card__content">
-        <p className="question-card__text">{question.text}</p>
-        <div className="question-card__speaker">
+      <div className={styles.content}>
+        <p className={styles.text}>{question.text}</p>
+        <div className={styles.speaker}>
           <Icon name="user" size="xs" />
           <span>{question.speaker.name}</span>
         </div>
       </div>
 
-      <div className="question-card__impact-icons">
+      <div className={styles.impactIcons}>
         {question.impact.map((impact) => (
           <div 
             key={impact.type}
-            className="question-card__impact-icon"
+            className={styles.impactIcon}
             title={impact.description}
           >
             <Icon name={impact.icon as any} size="xs" />
@@ -80,7 +81,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       </div>
 
       {showImpactPreview && !isDisabled && (
-        <div className="question-card__impact-preview">
+        <div className={styles.impactPreview}>
           <h4>This question will:</h4>
           <ul>
             {question.impact.map((impact) => (
@@ -91,7 +92,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       )}
 
       {isSelected && (
-        <div className="question-card__selected-badge">
+        <div className={styles.selectedBadge}>
           <Icon name="check" size="sm" />
         </div>
       )}

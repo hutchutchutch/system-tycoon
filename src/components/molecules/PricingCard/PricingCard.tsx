@@ -1,8 +1,10 @@
 import React from 'react';
+import clsx from 'clsx';
 import { Card } from '../../atoms/Card';
 import { Badge } from '../../atoms/Badge';
 import { Button } from '../../atoms/Button';
 import { Check } from 'lucide-react';
+import styles from './PricingCard.module.css';
 
 interface PricingCardProps {
   name: string;
@@ -24,43 +26,48 @@ export const PricingCard: React.FC<PricingCardProps> = ({
   isTeam 
 }) => {
   return (
-    <Card className={`relative ${popular ? 'border-2 border-blue-500 transform scale-105' : ''}`}>
+    <Card className={clsx(
+      styles.card,
+      popular && styles['card--popular']
+    )}>
       {popular && (
-        <Badge variant="primary" className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+        <Badge variant="primary" className={styles.popularBadge}>
           Most Popular
         </Badge>
       )}
       
-      <div className="p-6">
-        <div className="text-center mb-6">
-          <h3 className="text-xl font-bold">{name}</h3>
-          <div className="mt-4">
-            <span className="text-4xl font-bold">${price}</span>
-            <span className="text-gray-600">/{isTeam ? 'team/month' : 'month'}</span>
+      <div className={styles.content}>
+        <div className={styles.header}>
+          <h3 className={styles.name}>{name}</h3>
+          <div className={styles.pricing}>
+            <span className={styles.price}>${price}</span>
+            <span className={styles.period}>/{isTeam ? 'team/month' : 'month'}</span>
           </div>
         </div>
         
-        <ul className="space-y-3 mb-6">
+        <ul className={styles.features}>
           {features.map(feature => (
-            <li key={feature} className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-green-500 flex-shrink-0" />
-              <span className="text-sm">{feature}</span>
+            <li key={feature} className={styles.feature}>
+              <Check className={styles.checkIcon} />
+              <span className={styles.featureText}>{feature}</span>
             </li>
           ))}
         </ul>
         
         {impact && (
-          <div className="mb-4 p-3 bg-green-50 rounded">
-            <p className="text-sm text-green-800">💚 {impact}</p>
+          <div className={styles.impact}>
+            <p className={styles.impactText}>💚 {impact}</p>
           </div>
         )}
         
-        <Button 
-          variant={popular ? 'primary' : 'outline'} 
-          fullWidth
-        >
-          {cta}
-        </Button>
+        <div className={styles.ctaWrapper}>
+          <Button 
+            variant={popular ? 'primary' : 'outline'} 
+            fullWidth
+          >
+            {cta}
+          </Button>
+        </div>
       </div>
     </Card>
   );

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppSelector } from '../../../hooks/redux';
+import styles from './MenuTemplate.module.css';
 
 interface MenuTemplateProps {
   children?: React.ReactNode;
@@ -25,15 +26,15 @@ export const MenuTemplate: React.FC<MenuTemplateProps> = ({
   const settings = useAppSelector((state) => state.settings);
 
   return (
-    <div className="menu-template">
-      <header className="menu-template__header">
-        <h1 className="menu-template__title">{title}</h1>
+    <div className={styles.menuTemplate}>
+      <header className={styles.header}>
+        <h1 className={styles.title}>{title}</h1>
       </header>
-      <main className="menu-template__content">
+      <main className={styles.content}>
         {children}
       </main>
-      <footer className="menu-template__footer">
-        <p className="menu-template__version">v1.0.0</p>
+      <footer className={styles.footer}>
+        <p className={styles.version}>v1.0.0</p>
       </footer>
     </div>
   );

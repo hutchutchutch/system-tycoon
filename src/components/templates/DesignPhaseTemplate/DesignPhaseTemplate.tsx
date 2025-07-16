@@ -1,70 +1,73 @@
 import React from 'react';
-import { ReactFlowProvider } from '@xyflow/react';
+import { clsx } from 'clsx';
+import styles from './DesignPhaseTemplate.module.css';
 
-/**
- * DesignPhaseTemplate
- * 
- * Purpose: Layout template for the system design phase
- * 
- * State Management:
- * - Pure presentational template
- * - ReactFlowProvider for canvas context
- * - All design state passed from page component
- * - No direct Redux connections
- */
-
-interface DesignPhaseTemplateProps {
+export interface DesignPhaseTemplateProps {
+  header?: React.ReactNode;
   sidebar?: React.ReactNode;
   canvas?: React.ReactNode;
   metrics?: React.ReactNode;
   mentor?: React.ReactNode;
-  header?: React.ReactNode;
+  className?: string;
 }
 
+/**
+ * DesignPhaseTemplate - Template for the system design phase
+ * 
+ * Redux State Usage:
+ * - Pure presentational template
+ * - All components passed as props from page component
+ * - No direct Redux connections
+ */
 export const DesignPhaseTemplate: React.FC<DesignPhaseTemplateProps> = ({
+  header,
   sidebar,
   canvas,
   metrics,
   mentor,
-  header
+  className,
 }) => {
   return (
-    <ReactFlowProvider>
-      <div className="design-phase-template">
-        {header && (
-          <header className="design-phase-template__header">
-            {header}
-          </header>
+    <div className={clsx(styles['design-phase-template'], className)}>
+      {/* Header with timer and phase info */}
+      {header && (
+        <header className={styles['design-phase-template__header']}>
+          {header}
+        </header>
+      )}
+
+      {/* Main workspace */}
+      <div className={styles['design-phase-template__workspace']}>
+        {/* Component drawer */}
+        {sidebar && (
+          <aside className={styles['design-phase-template__sidebar']}>
+            {sidebar}
+          </aside>
         )}
-        
-        <div className="design-phase-template__workspace">
-          {sidebar && (
-            <aside className="design-phase-template__sidebar">
-              {sidebar}
-            </aside>
+
+        {/* Canvas area */}
+        <main className={styles['design-phase-template__canvas']}>
+          {canvas || (
+            <div className={styles['design-phase-template__placeholder']}>
+              Drag components here to design your system
+            </div>
           )}
-          
-          <main className="design-phase-template__canvas">
-            {canvas || (
-              <div className="design-phase-template__placeholder">
-                Design canvas will be rendered here
-              </div>
-            )}
-          </main>
-          
-          {metrics && (
-            <aside className="design-phase-template__metrics">
-              {metrics}
-            </aside>
-          )}
-        </div>
-        
-        {mentor && (
-          <div className="design-phase-template__mentor">
-            {mentor}
-          </div>
+        </main>
+
+        {/* Metrics panel */}
+        {metrics && (
+          <aside className={styles['design-phase-template__metrics']}>
+            {metrics}
+          </aside>
         )}
       </div>
-    </ReactFlowProvider>
+
+      {/* Mentor */}
+      {mentor && (
+        <div className={styles['design-phase-template__mentor']}>
+          {mentor}
+        </div>
+      )}
+    </div>
   );
 };

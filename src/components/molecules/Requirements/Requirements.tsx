@@ -1,5 +1,7 @@
 import React from 'react';
+import clsx from 'clsx';
 import { CheckCircle, Circle, Play } from 'lucide-react';
+import styles from './Requirements.module.css';
 
 interface Requirement {
   id: string;
@@ -22,38 +24,44 @@ export const Requirements: React.FC<RequirementsProps> = ({
   const allCompleted = completedCount === requirements.length;
 
   return (
-    <div className={`requirements ${className}`}>
-      <div className="requirements__header">
-        <h3 className="requirements__title">Requirements</h3>
-        <div className="requirements__progress">
+    <div className={clsx(styles.requirements, className)}>
+      <div className={styles.header}>
+        <h3 className={styles.title}>Requirements</h3>
+        <div className={styles.progress}>
           {completedCount}/{requirements.length}
         </div>
       </div>
       
-      <div className="requirements__list">
+      <div className={styles.list}>
         {requirements.map((requirement) => (
           <div 
             key={requirement.id} 
-            className={`requirements__item ${requirement.completed ? 'requirements__item--completed' : ''}`}
+            className={clsx(
+              styles.item,
+              requirement.completed && styles['item--completed']
+            )}
           >
-            <div className="requirements__icon">
+            <div className={styles.icon}>
               {requirement.completed ? (
-                <CheckCircle size={16} className="requirements__check" />
+                <CheckCircle className={styles.check} />
               ) : (
-                <Circle size={16} className="requirements__circle" />
+                <Circle className={styles.circle} />
               )}
             </div>
-            <span className="requirements__text">{requirement.description}</span>
+            <span className={styles.text}>{requirement.description}</span>
           </div>
         ))}
       </div>
       
       <button 
-        className={`requirements__test-button ${allCompleted ? 'requirements__test-button--ready' : ''}`}
+        className={clsx(
+          styles.testButton,
+          allCompleted && styles['testButton--ready']
+        )}
         onClick={onRunTest}
         disabled={!allCompleted}
       >
-        <Play size={16} />
+        <Play className={styles.testButtonIcon} />
         Run Test
       </button>
     </div>

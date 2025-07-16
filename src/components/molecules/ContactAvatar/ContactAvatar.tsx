@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { clsx } from 'clsx';
+import styles from './ContactAvatar.module.css';
 import type { ContactAvatarProps } from './ContactAvatar.types';
 
 export const ContactAvatar: React.FC<ContactAvatarProps> = ({
@@ -51,27 +53,29 @@ export const ContactAvatar: React.FC<ContactAvatarProps> = ({
 
   return (
     <div
-      className={`
-        contact-avatar 
-        contact-avatar--${size}
-        ${clickable || onClick ? 'contact-avatar--clickable' : ''}
-        ${className}
-      `.trim()}
+      className={clsx(
+        styles.contactAvatar,
+        styles[`contactAvatar--${size}`],
+        {
+          [styles['contactAvatar--clickable']]: clickable || onClick
+        },
+        className
+      )}
       onClick={handleClick}
       role={clickable || onClick ? 'button' : undefined}
       tabIndex={clickable || onClick ? 0 : undefined}
       aria-label={alt || `${name}'s avatar`}
     >
-      <div className="contact-avatar__image">
+      <div className={styles.image}>
         {shouldShowImage ? (
           <img
             src={src}
             alt={alt || `${name}'s avatar`}
-            className="contact-avatar__img"
+            className={styles.img}
             onError={handleImageError}
           />
         ) : (
-          <div className="contact-avatar__initials">
+          <div className={styles.initials}>
             {initials}
           </div>
         )}
@@ -79,7 +83,7 @@ export const ContactAvatar: React.FC<ContactAvatarProps> = ({
 
       {showStatus && status && (
         <div 
-          className="contact-avatar__status"
+          className={styles.status}
           style={{ backgroundColor: getStatusColor() }}
           aria-label={`Status: ${status}`}
         />

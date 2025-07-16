@@ -1,6 +1,8 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import { BrowserTab } from '../../atoms/BrowserTab';
 import { Icon } from '../../atoms/Icon';
+import styles from './BrowserHeader.module.css';
 import type { BrowserHeaderProps } from './BrowserHeader.types';
 
 export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
@@ -29,37 +31,37 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
   };
 
   return (
-    <div className={`browser-header ${className}`}>
+    <div className={clsx(styles.browserHeader, className)}>
       {/* Window controls (left side on macOS style) */}
       {showWindowControls && (
-        <div className="browser-header__window-controls browser-header__window-controls--left">
+        <div className={clsx(styles.windowControls, styles['windowControls--left'])}>
           <button
-            className="browser-header__control browser-header__control--close"
+            className={clsx(styles.control, styles['control--close'])}
             onClick={onClose}
             aria-label="Close window"
           >
-            <div className="browser-header__control-dot" />
+            <div className={styles.controlDot} />
           </button>
           <button
-            className="browser-header__control browser-header__control--minimize"
+            className={clsx(styles.control, styles['control--minimize'])}
             onClick={onMinimize}
             aria-label="Minimize window"
           >
-            <div className="browser-header__control-dot" />
+            <div className={styles.controlDot} />
           </button>
           <button
-            className="browser-header__control browser-header__control--maximize"
+            className={clsx(styles.control, styles['control--maximize'])}
             onClick={onMaximize}
             aria-label={isMaximized ? "Restore window" : "Maximize window"}
           >
-            <div className="browser-header__control-dot" />
+            <div className={styles.controlDot} />
           </button>
         </div>
       )}
 
       {/* Tab container */}
-      <div className="browser-header__tabs">
-        <div className="browser-header__tab-list">
+      <div className={styles.tabs}>
+        <div className={styles.tabList}>
           {tabs.map((tab, index) => (
             <BrowserTab
               key={index}
@@ -74,7 +76,7 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
         {/* New tab button */}
         {onNewTab && (
           <button
-            className="browser-header__new-tab"
+            className={styles.newTab}
             onClick={handleNewTab}
             aria-label="Open new tab"
           >
@@ -85,23 +87,23 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
 
       {/* Right side window controls (Windows/Linux style) */}
       {showWindowControls && (
-        <div className="browser-header__window-controls browser-header__window-controls--right">
+        <div className={clsx(styles.windowControls, styles['windowControls--right'])}>
           <button
-            className="browser-header__control browser-header__control--minimize"
+            className={clsx(styles.control, styles['control--minimize'])}
             onClick={onMinimize}
             aria-label="Minimize window"
           >
             <Icon name="minus" size="xs" />
           </button>
           <button
-            className="browser-header__control browser-header__control--maximize"
+            className={clsx(styles.control, styles['control--maximize'])}
             onClick={onMaximize}
             aria-label={isMaximized ? "Restore window" : "Maximize window"}
           >
             <Icon name={isMaximized ? "minimize" : "maximize"} size="xs" />
           </button>
           <button
-            className="browser-header__control browser-header__control--close"
+            className={clsx(styles.control, styles['control--close'])}
             onClick={onClose}
             aria-label="Close window"
           >

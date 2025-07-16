@@ -1,0 +1,92 @@
+/* Icon Component CSS Module */
+
+/* Base Icon Styles */
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* Icon Sizes */
+.icon--xs {
+  width: 16px;
+  height: 16px;
+}
+
+.icon--sm {
+  width: 20px;
+  height: 20px;
+}
+
+.icon--md {
+  width: 24px;
+  height: 24px;
+}
+
+.icon--lg {
+  width: 32px;
+  height: 32px;
+}
+
+.icon--xl {
+  width: 40px;
+  height: 40px;
+}
+
+/* Icon Colors */
+.icon--primary {
+  color: var(--color-primary-600);
+}
+
+.icon--secondary {
+  color: var(--color-secondary-600);
+}
+
+.icon--success {
+  color: var(--color-secondary-600);
+}
+
+.icon--warning {
+  color: var(--color-warning-600);
+}
+
+.icon--error {
+  color: var(--color-error-600);
+}
+
+.icon--neutral {
+  color: var(--color-neutral-600);
+}
+
+.icon--current {
+  color: currentColor;
+}
+
+/* Icon Animation */
+.icon--spin {
+  animation: spin 1s linear infinite;
+}
+
+.icon--pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

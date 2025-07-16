@@ -1,0 +1,265 @@
+/* Component Card styles */
+
+.componentCard {
+  position: relative;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+/* Variants */
+.componentCard--drawer {
+  background-color: rgba(55, 65, 81, 0.3);
+  border-color: transparent;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.componentCard--drawer:hover {
+  background-color: rgba(79, 70, 229, 0.2);
+  border-color: rgba(79, 70, 229, 0.4);
+  transform: translateX(4px);
+}
+
+.componentCard--canvas {
+  background-color: var(--color-white);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  min-width: 140px;
+}
+
+.componentCard--canvas:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+/* Status states */
+.componentCard--healthy {
+  border-color: var(--color-green-500);
+}
+
+.componentCard--stressed {
+  border-color: var(--color-orange-500);
+  background-color: rgba(251, 146, 60, 0.05);
+}
+
+.componentCard--overloaded {
+  border-color: var(--color-red-500);
+  background-color: rgba(239, 68, 68, 0.05);
+  animation: pulse 2s infinite;
+}
+
+.componentCard--offline {
+  border-color: var(--color-gray-400);
+  background-color: var(--color-gray-100);
+  opacity: 0.7;
+}
+
+/* States */
+.componentCard--dragging {
+  opacity: 0.5;
+  cursor: grabbing;
+}
+
+.componentCard--selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+}
+
+.componentCard--locked {
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.componentCard--locked:hover {
+  transform: none;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.componentCard--drawer .icon {
+  color: var(--color-primary-400);
+}
+
+.componentCard--canvas .icon {
+  color: var(--color-primary-600);
+}
+
+.componentCard--stressed .icon {
+  color: var(--color-orange-500);
+}
+
+.componentCard--overloaded .icon {
+  color: var(--color-red-500);
+}
+
+.componentCard--offline .icon {
+  color: var(--color-gray-400);
+}
+
+.name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.componentCard--drawer .name {
+  color: white;
+}
+
+.componentCard--canvas .name {
+  color: var(--color-gray-900);
+}
+
+.lockIcon {
+  color: var(--color-gray-400);
+  flex-shrink: 0;
+}
+
+/* Metrics (canvas variant only) */
+.metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metricLabel {
+  font-size: 11px;
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.metricValue {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+}
+
+.componentCard--stressed .metricValue {
+  color: var(--color-orange-600);
+}
+
+.componentCard--overloaded .metricValue {
+  color: var(--color-red-600);
+}
+
+/* Footer (drawer variant only) */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.cost {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.componentCard--drawer .cost {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Dragging cursor */
+.componentCard--drawer:not(.componentCard--locked) {
+  cursor: grab;
+}
+
+.componentCard--drawer:not(.componentCard--locked):active {
+  cursor: grabbing;
+}
+
+/* Focus styles */
+.componentCard:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .componentCard--canvas {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+  
+  .componentCard--canvas:hover {
+    background-color: var(--color-gray-750);
+  }
+  
+  .componentCard--canvas .name {
+    color: var(--color-gray-100);
+  }
+  
+  .componentCard--canvas .metricLabel {
+    color: var(--color-gray-400);
+  }
+  
+  .componentCard--canvas .metricValue {
+    color: var(--color-gray-100);
+  }
+  
+  .componentCard--offline {
+    background-color: var(--color-gray-850);
+  }
+  
+  .metrics {
+    border-top-color: var(--color-gray-700);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .componentCard {
+    padding: 12px;
+  }
+  
+  .componentCard--canvas {
+    min-width: 120px;
+  }
+  
+  .metrics {
+    gap: 8px;
+  }
+} 

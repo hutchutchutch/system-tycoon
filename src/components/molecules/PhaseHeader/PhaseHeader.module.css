@@ -1,0 +1,170 @@
+/* Phase Header component styles */
+
+.phaseHeader {
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 24px 0;
+  width: 100%;
+}
+
+/* Variants */
+.phaseHeader--default {
+  background-color: var(--color-white);
+}
+
+.phaseHeader--careerMap {
+  background: linear-gradient(135deg, var(--color-primary-50), var(--color-primary-100));
+  border-bottom-color: var(--color-primary-200);
+}
+
+.phaseHeader--gamePhase {
+  background-color: var(--color-gray-900);
+  border-bottom-color: var(--color-gray-700);
+}
+
+/* Content container */
+.content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+/* Title section */
+.titleSection {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-gray-900);
+  margin: 0;
+  margin-bottom: 8px;
+}
+
+.phaseHeader--careerMap .title {
+  color: var(--color-primary-900);
+}
+
+.phaseHeader--gamePhase .title {
+  color: var(--color-white);
+}
+
+.subtitle {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--color-gray-600);
+  margin: 0;
+}
+
+.phaseHeader--careerMap .subtitle {
+  color: var(--color-primary-700);
+}
+
+.phaseHeader--gamePhase .subtitle {
+  color: var(--color-gray-300);
+}
+
+/* Right section */
+.rightSection {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .phaseHeader {
+    padding: 16px 0;
+  }
+  
+  .content {
+    padding: 0 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .title {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+  }
+  
+  .rightSection {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 20px;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .phaseHeader--default {
+    background-color: var(--color-gray-800);
+    border-bottom-color: var(--color-gray-700);
+  }
+  
+  .phaseHeader--default .title {
+    color: var(--color-gray-100);
+  }
+  
+  .phaseHeader--default .subtitle {
+    color: var(--color-gray-400);
+  }
+  
+  .phaseHeader--careerMap {
+    background: linear-gradient(135deg, var(--color-primary-900), var(--color-primary-800));
+    border-bottom-color: var(--color-primary-700);
+  }
+  
+  .phaseHeader--careerMap .title {
+    color: var(--color-primary-100);
+  }
+  
+  .phaseHeader--careerMap .subtitle {
+    color: var(--color-primary-300);
+  }
+}
+
+/* Animation for content appearance */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.titleSection {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.rightSection {
+  animation: fadeInUp 0.3s ease-out 0.1s both;
+}
+
+/* Focus styles for interactive elements */
+.rightSection :focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+  border-radius: 4px;
+} 

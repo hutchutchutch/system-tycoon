@@ -26,7 +26,6 @@ import {
   selectCollaborationSettings 
 } from '../../features/game/gameSlice';
 import '@xyflow/react/dist/style.css';
-import '../../styles/design-system/index.css';
 
 // Ensure React Flow container has proper styling
 const reactFlowStyle = {

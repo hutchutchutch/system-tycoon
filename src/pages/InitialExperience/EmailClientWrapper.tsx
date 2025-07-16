@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { EmailClient } from '../../components/organisms/EmailClient';
 import type { EmailFolder } from '../../components/organisms/EmailClient/EmailClient.types';
 import type { EmailData } from '../../components/molecules/EmailCard/EmailCard.types';
-import './EmailClientWrapper.css';
+// CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
 
 interface EmailClientWrapperProps {
   onOpenSystemDesign?: () => void;

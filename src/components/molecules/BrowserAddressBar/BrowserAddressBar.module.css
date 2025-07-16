@@ -1,0 +1,254 @@
+/* Browser Address Bar component styles */
+
+.browserAddressBar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0;
+}
+
+/* Navigation controls */
+.navigation {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+.navButton:active:not(:disabled) {
+  background-color: var(--color-gray-300);
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* URL container */
+.urlContainer {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 20px;
+  height: 32px;
+  padding: 0 12px;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.urlContainer:hover {
+  background-color: var(--color-gray-50);
+}
+
+.urlContainer:focus-within {
+  border-color: var(--color-primary-400);
+  box-shadow: 0 0 0 3px var(--color-primary-100);
+}
+
+/* Security indicator */
+.security {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.securityIcon--loading {
+  color: var(--color-primary-500);
+  animation: spin 1s linear infinite;
+}
+
+.securityIcon--secure {
+  color: var(--color-green-600);
+}
+
+.securityIcon--insecure {
+  color: var(--color-gray-500);
+}
+
+/* Input wrapper */
+.inputWrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray-900);
+  outline: none;
+  padding: 0;
+}
+
+.input::placeholder {
+  color: var(--color-gray-500);
+}
+
+/* URL display (non-editable) */
+.urlDisplay {
+  flex: 1;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+
+/* Bookmark button */
+.bookmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-500);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.bookmark:hover {
+  color: var(--color-orange-500);
+}
+
+.bookmark--active {
+  color: var(--color-orange-500);
+}
+
+/* Additional controls */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.control:hover {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+/* Focus styles */
+.navButton:focus,
+.bookmark:focus,
+.control:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .urlContainer {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+  
+  .urlContainer:hover {
+    background-color: var(--color-gray-750);
+  }
+  
+  .urlContainer:focus-within {
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px var(--color-primary-900);
+  }
+  
+  .input {
+    color: var(--color-gray-100);
+  }
+  
+  .input::placeholder {
+    color: var(--color-gray-500);
+  }
+  
+  .urlDisplay {
+    color: var(--color-gray-300);
+  }
+  
+  .navButton,
+  .control {
+    color: var(--color-gray-400);
+  }
+  
+  .navButton:hover:not(:disabled),
+  .control:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+}
+
+/* Responsive behavior */
+@media (max-width: 480px) {
+  .browserAddressBar {
+    gap: 4px;
+  }
+  
+  .navigation {
+    gap: 2px;
+  }
+  
+  .navButton,
+  .control {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .urlContainer {
+    padding: 0 8px;
+  }
+} 

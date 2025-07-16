@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import styles from './CharacterPortrait.module.css';
 
 export interface CharacterPortraitProps {
   name: string;
@@ -18,29 +19,29 @@ export const CharacterPortrait: React.FC<CharacterPortraitProps> = ({
   size = 'medium',
   onClick,
 }) => {
-  const sizeClasses = {
-    small: 'w-16 h-16',
-    medium: 'w-[120px] h-[120px]',
-    large: 'w-32 h-32',
-  };
-
-  const classes = clsx(
-    'character-portrait',
-    isAvailable && 'character-portrait--available',
-    sizeClasses[size],
-    onClick && 'cursor-pointer'
-  );
-
   return (
-    <div className={classes} onClick={onClick}>
-      <div className="character-portrait__glow" />
+    <div 
+      className={clsx(
+        styles.characterPortrait,
+        styles[`characterPortrait--${size}`],
+        {
+          [styles['characterPortrait--available']]: isAvailable,
+          [styles['characterPortrait--clickable']]: onClick
+        }
+      )}
+      onClick={onClick}
+      tabIndex={onClick ? 0 : undefined}
+      role={onClick ? 'button' : undefined}
+      aria-label={`${name} portrait${isAvailable ? ' (available)' : ''}`}
+    >
+      <div className={styles.glow} />
       <img
         src={avatar}
         alt={name}
-        className="character-portrait__image"
+        className={styles.image}
       />
       {badge && (
-        <div className="character-portrait__badge">
+        <div className={styles.badge}>
           {badge}
         </div>
       )}

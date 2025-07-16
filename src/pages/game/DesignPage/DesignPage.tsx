@@ -3,7 +3,6 @@ import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { DesignPhaseTemplate } from '../../templates/DesignPhaseTemplate';
 import { ComponentDrawer } from '../../organisms/ComponentDrawer';
 import { MetricsDashboard } from '../../organisms/MetricsDashboard';
-import styles from './DesignPage.module.css';
 
 /**
  * DesignPage
@@ -74,7 +73,7 @@ export const DesignPage: React.FC = () => {
         />
       }
       canvas={
-        <div className={styles.canvasPlaceholder}>
+                  <div className="canvas-placeholder">
           Design canvas (React Flow) will be implemented here
         </div>
       }

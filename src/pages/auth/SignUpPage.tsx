@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clsx } from 'clsx';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { signUpWithEmail, signInWithOAuth, clearError } from '../../features/auth/authSlice';
 import { OAUTH_PROVIDERS } from '../../constants';
+import styles from './SignUpPage.module.css';
 
 export const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,150 +72,156 @@ export const SignUpPage: React.FC = () => {
   };
 
   return (
-    <div className="auth-page">
-      <div className="auth-page__header">
-        <h1 className="auth-page__title">Create Your Account</h1>
-        <p className="auth-page__subtitle">Start your system design journey today</p>
-      </div>
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <h1 className={styles.title}>Create Your Account</h1>
+          <p className={styles.subtitle}>Start your system design journey today</p>
+        </div>
 
-      {/* OAuth Providers */}
-      <div className="auth-page__oauth-providers">
-        {Object.entries(OAUTH_PROVIDERS).map(([key, provider]) => (
-          <button
-            key={key}
-            onClick={() => handleOAuthSignIn(key.toLowerCase() as any)}
-            disabled={isLoading}
-            className="auth-page__oauth-button"
-          >
-            <span className="auth-page__oauth-icon">{getProviderIcon(provider.name)}</span>
-            <span>Continue with {provider.name}</span>
-          </button>
-        ))}
-      </div>
+        {/* OAuth Providers */}
+        <div className={styles.oauthProviders}>
+          {Object.entries(OAUTH_PROVIDERS).map(([key, provider]) => (
+            <button
+              key={key}
+              onClick={() => handleOAuthSignIn(key.toLowerCase() as any)}
+              disabled={isLoading}
+              className={clsx(styles.oauthButton, {
+                [styles.oauthButtonDisabled]: isLoading
+              })}
+            >
+              <span className={styles.oauthIcon}>{getProviderIcon(provider.name)}</span>
+              <span>Continue with {provider.name}</span>
+            </button>
+          ))}
+        </div>
 
-      <div className="auth-page__divider">
-        <span className="auth-page__divider-text">Or sign up with email</span>
-      </div>
+        <div className={styles.divider}>
+          <span className={styles.dividerText}>Or sign up with email</span>
+        </div>
 
-      {/* Sign Up Form */}
-      <form onSubmit={handleSubmit} className="auth-page__form">
-        {error && (
-          <div className="auth-page__error-message">
-            {error}
+        {/* Sign Up Form */}
+        <form onSubmit={handleSubmit} className={styles.form}>
+          {error && (
+            <div className={styles.errorMessage}>
+              {error}
+            </div>
+          )}
+
+          <div className={styles.formGroup}>
+            <label htmlFor="username" className={styles.formLabel}>
+              Username
+            </label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              value={formData.username}
+              onChange={handleInputChange}
+              required
+              className={clsx(styles.formInput, {
+                [styles.formInputError]: validationErrors.username
+              })}
+              placeholder="johndoe"
+            />
+            {validationErrors.username && (
+              <div className={styles.fieldError}>{validationErrors.username}</div>
+            )}
           </div>
-        )}
 
-        <div className="auth-page__form-group">
-          <label htmlFor="username" className="auth-page__form-label">
-            Username
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleInputChange}
-            required
-            className={`auth-page__form-input ${
-              validationErrors.username ? 'auth-page__form-input--error' : ''
-            }`}
-            placeholder="johndoe"
-          />
-          {validationErrors.username && (
-            <div className="auth-page__form-error-text">{validationErrors.username}</div>
-          )}
-        </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="email" className={styles.formLabel}>
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              required
+              className={clsx(styles.formInput, {
+                [styles.formInputError]: validationErrors.email
+              })}
+              placeholder="you@example.com"
+            />
+            {validationErrors.email && (
+              <div className={styles.fieldError}>{validationErrors.email}</div>
+            )}
+          </div>
 
-        <div className="auth-page__form-group">
-          <label htmlFor="email" className="auth-page__form-label">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            required
-            className={`auth-page__form-input ${
-              validationErrors.email ? 'auth-page__form-input--error' : ''
-            }`}
-            placeholder="you@example.com"
-          />
-          {validationErrors.email && (
-            <div className="auth-page__form-error-text">{validationErrors.email}</div>
-          )}
-        </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="password" className={styles.formLabel}>
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              className={clsx(styles.formInput, {
+                [styles.formInputError]: validationErrors.password
+              })}
+              placeholder="••••••••"
+            />
+            {validationErrors.password && (
+              <div className={styles.fieldError}>{validationErrors.password}</div>
+            )}
+          </div>
 
-        <div className="auth-page__form-group">
-          <label htmlFor="password" className="auth-page__form-label">
-            Password
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            required
-            className={`auth-page__form-input ${
-              validationErrors.password ? 'auth-page__form-input--error' : ''
-            }`}
-            placeholder="••••••••"
-          />
-          {validationErrors.password && (
-            <div className="auth-page__form-error-text">{validationErrors.password}</div>
-          )}
-        </div>
+          <div className={styles.formGroup}>
+            <label htmlFor="confirmPassword" className={styles.formLabel}>
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              className={clsx(styles.formInput, {
+                [styles.formInputError]: validationErrors.confirmPassword
+              })}
+              placeholder="••••••••"
+            />
+            {validationErrors.confirmPassword && (
+              <div className={styles.fieldError}>{validationErrors.confirmPassword}</div>
+            )}
+          </div>
 
-        <div className="auth-page__form-group">
-          <label htmlFor="confirmPassword" className="auth-page__form-label">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            required
-            className={`auth-page__form-input ${
-              validationErrors.confirmPassword ? 'auth-page__form-input--error' : ''
-            }`}
-            placeholder="••••••••"
-          />
-          {validationErrors.confirmPassword && (
-            <div className="auth-page__form-error-text">{validationErrors.confirmPassword}</div>
-          )}
-        </div>
+          <div className={styles.termsGroup}>
+            <input
+              type="checkbox"
+              id="terms"
+              required
+              className={styles.checkbox}
+            />
+            <label htmlFor="terms" className={styles.termsLabel}>
+              I agree to the{' '}
+              <a href="/terms" className={styles.link}>Terms of Service</a>{' '}
+              and{' '}
+              <a href="/privacy" className={styles.link}>Privacy Policy</a>
+            </label>
+          </div>
 
-        <div className="auth-page__terms-group">
-          <input
-            type="checkbox"
-            id="terms"
-            required
-            className="auth-page__terms-checkbox auth-page__checkbox"
-          />
-          <label htmlFor="terms" className="auth-page__terms-label">
-            I agree to the{' '}
-            <a href="/terms">Terms of Service</a>{' '}
-            and{' '}
-            <a href="/privacy">Privacy Policy</a>
-          </label>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="auth-page__submit-button"
-        >
-          {isLoading ? (
-            <span className="auth-page__loading">Creating account...</span>
-          ) : (
-            'Create Account'
-          )}
-        </button>
-      </form>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={clsx(styles.submitButton, {
+              [styles.submitButtonLoading]: isLoading
+            })}
+          >
+            {isLoading ? (
+              <span className={styles.loading}>Creating account...</span>
+            ) : (
+              'Create Account'
+            )}
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

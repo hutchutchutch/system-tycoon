@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from 'react';
+import clsx from 'clsx';
+import styles from './AnimatedCounter.module.css';
 
 interface AnimatedCounterProps {
   value: number;
   duration?: number;
+  size?: 'small' | 'default' | 'large' | 'xlarge';
+  variant?: 'default' | 'primary' | 'success' | 'danger' | 'warning';
+  pulse?: boolean;
+  glow?: boolean;
+  className?: string;
 }
 
-export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 2000 }) => {
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ 
+  value, 
+  duration = 2000,
+  size = 'default',
+  variant = 'default',
+  pulse = false,
+  glow = false,
+  className
+}) => {
   const [count, setCount] = useState(0);
   
   useEffect(() => {
@@ -26,5 +41,16 @@ export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duratio
     return () => clearInterval(timer);
   }, [value, duration]);
   
-  return <span>{count.toLocaleString()}</span>;
+  return (
+    <span className={clsx(
+      styles.counter,
+      size !== 'default' && styles[`counter--${size}`],
+      variant !== 'default' && styles[`counter--${variant}`],
+      pulse && styles['counter--pulse'],
+      glow && styles['counter--glow'],
+      className
+    )}>
+      {count.toLocaleString()}
+    </span>
+  );
 };

@@ -4,7 +4,6 @@ import { BattleTemplate } from '../../templates/BattleTemplate';
 import { Button } from '../../atoms/Button';
 import { Card } from '../../atoms/Card';
 import { Progress } from '../../atoms/Progress';
-import styles from './BattlePage.module.css';
 
 /**
  * BattlePage - System architecture battle page
@@ -31,10 +30,10 @@ export const BattlePage: React.FC = () => {
 
   return (
     <BattleTemplate>
-      <div className={styles.battleControls}>
-        <Card className={styles.actionPanel}>
+      <div className="battle-controls">
+        <Card className="action-panel">
           <h3>System Actions</h3>
-          <div className={styles.actions}>
+          <div className="actions">
             {playerActions.map((action) => (
               <Button
                 key={action.id}
@@ -48,9 +47,9 @@ export const BattlePage: React.FC = () => {
           </div>
         </Card>
         
-        <Card className={styles.statusPanel}>
-          <h3>Battle Status</h3>
-          <div className={styles.timer}>
+                  <Card className="status-panel">
+            <h3>Battle Status</h3>
+            <div className="timer">
             <span>Turn Timer</span>
             <Progress value={turnTimer} max={30} />
           </div>

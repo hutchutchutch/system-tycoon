@@ -1,0 +1,86 @@
+/* DesignPhaseTemplate Component CSS Module */
+
+/* Base Template Styles */
+.design-phase-template {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--color-neutral-50);
+}
+
+.design-phase-template__header {
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid var(--color-neutral-200);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-6);
+  z-index: 20;
+}
+
+.design-phase-template__workspace {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.design-phase-template__sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid var(--color-neutral-200);
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.design-phase-template__canvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.design-phase-template__placeholder {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-500);
+  font-size: var(--text-lg);
+}
+
+.design-phase-template__metrics {
+  width: 320px;
+  background: white;
+  border-left: 1px solid var(--color-neutral-200);
+  overflow-y: auto;
+  padding: var(--space-6);
+}
+
+.design-phase-template__mentor {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  z-index: 30;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .design-phase-template__sidebar {
+    display: none;
+  }
+
+  .design-phase-template__metrics {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .design-phase-template__header {
+    padding: 0 var(--space-4);
+  }
+
+  .design-phase-template__mentor {
+    bottom: var(--space-4);
+    right: var(--space-4);
+  }
+} 

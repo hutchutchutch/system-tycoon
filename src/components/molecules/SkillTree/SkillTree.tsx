@@ -1,5 +1,7 @@
 import React from 'react';
+import clsx from 'clsx';
 import { Check, Lock, Loader } from 'lucide-react';
+import styles from './SkillTree.module.css';
 
 interface Module {
   name: string;
@@ -14,39 +16,46 @@ interface SkillTreeProps {
 
 export const SkillTree: React.FC<SkillTreeProps> = ({ modules }) => {
   return (
-    <div className="relative">
+    <div className={styles.container}>
       {modules.map((module, index) => (
-        <div key={index} className="flex items-center mb-4">
-          <div className={`
-            w-10 h-10 rounded-full flex items-center justify-center z-10
-            ${module.completed ? 'bg-green-500' : 
-              module.inProgress ? 'bg-yellow-500 animate-pulse' : 
-              'bg-gray-300'}
-          `}>
+        <div key={index} className={styles.module}>
+          <div className={clsx(
+            styles.indicator,
+            {
+              [styles['indicator--completed']]: module.completed,
+              [styles['indicator--inProgress']]: module.inProgress,
+              [styles['indicator--locked']]: !module.completed && !module.inProgress
+            }
+          )}>
             {module.completed ? (
-              <Check size={20} className="text-white" />
+              <Check className={clsx(styles.icon, styles['icon--check'])} />
             ) : module.inProgress ? (
-              <Loader size={20} className="text-white animate-spin" />
+              <Loader className={clsx(styles.icon, styles['icon--loader'])} />
             ) : (
-              <Lock size={16} className="text-gray-600" />
+              <Lock className={styles['icon--lock']} />
             )}
           </div>
-          <div className="ml-4 flex-1">
-            <p className={`text-sm ${module.locked ? 'text-gray-400' : 'text-gray-700'}`}>
+          <div className={styles.moduleInfo}>
+            <p className={clsx(
+              styles.moduleName,
+              {
+                [styles['moduleName--active']]: module.completed || module.inProgress,
+                [styles['moduleName--locked']]: module.locked
+              }
+            )}>
               {module.name}
             </p>
           </div>
         </div>
       ))}
       {/* Connecting lines */}
-      <svg className="absolute top-0 left-5 h-full w-px pointer-events-none">
+      <svg className={styles.connectingLine}>
         <line 
           x1="0" 
           y1="20" 
           x2="0" 
           y2="calc(100% - 20px)" 
-          stroke="#e5e7eb" 
-          strokeWidth="2" 
+          className={styles.connectingLinePath}
         />
       </svg>
     </div>

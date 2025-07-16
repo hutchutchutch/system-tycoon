@@ -1,6 +1,9 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import { Icon } from '../Icon';
 import type { EmailStatusProps, EmailStatusType } from './EmailStatus.types';
+import type { IconName } from '../Icon/Icon.types';
+import styles from './EmailStatus.module.css';
 
 export const EmailStatus: React.FC<EmailStatusProps> = ({
   status,
@@ -12,39 +15,33 @@ export const EmailStatus: React.FC<EmailStatusProps> = ({
     switch (status) {
       case 'unread':
         return {
-          icon: 'mail' as const,
+          icon: 'mail' as IconName,
           label: 'Unread',
-          className: 'email-status--unread',
         };
       case 'read':
         return {
-          icon: 'mail' as const,
+          icon: 'mail' as IconName,
           label: 'Read',
-          className: 'email-status--read',
         };
       case 'replied':
         return {
-          icon: 'arrow-left' as const,
+          icon: 'arrow-left' as IconName,
           label: 'Replied',
-          className: 'email-status--replied',
         };
       case 'forwarded':
         return {
-          icon: 'arrow-right' as const,
+          icon: 'arrow-right' as IconName,
           label: 'Forwarded',
-          className: 'email-status--forwarded',
         };
       case 'draft':
         return {
-          icon: 'edit' as const,
+          icon: 'edit' as IconName,
           label: 'Draft',
-          className: 'email-status--draft',
         };
       default:
         return {
-          icon: 'mail' as const,
+          icon: 'mail' as IconName,
           label: 'Email',
-          className: 'email-status--default',
         };
     }
   };
@@ -52,14 +49,24 @@ export const EmailStatus: React.FC<EmailStatusProps> = ({
   const config = getStatusConfig(status);
 
   return (
-    <div className={`email-status email-status--${size} ${config.className} ${className}`}>
-      <Icon name={config.icon} size={size === 'lg' ? 'md' : 'sm'} />
+    <div 
+      className={clsx(
+        styles['email-status'],
+        styles[`email-status--${status}`],
+        styles[`email-status--${size}`],
+        className
+      )}
+      aria-label={`Email ${status}`}
+    >
+      <Icon 
+        name={config.icon} 
+        size={size === 'sm' ? 'xs' : 'sm'} 
+        className={styles['email-status__icon']}
+      />
       {showLabel && (
-        <span className="email-status__label">{config.label}</span>
+        <span className={styles['email-status__label']}>{config.label}</span>
       )}
-      {status === 'unread' && (
-        <div className="email-status__unread-dot" />
-      )}
+      <span className={styles['email-status__dot']} aria-hidden="true" />
     </div>
   );
 };

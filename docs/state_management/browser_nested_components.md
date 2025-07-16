@@ -10,12 +10,17 @@ This document details the complete nested component hierarchy displayed when cli
 - **InitialExperience** (`/src/pages/InitialExperience/index.tsx`)
   - Root page component that manages the initial experience flow
   - Contains state for browser visibility and active tabs
+  - **Layout Fix**: Removed duplicate `margin-top: 64px`, changed to `height: 100%` to fill parent container
+- **Container States**: Added CSS modifier classes for blank vs browser states
+- **Browser Tab Visibility**: Fixed positioning to ensure BrowserTab components are visible in top chrome area
 
 ### Template Level  
 - **GameLayout** (`/src/components/layout/GameLayout.tsx`)
   - Wraps the entire page with game-specific layout
   - Conditionally renders GameHUD based on route
   - Provides main content area with proper spacing
+  - **Spacing Control**: Uses `pt-16` (64px) to account for fixed GameHUD height
+  - **Layout Fix**: Centralized spacing control to prevent double margins from child components
 
 ### Organism Level
 
@@ -30,6 +35,8 @@ This document details the complete nested component hierarchy displayed when cli
 - **Styling Issues Fixed**: 
   - ❌ **Previous Issue**: Duplicate background declarations causing black bar
   - ✅ **Fix Applied**: Removed duplicate background, fixed dark mode colors
+  - ❌ **Layout Gap Issue**: Multiple components had `margin-top: 64px` causing double spacing
+  - ✅ **Gap Fix Applied**: Consolidated spacing control to GameLayout's `pt-16` class
 
 #### 2. BrowserWindow (`/src/components/organisms/BrowserWindow/BrowserWindow.tsx`)
 - **Purpose**: Simulates a web browser interface
@@ -40,6 +47,10 @@ This document details the complete nested component hierarchy displayed when cli
     - `BrowserTab` - Individual browser tabs
     - `Button` - New tab button
 - **Dynamic Content**: Renders tab content based on active tab
+- **Styling Issues Fixed**:
+  - ❌ **Previous Issue**: `margin-top: 64px` creating gap below GameHUD
+  - ❌ **Height Issue**: `calc(100vh - 64px)` with offset caused content to extend beyond viewport
+  - ✅ **Fix Applied**: Removed margin-top, changed height to `100%` to fill parent container
 
 #### 3. EmailClient (`/src/components/organisms/EmailClient/EmailClient.tsx`)
 - **Purpose**: Complete email interface simulation
@@ -194,6 +205,56 @@ This document details the complete nested component hierarchy displayed when cli
 
 ### Fixed Issues
 ✅ **GameHUD Black Bar**: Fixed duplicate background declarations and dark mode colors
+✅ **Layout Gap Issue**: Fixed duplicate spacing between GameHUD and content
+
+#### Layout Gap Investigation & Resolution
+
+**Problem**: Black gap appearing between GameHUD and BrowserWindow components
+
+**Root Cause Analysis**:
+1. GameHUD has `position: fixed` and `height: 64px`
+2. GameLayout applies `pt-16` (64px) padding to main content
+3. InitialExperience component had additional `margin-top: 64px`
+4. BrowserWindow component had additional `margin-top: 64px`
+5. Both also used `height: calc(100vh - 64px)` expecting to account for GameHUD
+6. **Double Height Issue**: Components were offset 64px but still used full viewport calculations
+7. **Layout Issue**: InitialExperience container centered content, hiding BrowserWindow chrome
+8. **PRIMARY ISSUE**: BrowserWindow CSS used `width: 100vw` forcing viewport positioning
+
+**Solution Applied**:
+- **GameLayout**: Maintained `pt-16` class for proper GameHUD spacing
+- **InitialExperience**: Removed `margin-top: 64px`, changed height from `calc(100vh - 64px)` to `100%`
+- **BrowserWindow**: Removed `margin-top: 64px`, changed height from `calc(100vh - 64px)` to `100%`
+- **Container Layout**: Added state-based CSS classes (--blank, --browser) to control centering vs full-width
+- **Height Fix**: Components now use `100%` height to fill parent container instead of viewport calculations
+- **PRIMARY FIX**: Changed BrowserWindow CSS from `width: 100vw` to `width: 100%` in components.css
+- **Spacing Principle**: GameLayout provides offset positioning, child components fill available space
+
+### CSS Files Analysis
+
+**Files Affecting InitialExperience Screen**:
+
+1. **`src/styles/design-system/components.css`** ❌ **ROOT CAUSE**
+   - Line 2725: `.browser-window { width: 100vw; }` 
+   - Line 913: `.game-hud { position: fixed; z-index: 40; }`
+   - **Issue**: Viewport width forces positioning relative to viewport instead of container
+
+2. **`src/pages/InitialExperience/InitialExperience.css`** ⚠️ Minor
+   - Line 209: Loading overlay with `z-index: 1000`
+   - **Status**: No positioning conflicts, properly contained
+
+3. **`src/pages/InitialExperience/EmailClientWrapper.css`** ✅ Clean
+   - Only contains wrapper and loading styles
+   - **Status**: No positioning issues
+
+4. **`src/index.css` & `src/styles/design-system/index.css`** ✅ Clean
+   - Standard CSS reset and design system imports
+   - **Status**: No conflicts detected
+
+**CSS Specificity & Load Order**:
+- Design system loaded before page-specific CSS
+- Tailwind utilities available but not conflicting
+- Component CSS takes precedence over global styles
 
 ### Known Limitations
 - **Email Loading**: 2-second simulated delay

@@ -1,0 +1,57 @@
+/* AnimatedCounter CSS Module */
+
+.counter {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Size variants */
+.counter--small {
+  font-size: var(--font-size-sm);
+}
+
+.counter--large {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+}
+
+.counter--xlarge {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Style variants */
+.counter--primary {
+  color: var(--color-primary);
+}
+
+.counter--success {
+  color: var(--color-success);
+}
+
+.counter--danger {
+  color: var(--color-danger);
+}
+
+.counter--warning {
+  color: var(--color-warning);
+}
+
+/* Animation effects */
+.counter--pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.counter--glow {
+  text-shadow: 0 0 10px currentColor;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+} 

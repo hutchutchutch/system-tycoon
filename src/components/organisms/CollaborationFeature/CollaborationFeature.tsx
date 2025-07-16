@@ -2,6 +2,7 @@ import React from 'react';
 import { Card } from '../../atoms/Card';
 import { Users, GraduationCap, Globe } from 'lucide-react';
 import { CollaborationDemo } from './components/CollaborationDemo';
+import styles from './CollaborationFeature.module.css';
 
 const CollaborationFeature: React.FC = () => {
   const features = [
@@ -23,24 +24,24 @@ const CollaborationFeature: React.FC = () => {
   ];
   
   return (
-    <section className="py-20 bg-blue-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className={styles.collaboration}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Never Solve Alone. Multiply Your Impact.
         </h2>
         
-        <div className="grid md:grid-cols-2 gap-12 items-center">
+        <div className={styles.grid}>
           <div>
-            <div className="space-y-6">
+            <div className={styles.features}>
               {features.map((feature, index) => (
-                <Card key={index} className="p-6">
-                  <div className="flex gap-4">
-                    <div className="text-blue-600 flex-shrink-0">
+                <Card key={index} className={styles.featureCard}>
+                  <div className={styles.featureContent}>
+                    <div className={styles.featureIcon}>
                       {feature.icon}
                     </div>
-                    <div>
-                      <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                      <p className="text-gray-600">{feature.description}</p>
+                    <div className={styles.featureText}>
+                      <h3>{feature.title}</h3>
+                      <p>{feature.description}</p>
                     </div>
                   </div>
                 </Card>
@@ -48,7 +49,7 @@ const CollaborationFeature: React.FC = () => {
             </div>
           </div>
           
-          <div className="relative">
+          <div className={styles.demoContainer}>
             <CollaborationDemo />
           </div>
         </div>

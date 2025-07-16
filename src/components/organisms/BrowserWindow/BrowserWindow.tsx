@@ -4,6 +4,7 @@ import { Plus, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
 import { BrowserTab } from '../../atoms/BrowserTab';
 import { Button } from '../../atoms/Button';
 import { BrowserAddressBar } from '../../molecules/BrowserAddressBar';
+import styles from './BrowserWindow.module.css';
 import type { BrowserWindowProps } from './BrowserWindow.types';
 
 export const BrowserWindow: React.FC<BrowserWindowProps> = ({
@@ -23,10 +24,10 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
   const ActiveComponent = activeTabData?.component;
 
   return (
-    <div className={clsx('browser-window', className)}>
-      <div className="browser-window__chrome">
-        <div className="browser-window__tab-bar">
-          <div className="browser-window__tabs">
+    <div className={clsx(styles.browserWindow, className)}>
+      <div className={styles.chrome}>
+        <div className={styles.tabBar}>
+          <div className={styles.tabs}>
             {tabs.map(tab => (
               <BrowserTab
                 key={tab.id}
@@ -41,7 +42,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
             
             {onNewTab && (
               <button
-                className="browser-window__new-tab"
+                className={styles.newTab}
                 onClick={onNewTab}
                 aria-label="New tab"
               >
@@ -51,7 +52,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
           </div>
         </div>
 
-        <div className="browser-window__controls">
+        <div className={styles.controls}>
           {activeTabData && (
             <BrowserAddressBar
               url={activeTabData.url}
@@ -61,7 +62,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
         </div>
       </div>
 
-      <div className="browser-window__content">
+      <div className={styles.content}>
         {ActiveComponent ? (
           <ActiveComponent 
             {...(activeTabData && Object.fromEntries(

@@ -1,0 +1,136 @@
+/* AchievementToast CSS Module */
+
+.toast {
+  position: relative;
+  background: white;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl);
+  padding: 1.5rem;
+  min-width: 320px;
+  max-width: 420px;
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Animated border */
+.border {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Content layout */
+.content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Icon */
+.icon {
+  font-size: 2rem;
+  line-height: 1;
+  flex-shrink: 0;
+  animation: bounce 0.5s ease-out 0.3s;
+}
+
+/* Text content */
+.text {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.description {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Close button */
+.close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.close:hover {
+  background: var(--color-gray-100);
+  color: var(--color-gray-600);
+}
+
+.closeIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: scale(0.8);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Exit animation */
+.toast--exiting {
+  animation: slideOut 0.3s ease-in forwards;
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+} 

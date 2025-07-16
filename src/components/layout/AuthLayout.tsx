@@ -1,7 +1,9 @@
 import React from 'react';
 import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { clsx } from 'clsx';
 import { useAppSelector } from '../../hooks/redux';
 import { Button } from '../atoms/Button';
+import styles from './AuthLayout.module.css';
 
 export const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -17,21 +19,21 @@ export const AuthLayout: React.FC = () => {
   const isSignUp = location.pathname === '/auth/signup';
 
   return (
-    <div className="auth-layout">
+    <div className={styles.layout}>
       {/* Navigation */}
-      <nav className="auth-layout__nav">
-        <div className="auth-layout__nav-container">
+      <nav className={styles.nav}>
+        <div className={styles.navContainer}>
           <button 
-            className="auth-layout__logo"
+            className={styles.logo}
             onClick={() => navigate('/')}
           >
             System Tycoon
           </button>
-          <div className="auth-layout__nav-actions">
+          <div className={styles.navActions}>
             <Button
               variant="ghost"
               onClick={() => navigate('/')}
-              className="auth-layout__nav-button"
+              className={styles.navButton}
             >
               Back to Home
             </Button>
@@ -40,20 +42,24 @@ export const AuthLayout: React.FC = () => {
       </nav>
 
       {/* Main Auth Container */}
-      <div className="auth-layout__container">
-        <div className="auth-layout__content">
+      <div className={styles.container}>
+        <div className={styles.content}>
           {/* Auth Form Container */}
-          <div className="auth-layout__form-container">
+          <div className={styles.formContainer}>
             {/* Tab Navigation */}
-            <div className="auth-layout__tabs">
+            <div className={styles.tabs}>
               <button
-                className={`auth-layout__tab ${isSignIn ? 'auth-layout__tab--active' : ''}`}
+                className={clsx(styles.tab, {
+                  [styles.tabActive]: isSignIn
+                })}
                 onClick={() => navigate('/auth/signin')}
               >
                 Sign In
               </button>
               <button
-                className={`auth-layout__tab ${isSignUp ? 'auth-layout__tab--active' : ''}`}
+                className={clsx(styles.tab, {
+                  [styles.tabActive]: isSignUp
+                })}
                 onClick={() => navigate('/auth/signup')}
               >
                 Sign Up
@@ -61,7 +67,7 @@ export const AuthLayout: React.FC = () => {
             </div>
 
             {/* Form Content */}
-            <div className="auth-layout__form-content">
+            <div className={styles.formContent}>
               <Outlet />
             </div>
           </div>

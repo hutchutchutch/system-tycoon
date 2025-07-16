@@ -4,7 +4,6 @@ import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { MenuTemplate } from '../../templates/MenuTemplate';
 import { Button } from '../../atoms/Button';
 import { Card } from '../../atoms/Card';
-import styles from './MainMenuPage.module.css';
 
 /**
  * MainMenuPage - Game main menu
@@ -40,13 +39,13 @@ export const MainMenuPage: React.FC = () => {
 
   return (
     <MenuTemplate>
-      <Card className={styles.menuCard}>
-        <div className={styles.menuOptions}>
+              <Card className="menu-card">
+          <div className="menu-options">
           {hasSaveGame && (
             <Button
               onClick={handleContinue}
               size="lg"
-              className={styles.menuButton}
+              className="menu-button"
             >
               Continue Game
             </Button>
@@ -56,7 +55,7 @@ export const MainMenuPage: React.FC = () => {
             onClick={handleNewGame}
             size="lg"
             variant={hasSaveGame ? 'outline' : 'default'}
-            className={styles.menuButton}
+            className="menu-button"
           >
             New Game
           </Button>
@@ -65,7 +64,7 @@ export const MainMenuPage: React.FC = () => {
             onClick={handleSettings}
             size="lg"
             variant="outline"
-            className={styles.menuButton}
+            className="menu-button"
           >
             Settings
           </Button>
@@ -75,7 +74,7 @@ export const MainMenuPage: React.FC = () => {
               onClick={() => navigate('/auth/login')}
               size="lg"
               variant="secondary"
-              className={styles.menuButton}
+              className="menu-button"
             >
               Login / Register
             </Button>

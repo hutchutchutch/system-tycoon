@@ -1,6 +1,7 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import type { ButtonProps } from './Button.types';
+import styles from './Button.module.css';
 
 /**
  * Button Component
@@ -28,12 +29,18 @@ export const Button: React.FC<ButtonProps> = ({
   className,
   ...props
 }) => {
+  // Map size prop values to CSS module classes
+  const sizeClass = size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'md';
+  
   const classes = clsx(
-    'btn',
-    `btn--${variant}`,
-    size !== 'medium' && `btn--${size}`,
-    loading && 'btn--loading',
-    fullWidth && 'w-full',
+    styles.button,
+    styles[`button--${variant}`],
+    styles[`button--${sizeClass}`],
+    {
+      [styles['button--loading']]: loading,
+      [styles['button--full-width']]: fullWidth,
+      [styles['button--icon-only']]: !children && icon,
+    },
     className
   );
 
@@ -44,11 +51,11 @@ export const Button: React.FC<ButtonProps> = ({
       {...props}
     >
       {icon && iconPosition === 'left' && !loading && (
-        <span className="btn__icon">{icon}</span>
+        <span className={styles.button__icon}>{icon}</span>
       )}
       {children}
       {icon && iconPosition === 'right' && !loading && (
-        <span className="btn__icon">{icon}</span>
+        <span className={styles.button__icon}>{icon}</span>
       )}
     </button>
   );

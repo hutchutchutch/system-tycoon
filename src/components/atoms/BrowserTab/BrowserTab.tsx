@@ -1,6 +1,8 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import { Icon } from '../Icon';
 import type { BrowserTabProps } from './BrowserTab.types';
+import styles from './BrowserTab.module.css';
 
 export const BrowserTab: React.FC<BrowserTabProps> = ({
   title,
@@ -35,46 +37,55 @@ export const BrowserTab: React.FC<BrowserTabProps> = ({
 
   return (
     <div
-      className={`browser-tab ${active ? 'browser-tab--active' : ''} ${className}`}
+      className={clsx(
+        styles['browser-tab'],
+        {
+          [styles['browser-tab--active']]: active,
+          [styles['browser-tab--loading']]: loading,
+        },
+        className
+      )}
       onClick={handleClick}
       role="tab"
       aria-selected={active}
       tabIndex={0}
     >
-      {/* Favicon or loading indicator */}
-      <div className="browser-tab__icon">
-        {loading ? (
-          <div className="browser-tab__spinner" />
-        ) : favicon ? (
-          <img 
-            src={favicon} 
-            alt="" 
-            className="browser-tab__favicon"
-            onError={(e) => {
-              // Fallback to generic icon if favicon fails to load
-              e.currentTarget.style.display = 'none';
-            }}
-          />
-        ) : (
-          <Icon name="globe" size="sm" />
+      <div className={styles['browser-tab__content']}>
+        {/* Favicon or loading indicator */}
+        <div className={styles['browser-tab__icon']}>
+          {loading ? (
+            <div className={styles['browser-tab__spinner']} />
+          ) : favicon ? (
+            <img 
+              src={favicon} 
+              alt="" 
+              className={styles['browser-tab__favicon']}
+              onError={(e) => {
+                // Fallback to generic icon if favicon fails to load
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <Icon name="globe" size="sm" />
+          )}
+        </div>
+
+        {/* Tab title */}
+        <span className={styles['browser-tab__title']}>
+          {getDisplayTitle()}
+          {modified && <span className={styles['browser-tab__modified']}>•</span>}
+        </span>
+
+        {/* Notification indicator */}
+        {hasNotification && (
+          <div className={styles['browser-tab__notification']} />
         )}
       </div>
-
-      {/* Tab title */}
-      <span className="browser-tab__title">
-        {getDisplayTitle()}
-        {modified && <span className="browser-tab__modified">•</span>}
-      </span>
-
-      {/* Notification indicator */}
-      {hasNotification && (
-        <div className="browser-tab__notification" />
-      )}
 
       {/* Close button */}
       {showClose && (
         <button
-          className="browser-tab__close"
+          className={styles['browser-tab__close']}
           onClick={handleClose}
           aria-label={`Close ${title}`}
           tabIndex={-1}

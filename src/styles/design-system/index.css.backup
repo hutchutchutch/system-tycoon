@@ -1,0 +1,60 @@
+/* System Design Tycoon - Design System v2.0 */
+/* Main entry point for all design system styles */
+
+/* 1. Foundation Layer - Base tokens and reset */
+@import './foundation/tokens.css';
+@import './foundation/reset.css';
+
+/* 2. Layout System - Grid, containers, spacing */
+@import './layout/containers.css';
+@import './layout/grids.css';
+@import './layout/browser-windows.css';
+
+/* 3. Component Library - Reusable UI components */
+@import './components/atoms.css';
+@import './components/molecules.css'; 
+@import './components/organisms.css';
+
+/* 4. Page Layouts - Specific page styling */
+@import './pages/landing.css';
+@import './pages/auth.css';
+@import './pages/game.css';
+@import './pages/initial-experience.css';
+
+/* 5. Features - Game-specific features */
+@import './features/react-flow.css';
+@import './features/career-map.css';
+
+/* 6. Utilities - Animations and helpers */
+@import './utilities/animations.css';
+@import './utilities/debug.css';
+
+/* Global Reset and Base Styles */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  color: var(--color-neutral-900);
+  background: var(--color-neutral-50);
+}
+
+/* Debug mode helpers */
+.debug-layout * {
+  outline: 1px solid rgba(255, 0, 0, 0.3);
+}
+
+.debug-layout *:hover {
+  outline: 2px solid rgba(255, 0, 0, 0.8);
+}

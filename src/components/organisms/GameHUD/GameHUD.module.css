@@ -1,0 +1,244 @@
+/* GameHUD CSS Module */
+
+.hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-background-elevated);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  min-height: 60px;
+  z-index: 100;
+}
+
+/* Sections */
+.section {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.section--left {
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.section--center {
+  flex: 0 0 auto;
+}
+
+.section--right {
+  flex: 1;
+  justify-content: flex-end;
+  gap: 1.5rem;
+}
+
+/* Profile Section */
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.avatar {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.avatarText {
+  font-size: 1rem;
+  text-transform: uppercase;
+}
+
+.statusIndicator {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-success);
+  border: 2px solid var(--color-background-elevated);
+  border-radius: 50%;
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.username {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+.careerTitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+}
+
+/* System Status */
+.systemStatus {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.statusItem--warning {
+  color: var(--color-warning);
+  animation: pulse-warning 1s ease-in-out infinite;
+}
+
+.statusDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-gray-400);
+}
+
+.statusDot--online {
+  background: var(--color-success);
+  animation: pulse-status 2s ease-in-out infinite;
+}
+
+.statusText {
+  font-weight: 500;
+}
+
+/* Stats Section */
+.stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--color-gray-100);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+}
+
+.statContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.statLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
+}
+
+.statValue {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.2;
+}
+
+/* Action Buttons */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionButton {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  background: var(--color-gray-100);
+  color: var(--color-text-primary);
+  border-color: var(--color-gray-200);
+}
+
+.actionButton:active {
+  transform: scale(0.95);
+}
+
+.actionButton--theme {
+  color: var(--color-warning);
+}
+
+/* Animations */
+@keyframes pulse-status {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hud {
+    padding: 0.5rem 1rem;
+    min-height: 50px;
+  }
+
+  .section--center {
+    display: none;
+  }
+
+  .careerTitle {
+    display: none;
+  }
+
+  .statLabel {
+    display: none;
+  }
+} 

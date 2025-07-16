@@ -1,0 +1,76 @@
+/* Layout Containers */
+
+/* Main game layout */
+.game-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-layout__main {
+  flex: 1;
+  padding-top: 64px; /* Space for GameHUD */
+  position: relative;
+}
+
+/* Container utilities */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+.container--wide {
+  max-width: 1400px;
+}
+
+.container--narrow {
+  max-width: 800px;
+}
+
+.container--full {
+  max-width: 100%;
+  padding: 0;
+}
+
+/* Page layouts */
+.page-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-layout__header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: var(--z-40);
+  height: 64px;
+}
+
+.page-layout__main {
+  flex: 1;
+  padding-top: 64px;
+}
+
+.page-layout__footer {
+  margin-top: auto;
+}
+
+/* Full viewport layouts */
+.fullscreen-layout {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.fullscreen-layout__content {
+  flex: 1;
+  overflow: hidden;
+} 

@@ -1,6 +1,8 @@
 import React from 'react';
+import clsx from 'clsx';
 import { Card } from '../../atoms/Card';
 import { Badge } from '../../atoms/Badge';
+import styles from './StepCard.module.css';
 
 interface StepCardProps {
   icon: React.ReactNode;
@@ -8,6 +10,7 @@ interface StepCardProps {
   description: string;
   example: string;
   number: number;
+  className?: string;
 }
 
 export const StepCard: React.FC<StepCardProps> = ({
@@ -15,27 +18,28 @@ export const StepCard: React.FC<StepCardProps> = ({
   title,
   description,
   example,
-  number
+  number,
+  className
 }) => {
   return (
-    <Card className="relative p-8 hover:shadow-xl transition-shadow duration-300">
+    <Card className={clsx(styles.card, className)}>
       <Badge 
         variant="primary" 
-        className="absolute -top-3 -left-3 w-8 h-8 rounded-full flex items-center justify-center"
+        className={styles.stepNumber}
       >
         {number}
       </Badge>
       
-      <div className="flex justify-center mb-6 text-blue-600">
+      <div className={styles.iconWrapper}>
         {icon}
       </div>
       
-      <h3 className="text-xl font-bold mb-3">{title}</h3>
-      <p className="text-gray-600 mb-4">{description}</p>
+      <h3 className={styles.title}>{title}</h3>
+      <p className={styles.description}>{description}</p>
       
-      <div className="bg-gray-50 rounded-lg p-4">
-        <p className="text-sm text-gray-700 italic">
-          <span className="font-semibold">Example:</span> {example}
+      <div className={styles.exampleBox}>
+        <p className={styles.exampleText}>
+          <span className={styles.exampleLabel}>Example:</span> {example}
         </p>
       </div>
     </Card>

@@ -1,0 +1,79 @@
+/* Animated Background Styles */
+.background {
+  position: absolute;
+  inset: 0;
+}
+
+.gridOverlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.1;
+  background-image: 
+    linear-gradient(to right, rgba(255,255,255,0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.floatingIcon {
+  position: absolute;
+  color: white;
+  opacity: 0.2;
+  font-size: var(--font-size-2xl);
+  animation: float 6s ease-in-out infinite;
+}
+
+.floatingIconDelayed {
+  animation-delay: 3s;
+}
+
+.icon1 {
+  top: 2.5rem;
+  left: 2.5rem;
+}
+
+.icon2 {
+  top: 5rem;
+  right: 5rem;
+}
+
+.icon3 {
+  bottom: 5rem;
+  left: 25%;
+}
+
+.icon4 {
+  bottom: 2.5rem;
+  right: 33.333333%;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .floatingIcon {
+    font-size: var(--font-size-xl);
+  }
+  
+  .icon1, .icon2 {
+    top: 1.5rem;
+  }
+  
+  .icon1 {
+    left: 1.5rem;
+  }
+  
+  .icon2 {
+    right: 1.5rem;
+  }
+  
+  .icon3, .icon4 {
+    bottom: 1.5rem;
+  }
+} 

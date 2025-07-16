@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { completeStep, updateMetrics } from '../../features/mission/missionSlice';
 import { Requirements } from '../../components/molecules';
 import { useTheme } from '../../contexts/ThemeContext';
-import './SystemDesignCanvasWrapper.css';
+// CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
 
 interface CrisisSystemDesignCanvasProps {
   missionId: string;

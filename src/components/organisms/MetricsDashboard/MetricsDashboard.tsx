@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import styles from './MetricsDashboard.module.css';
 
 export interface MetricData {
   label: string;
@@ -23,20 +24,22 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({
   status = 'normal',
 }) => {
   return (
-    <div className="metrics-dashboard">
-      <div className="metrics-dashboard__header">
-        <h3 className="metrics-dashboard__title">{title}</h3>
-        <div className="metrics-dashboard__status">
+    <div className={styles['metrics-dashboard']}>
+      <div className={styles['metrics-dashboard__header']}>
+        <h3 className={styles['metrics-dashboard__title']}>{title}</h3>
+        <div className={styles['metrics-dashboard__status']}>
           <div className={clsx(
-            'metrics-dashboard__status-indicator',
-            status === 'warning' && 'metrics-dashboard__status-indicator--warning',
-            status === 'critical' && 'metrics-dashboard__status-indicator--critical'
+            styles['metrics-dashboard__status-indicator'],
+            {
+              [styles['metrics-dashboard__status-indicator--warning']]: status === 'warning',
+              [styles['metrics-dashboard__status-indicator--critical']]: status === 'critical',
+            }
           )} />
           <span className="text-sm capitalize">{status}</span>
         </div>
       </div>
 
-      <div className="metrics-dashboard__body">
+      <div className={styles['metrics-dashboard__body']}>
         {metrics.map((metric, index) => (
           <MetricCard key={index} metric={metric} />
         ))}
@@ -57,13 +60,13 @@ const MetricCard: React.FC<MetricCardProps> = ({ metric }) => {
     'normal';
 
   return (
-    <div className="metric-card">
-      <div className="metric-card__header">
-        <span className="metric-card__label">{metric.label}</span>
+    <div className={styles['metric-card']}>
+      <div className={styles['metric-card__header']}>
+        <span className={styles['metric-card__label']}>{metric.label}</span>
         {metric.trend && (
           <div className={clsx(
-            'metric-card__trend',
-            `metric-card__trend--${metric.trend}`
+            styles['metric-card__trend'],
+            styles[`metric-card__trend--${metric.trend}`]
           )}>
             {metric.trend === 'up' ? '↑' : metric.trend === 'down' ? '↓' : '→'}
             {metric.trendValue && <span className="ml-1">{metric.trendValue}</span>}
@@ -71,20 +74,22 @@ const MetricCard: React.FC<MetricCardProps> = ({ metric }) => {
         )}
       </div>
       
-      <div className="metric-card__value">
-        {metric.value.toLocaleString()}
+      <div className={styles['metric-card__value']}>
+        <span>{metric.value.toLocaleString()}</span>
         {metric.unit && (
-          <span className="metric-card__unit">{metric.unit}</span>
+          <span className={styles['metric-card__unit']}>{metric.unit}</span>
         )}
       </div>
 
       {metric.max && (
-        <div className="metric-card__progress">
+        <div className={styles['metric-card__progress']}>
           <div
             className={clsx(
-              'metric-card__progress-bar',
-              progressStatus === 'warning' && 'metric-card__progress-bar--warning',
-              progressStatus === 'critical' && 'metric-card__progress-bar--critical'
+              styles['metric-card__progress-bar'],
+              {
+                [styles['metric-card__progress-bar--warning']]: progressStatus === 'warning',
+                [styles['metric-card__progress-bar--critical']]: progressStatus === 'critical',
+              }
             )}
             style={{ width: `${Math.min(progressPercentage, 100)}%` }}
           />

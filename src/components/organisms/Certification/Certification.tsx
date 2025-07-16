@@ -3,16 +3,17 @@ import { CertificatePreview } from './components/CertificatePreview';
 import { CertificationDetails } from './components/CertificationDetails';
 import { HiringPartners } from './components/HiringPartners';
 import { SuccessStories } from './components/SuccessStories';
+import styles from './Certification.module.css';
 
 const Certification: React.FC = () => {
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className={styles.certification}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Turn Your Gaming Into a Career
         </h2>
         
-        <div className="grid md:grid-cols-2 gap-12 mb-16">
+        <div className={styles.mainGrid}>
           <CertificatePreview />
           <CertificationDetails />
         </div>

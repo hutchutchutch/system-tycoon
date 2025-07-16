@@ -1,7 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clsx } from 'clsx';
 import { Button } from '../../atoms/Button';
 import { AnimatedBackground } from './components/AnimatedBackground';
+import styles from './LandingHero.module.css';
 
 const LandingHero: React.FC = () => {
   const navigate = useNavigate();
@@ -11,36 +13,36 @@ const LandingHero: React.FC = () => {
   };
 
   return (
-    <section className="landing-page__hero">
+    <section className={styles.hero}>
       <AnimatedBackground />
       
-      <div className="landing-page__hero-container">
-        <div className="landing-page__hero-content">
-          <h1 className="landing-page__hero-title">
+      <div className={styles.container}>
+        <div className={styles.content}>
+          <h1 className={styles.title}>
             System Tycoon
             <br />
-            <span className="landing-page__hero-subtitle">
+            <span className={styles.subtitle}>
               Tech Consultant Simulator
             </span>
           </h1>
           
-          <p className="landing-page__hero-description">
+          <p className={styles.description}>
             Navigate the journey from financial desperation to tech consulting success. 
             Build systems, manage clients, and grow your consulting empire through 
             realistic browser-based professional tools.
           </p>
           
-          <div className="landing-page__hero-actions">
+          <div className={styles.actions}>
             <Button 
               variant="primary" 
               size="large"
-              className="landing-page__hero-cta"
+              className={styles.cta}
               onClick={handleStartBuilding}
             >
               🚀 Start Building Your Empire
             </Button>
             
-            <p className="landing-page__hero-hint">
+            <p className={styles.hint}>
               Experience realistic consulting workflows
             </p>
           </div>

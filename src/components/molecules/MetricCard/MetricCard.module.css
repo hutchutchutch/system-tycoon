@@ -1,0 +1,232 @@
+/* Metric Card component styles */
+
+.metricCard {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 8px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  cursor: default;
+}
+
+.metricCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Status variants */
+.metricCard--normal {
+  border-color: var(--color-gray-200);
+}
+
+.metricCard--warning {
+  border-color: var(--color-orange-400);
+  background-color: rgba(251, 146, 60, 0.05);
+}
+
+.metricCard--critical {
+  border-color: var(--color-red-400);
+  background-color: rgba(239, 68, 68, 0.05);
+}
+
+/* Animation state */
+.metricCard--animating .number {
+  color: var(--color-primary-600);
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Trend */
+.trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.trend--up {
+  color: var(--color-green-600);
+}
+
+.trend--down {
+  color: var(--color-red-600);
+}
+
+.trend--stable {
+  color: var(--color-gray-500);
+}
+
+.trendValue {
+  font-weight: 600;
+}
+
+/* Value */
+.value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.number {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--color-gray-900);
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.metricCard--warning .number {
+  color: var(--color-orange-600);
+}
+
+.metricCard--critical .number {
+  color: var(--color-red-600);
+}
+
+.unit {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-gray-500);
+}
+
+/* Progress bar */
+.progress {
+  height: 6px;
+  background-color: var(--color-gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBar {
+  height: 100%;
+  background-color: var(--color-primary-500);
+  border-radius: 3px;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.progressBar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+.metricCard--warning .progressBar {
+  background-color: var(--color-orange-500);
+}
+
+.metricCard--critical .progressBar {
+  background-color: var(--color-red-500);
+}
+
+/* Animations */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 640px) {
+  .metricCard {
+    padding: 16px;
+  }
+  
+  .number {
+    font-size: 28px;
+  }
+  
+  .label {
+    font-size: 12px;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .metricCard {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+  
+  .metricCard:hover {
+    background-color: var(--color-gray-750);
+  }
+  
+  .metricCard--warning {
+    border-color: var(--color-orange-600);
+    background-color: rgba(251, 146, 60, 0.1);
+  }
+  
+  .metricCard--critical {
+    border-color: var(--color-red-600);
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+  
+  .label {
+    color: var(--color-gray-400);
+  }
+  
+  .number {
+    color: var(--color-gray-100);
+  }
+  
+  .unit {
+    color: var(--color-gray-500);
+  }
+  
+  .progress {
+    background-color: var(--color-gray-700);
+  }
+}
+
+/* Focus styles */
+.metricCard:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .metricCard {
+    transition: none;
+  }
+  
+  .progressBar {
+    transition: none;
+  }
+  
+  .progressBar::after {
+    animation: none;
+  }
+} 

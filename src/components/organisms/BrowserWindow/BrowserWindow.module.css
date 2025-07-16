@@ -1,0 +1,199 @@
+/* Browser Window component styles */
+
+.browserWindow {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-white);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Browser chrome (header area) */
+.chrome {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-300);
+}
+
+/* Tab bar */
+.tabBar {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  position: relative;
+}
+
+/* Tabs container */
+.tabs {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  gap: 4px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* New tab button */
+.newTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.newTab:hover {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+.newTab:active {
+  background-color: var(--color-gray-300);
+}
+
+/* Controls area (address bar, navigation buttons) */
+.controls {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  gap: 12px;
+  background-color: var(--color-gray-50);
+}
+
+/* Navigation buttons */
+.navButtons {
+  display: flex;
+  gap: 4px;
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.navButton:hover:not(:disabled) {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+.navButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Content area */
+.content {
+  flex: 1;
+  overflow: auto;
+  background-color: var(--color-white);
+}
+
+/* Loading state */
+.browserWindow--loading .content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-gray-500);
+}
+
+/* Focus styles */
+.newTab:focus,
+.navButton:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .browserWindow {
+    border-radius: 0;
+    box-shadow: none;
+  }
+  
+  .tabBar {
+    padding: 0 8px;
+  }
+  
+  .controls {
+    padding: 6px 8px;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .browserWindow {
+    background-color: var(--color-gray-900);
+  }
+  
+  .chrome {
+    background-color: var(--color-gray-800);
+    border-bottom-color: var(--color-gray-700);
+  }
+  
+  .controls {
+    background-color: var(--color-gray-850);
+  }
+  
+  .content {
+    background-color: var(--color-gray-900);
+  }
+  
+  .newTab {
+    color: var(--color-gray-400);
+  }
+  
+  .newTab:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+  
+  .navButton {
+    color: var(--color-gray-400);
+  }
+  
+  .navButton:hover:not(:disabled) {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.content > * {
+  animation: fadeIn 0.2s ease-out;
+} 

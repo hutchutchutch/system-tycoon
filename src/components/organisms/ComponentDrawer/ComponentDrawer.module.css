@@ -1,0 +1,146 @@
+/* ComponentDrawer CSS Module */
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-background);
+  border-right: 1px solid var(--color-border);
+}
+
+/* Header */
+.header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-elevated);
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 1rem 0;
+}
+
+.search {
+  width: 100%;
+}
+
+/* Categories */
+.categories {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+/* Category */
+.category {
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  text-align: left;
+  color: var(--color-text-primary);
+}
+
+.categoryHeader:hover {
+  background-color: var(--color-gray-50);
+}
+
+.categoryHeader:active {
+  background-color: var(--color-gray-100);
+}
+
+.categoryTitle {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+}
+
+.categoryCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  background: var(--color-gray-100);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* Chevron */
+.chevron {
+  transition: transform 0.2s ease;
+  color: var(--color-text-secondary);
+}
+
+.chevron--expanded {
+  transform: rotate(180deg);
+}
+
+/* Category Items */
+.categoryItems {
+  padding: 0.5rem;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-gray-50);
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.emptyMessage {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+}
+
+/* Scrollbar styling */
+.categories::-webkit-scrollbar,
+.categoryItems::-webkit-scrollbar {
+  width: 6px;
+}
+
+.categories::-webkit-scrollbar-track,
+.categoryItems::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.categories::-webkit-scrollbar-thumb,
+.categoryItems::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: 3px;
+}
+
+.categories::-webkit-scrollbar-thumb:hover,
+.categoryItems::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Animation for category expansion */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.categoryItems {
+  animation: slideDown 0.2s ease-out;
+} 

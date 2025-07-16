@@ -1064,3 +1064,237 @@ interface EmotionalState {
 ```
 
 This updated design system transforms the game-focused components into realistic browser-based professional tools while maintaining the atomic design principles and emotional journey from financial desperation to business success.
+
+## 7. CSS Module Refactoring Strategy
+
+### 7.1 Overview
+To align with atomic design principles and modern React best practices, we're transitioning from a centralized CSS architecture to co-located CSS modules. This refactoring will improve component encapsulation, reduce style conflicts, and make components more maintainable and portable.
+
+### 7.2 Migration Goals
+- **Co-location**: Each component will have its CSS module file in the same directory
+- **Scoped Styles**: CSS modules provide automatic scoping to prevent style conflicts
+- **Component Independence**: Components become self-contained with their styles
+- **Type Safety**: TypeScript integration for CSS module imports
+- **Maintain Design Tokens**: Keep using our design system tokens via CSS custom properties
+
+### 7.3 New File Structure
+```
+src/
+├── components/
+│   ├── atoms/
+│   │   ├── Button/
+│   │   │   ├── Button.tsx
+│   │   │   ├── Button.module.css    # Co-located CSS module
+│   │   │   ├── Button.types.ts
+│   │   │   ├── Button.test.tsx
+│   │   │   └── index.ts
+│   │   ├── BrowserTab/
+│   │   │   ├── BrowserTab.tsx
+│   │   │   ├── BrowserTab.module.css
+│   │   │   ├── BrowserTab.types.ts
+│   │   │   └── index.ts
+│   ├── molecules/
+│   │   ├── EmailCard/
+│   │   │   ├── EmailCard.tsx
+│   │   │   ├── EmailCard.module.css
+│   │   │   ├── EmailCard.types.ts
+│   │   │   └── index.ts
+│   ├── organisms/
+│   │   ├── BrowserWindow/
+│   │   │   ├── BrowserWindow.tsx
+│   │   │   ├── BrowserWindow.module.css
+│   │   │   ├── BrowserWindow.types.ts
+│   │   │   └── index.ts
+├── styles/
+│   ├── foundation/
+│   │   ├── tokens.css         # Global design tokens
+│   │   ├── reset.css          # Browser reset
+│   │   └── typography.css     # Global typography
+│   ├── utilities/
+│   │   ├── animations.css     # Shared animations
+│   │   ├── mixins.css         # CSS utility mixins
+│   │   └── debug.css          # Debug utilities
+│   └── global.css             # Global styles entry point
+```
+
+### 7.4 CSS Module Naming Conventions
+```css
+/* Button.module.css */
+.button {
+  /* Base button styles */
+  background-color: var(--color-primary-500);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+}
+
+.button--primary {
+  /* Variant modifier using BEM-like convention */
+  background-color: var(--color-primary-600);
+}
+
+.button__icon {
+  /* Element within component */
+  margin-right: var(--space-2);
+}
+
+.button--loading {
+  /* State modifier */
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+```
+
+### 7.5 TypeScript Integration
+```typescript
+// Button.module.css.d.ts (auto-generated or manually created)
+export interface ButtonStyles {
+  readonly button: string;
+  readonly 'button--primary': string;
+  readonly 'button--secondary': string;
+  readonly 'button--loading': string;
+  readonly button__icon: string;
+}
+
+declare const styles: ButtonStyles;
+export default styles;
+```
+
+### 7.6 Migration Process
+
+#### Phase 1: Foundation Setup
+1. **Configure CSS Modules in build tool** (Vite already supports this)
+2. **Keep global styles** for:
+   - Design tokens (CSS custom properties)
+   - Browser reset/normalize
+   - Global typography
+   - Shared animations
+   - Debug utilities
+
+#### Phase 2: Component Migration (Bottom-up approach)
+1. **Start with Atoms** (smallest, most isolated components)
+   - Button, Badge, Icon, Input, etc.
+   - Extract relevant styles from `components/atoms.css`
+   - Create `.module.css` file for each component
+   - Update component imports
+
+2. **Move to Molecules**
+   - EmailCard, MetricCard, BrowserHeader, etc.
+   - Extract from `components/molecules.css`
+   - Handle composition of atom styles
+
+3. **Refactor Organisms**
+   - BrowserWindow, EmailClient, etc.
+   - Extract from `components/organisms.css`
+   - Manage complex component hierarchies
+
+4. **Update Templates and Pages**
+   - Migrate page-specific styles last
+   - Keep layout utilities as needed
+
+#### Phase 3: Cleanup
+1. Remove old centralized CSS files
+2. Update imports in main.tsx
+3. Verify all components are styled correctly
+4. Run visual regression tests
+
+### 7.7 Component Example After Migration
+```typescript
+// Button.tsx
+import React from 'react';
+import { clsx } from 'clsx';
+import styles from './Button.module.css';
+import { ButtonProps } from './Button.types';
+
+export const Button: React.FC<ButtonProps> = ({
+  variant = 'primary',
+  size = 'md',
+  loading = false,
+  disabled = false,
+  leftIcon,
+  rightIcon,
+  children,
+  className,
+  ...props
+}) => {
+  return (
+    <button
+      className={clsx(
+        styles.button,
+        styles[`button--${variant}`],
+        styles[`button--${size}`],
+        {
+          [styles['button--loading']]: loading,
+          [styles['button--disabled']]: disabled,
+        },
+        className
+      )}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {leftIcon && <span className={styles.button__icon}>{leftIcon}</span>}
+      {children}
+      {rightIcon && <span className={styles.button__icon}>{rightIcon}</span>}
+    </button>
+  );
+};
+```
+
+### 7.8 Benefits of CSS Modules Approach
+1. **Scoped Styles**: No more global namespace pollution
+2. **Component Portability**: Move components between projects easily
+3. **Dead Code Elimination**: Unused styles are automatically removed
+4. **Better Developer Experience**: Co-located styles are easier to maintain
+5. **Type Safety**: TypeScript can provide autocomplete for class names
+6. **Performance**: Only load styles for components that are used
+
+### 7.9 Design Token Usage in Modules
+```css
+/* EmailCard.module.css */
+.emailCard {
+  /* Use design tokens for consistency */
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  transition: all var(--transition-fast);
+}
+
+.emailCard:hover {
+  background: var(--color-surface-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.emailCard--unread {
+  border-left: 3px solid var(--color-primary-500);
+  font-weight: var(--font-semibold);
+}
+```
+
+### 7.10 Shared Utilities Pattern
+For truly global utilities that multiple components need:
+
+```css
+/* styles/utilities/visibility.module.css */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hidden {
+  display: none;
+}
+```
+
+Import in components as needed:
+```typescript
+import visibility from '@/styles/utilities/visibility.module.css';
+```
+
+This refactoring strategy ensures a smooth transition to CSS modules while maintaining our design system principles and component architecture.

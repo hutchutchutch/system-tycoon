@@ -1,9 +1,11 @@
 import React from 'react';
+import clsx from 'clsx';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/redux';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CAREER_TITLES } from '../../../constants';
 import { Settings, User, Trophy, Star, Sun, Moon, AlertTriangle } from 'lucide-react';
+import styles from './GameHUD.module.css';
 
 interface GameHUDProps {
   className?: string;
@@ -16,7 +18,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const { theme, toggleTheme } = useTheme();
   
   if (!profile) {
-    return null;
+    return (
+      <header className={clsx(styles.hud, className)} style={{ background: 'red', color: 'white', padding: '8px' }}>
+        GameHUD: No Profile Found
+      </header>
+    );
   }
 
   const username = profile.username || 'Unknown User';
@@ -28,78 +34,78 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const dataLost = crisisMetrics?.totalDataLost || 0;
 
   return (
-    <header className={`game-hud ${className}`}>
+    <header className={clsx(styles.hud, className)}>
       {/* Left Section - User Profile */}
-      <div className="game-hud__section game-hud__section--left">
-        <div className="game-hud__profile">
-          <div className="game-hud__avatar">
-            <span className="game-hud__avatar-text">
+      <div className={clsx(styles.section, styles['section--left'])}>
+        <div className={styles.profile}>
+          <div className={styles.avatar}>
+            <span className={styles.avatarText}>
               {username[0]?.toUpperCase() || 'U'}
             </span>
-            <div className="game-hud__status-indicator" />
+            <div className={styles.statusIndicator} />
           </div>
-          <div className="game-hud__user-info">
-            <div className="game-hud__username">{username}</div>
-            <div className="game-hud__career-title">{careerTitle}</div>
+          <div className={styles.userInfo}>
+            <div className={styles.username}>{username}</div>
+            <div className={styles.careerTitle}>{careerTitle}</div>
           </div>
         </div>
       </div>
       
       {/* Center Section - System Status */}
-      <div className="game-hud__section game-hud__section--center">
-        <div className="game-hud__system-status">
-          <div className="game-hud__status-item">
-            <div className="game-hud__status-dot game-hud__status-dot--online" />
-            <span className="game-hud__status-text">System Online</span>
+      <div className={clsx(styles.section, styles['section--center'])}>
+        <div className={styles.systemStatus}>
+          <div className={styles.statusItem}>
+            <div className={clsx(styles.statusDot, styles['statusDot--online'])} />
+            <span className={styles.statusText}>System Online</span>
           </div>
           {dataLost > 0 && (
-            <div className="game-hud__status-item game-hud__status-item--warning">
+            <div className={clsx(styles.statusItem, styles['statusItem--warning'])}>
               <AlertTriangle size={14} />
-              <span className="game-hud__status-text">Data Lost: {dataLost}</span>
+              <span className={styles.statusText}>Data Lost: {dataLost}</span>
             </div>
           )}
         </div>
       </div>
       
       {/* Right Section - Stats & Actions */}
-      <div className="game-hud__section game-hud__section--right">
-        <div className="game-hud__stats">
-          <div className="game-hud__stat">
-            <div className="game-hud__stat-icon">
+      <div className={clsx(styles.section, styles['section--right'])}>
+        <div className={styles.stats}>
+          <div className={styles.stat}>
+            <div className={styles.statIcon}>
               <Trophy size={16} />
             </div>
-            <div className="game-hud__stat-content">
-              <div className="game-hud__stat-label">Level</div>
-              <div className="game-hud__stat-value">{currentLevel}</div>
+            <div className={styles.statContent}>
+              <div className={styles.statLabel}>Level</div>
+              <div className={styles.statValue}>{currentLevel}</div>
             </div>
           </div>
           
-          <div className="game-hud__stat">
-            <div className="game-hud__stat-icon">
+          <div className={styles.stat}>
+            <div className={styles.statIcon}>
               <Star size={16} />
             </div>
-            <div className="game-hud__stat-content">
-              <div className="game-hud__stat-label">Reputation</div>
-              <div className="game-hud__stat-value">
+            <div className={styles.statContent}>
+              <div className={styles.statLabel}>Reputation</div>
+              <div className={styles.statValue}>
                 {reputationPoints.toLocaleString()}
               </div>
             </div>
           </div>
         </div>
         
-        <div className="game-hud__actions">
+        <div className={styles.actions}>
           <button 
-            className="game-hud__action-button game-hud__action-button--theme" 
+            className={clsx(styles.actionButton, styles['actionButton--theme'])} 
             onClick={toggleTheme}
             aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
             title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
           >
             {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
           </button>
-          <button className="game-hud__action-button" aria-label="User profile">
+          <button className={styles.actionButton} aria-label="User profile">
             <User size={16} />
           </button>
-          <button className="game-hud__action-button" aria-label="Settings">
+          <button className={styles.actionButton} aria-label="Settings">
             <Settings size={16} />
           </button>
         </div>

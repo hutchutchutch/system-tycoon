@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Mail } from 'lucide-react';
+import { Mail, User, HelpCircle, Newspaper } from 'lucide-react';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
-import './InitialExperience.css';
+// CSS now handled by design system at src/styles/design-system/pages/initial-experience.css
 
 const InitialExperienceContent: React.FC = () => {
   const [showBrowser, setShowBrowser] = useState(false);
@@ -13,6 +13,7 @@ const InitialExperienceContent: React.FC = () => {
   const [missionComplete, setMissionComplete] = useState(false);
 
   const handleEmailIconClick = useCallback(() => {
+    console.log('Email clicked! showBrowser changing from', showBrowser, 'to true');
     setShowBrowser(true);
     setActiveTab('email');
     setTabs([{
@@ -21,6 +22,21 @@ const InitialExperienceContent: React.FC = () => {
       url: 'https://promail.com/inbox',
       component: EmailClientWrapper,
     }]);
+  }, [showBrowser]);
+
+  const handleProfileIconClick = useCallback(() => {
+    console.log('Profile clicked!');
+    // TODO: Implement profile functionality
+  }, []);
+
+  const handleHelpIconClick = useCallback(() => {
+    console.log('Help clicked!');
+    // TODO: Implement help functionality
+  }, []);
+
+  const handleNewsIconClick = useCallback(() => {
+    console.log('News clicked!');
+    // TODO: Implement news functionality
   }, []);
 
   const handleOpenSystemDesignTab = useCallback(() => {
@@ -64,7 +80,7 @@ const InitialExperienceContent: React.FC = () => {
 
   if (!showBrowser) {
     return (
-      <div className="initial-experience">
+      <div className="initial-experience initial-experience--blank">
         <div className="initial-experience__blank-browser">
           <div className="initial-experience__browser-chrome">
             <div className="initial-experience__tab-bar">
@@ -78,14 +94,43 @@ const InitialExperienceContent: React.FC = () => {
           </div>
           
           <div className="initial-experience__content">
-            <button 
-              className="initial-experience__email-icon"
-              onClick={handleEmailIconClick}
-              aria-label="Open email"
-            >
-              <Mail size={48} />
-              <span>Email</span>
-            </button>
+            <div className="initial-experience__icon-grid">
+              <button 
+                className="initial-experience__app-icon"
+                onClick={handleProfileIconClick}
+                aria-label="Open profile"
+              >
+                <User size={32} />
+                <span>Profile</span>
+              </button>
+              
+              <button 
+                className="initial-experience__app-icon"
+                onClick={handleHelpIconClick}
+                aria-label="Open help"
+              >
+                <HelpCircle size={32} />
+                <span>Help</span>
+              </button>
+              
+              <button 
+                className="initial-experience__app-icon"
+                onClick={handleNewsIconClick}
+                aria-label="Open news"
+              >
+                <Newspaper size={32} />
+                <span>News</span>
+              </button>
+              
+              <button 
+                className="initial-experience__app-icon initial-experience__app-icon--primary"
+                onClick={handleEmailIconClick}
+                aria-label="Open email"
+              >
+                <Mail size={32} />
+                <span>Email</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -93,7 +138,7 @@ const InitialExperienceContent: React.FC = () => {
   }
 
   return (
-    <div className="initial-experience">
+    <div className="initial-experience initial-experience--browser">
       <BrowserWindow
         activeTab={activeTab}
         tabs={tabs.map(tab => ({

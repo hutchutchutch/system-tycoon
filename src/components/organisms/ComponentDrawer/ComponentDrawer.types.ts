@@ -1,8 +1,14 @@
-import type { ComponentData, ComponentCategory } from '../../molecules/ComponentCard/ComponentCard.types';
+import type { ComponentData } from '../../molecules/ComponentCard/ComponentCard.types';
+
+export interface CategoryData {
+  id: string;
+  name: string;
+  icon: string;
+}
 
 export interface ComponentDrawerProps {
   components: ComponentData[];
-  categories: ComponentCategory[];
+  categories: CategoryData[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onComponentDragStart: (component: ComponentData) => void;

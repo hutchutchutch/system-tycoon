@@ -1,0 +1,167 @@
+/* Contact Avatar component styles */
+
+.contactAvatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* Size variants */
+.contactAvatar--xs {
+  width: 24px;
+  height: 24px;
+}
+
+.contactAvatar--sm {
+  width: 32px;
+  height: 32px;
+}
+
+.contactAvatar--md {
+  width: 40px;
+  height: 40px;
+}
+
+.contactAvatar--lg {
+  width: 48px;
+  height: 48px;
+}
+
+.contactAvatar--xl {
+  width: 64px;
+  height: 64px;
+}
+
+/* Clickable state */
+.contactAvatar--clickable {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.contactAvatar--clickable:hover {
+  transform: scale(1.05);
+}
+
+.contactAvatar--clickable:active {
+  transform: scale(0.95);
+}
+
+/* Image container */
+.image {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  position: relative;
+  background-color: var(--color-gray-100);
+  border: 2px solid var(--color-gray-200);
+}
+
+/* Actual image */
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Initials fallback */
+.initials {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  background: linear-gradient(135deg, var(--color-gray-200), var(--color-gray-300));
+}
+
+/* Size-specific font sizes for initials */
+.contactAvatar--xs .initials {
+  font-size: 10px;
+}
+
+.contactAvatar--sm .initials {
+  font-size: 12px;
+}
+
+.contactAvatar--md .initials {
+  font-size: 14px;
+}
+
+.contactAvatar--lg .initials {
+  font-size: 16px;
+}
+
+.contactAvatar--xl .initials {
+  font-size: 20px;
+}
+
+/* Status indicator */
+.status {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--color-white);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Status size based on avatar size */
+.contactAvatar--xs .status {
+  width: 8px;
+  height: 8px;
+  bottom: -2px;
+  right: -2px;
+}
+
+.contactAvatar--sm .status {
+  width: 10px;
+  height: 10px;
+  bottom: 0;
+  right: 0;
+}
+
+.contactAvatar--md .status {
+  width: 12px;
+  height: 12px;
+  bottom: 1px;
+  right: 1px;
+}
+
+.contactAvatar--lg .status {
+  width: 14px;
+  height: 14px;
+  bottom: 2px;
+  right: 2px;
+}
+
+.contactAvatar--xl .status {
+  width: 16px;
+  height: 16px;
+  bottom: 3px;
+  right: 3px;
+}
+
+/* Focus styles for accessibility */
+.contactAvatar--clickable:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Loading state (if needed) */
+.contactAvatar--loading .image {
+  background: linear-gradient(90deg, var(--color-gray-200), var(--color-gray-300), var(--color-gray-200));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+} 

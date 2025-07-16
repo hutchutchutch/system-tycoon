@@ -2,7 +2,6 @@ import React from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { MeetingPhaseTemplate } from '../../templates/MeetingPhaseTemplate';
 import { MeetingRoom } from '../../organisms/MeetingRoom';
-import styles from './MeetingPage.module.css';
 
 /**
  * MeetingPage
@@ -55,7 +54,7 @@ export const MeetingPage: React.FC = () => {
       onProceedToMentorSelection={handleProceedToMentorSelection}
     >
       {/* MeetingRoom organism will be rendered here when complete */}
-      <div className={styles.meetingContent}>
+              <div className="meeting-content">
         <p>Meeting room implementation will go here</p>
       </div>
     </MeetingPhaseTemplate>

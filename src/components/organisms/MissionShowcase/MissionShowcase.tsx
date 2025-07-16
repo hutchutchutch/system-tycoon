@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Badge } from '../../atoms/Badge';
 import { Button } from '../../atoms/Button';
 import { MissionCard } from '../../molecules/MissionCard';
+import styles from './MissionShowcase.module.css';
 
 const MissionShowcase: React.FC = () => {
   const [filter, setFilter] = useState('all');
@@ -52,13 +53,13 @@ const MissionShowcase: React.FC = () => {
   ];
   
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className={styles.missionShowcase}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Choose Your Mission. Make Your Impact.
         </h2>
         
-        <div className="flex justify-center gap-2 mb-8 flex-wrap">
+        <div className={styles.filters}>
           {filterOptions.map(option => (
             <Button
               key={option.value}
@@ -71,13 +72,13 @@ const MissionShowcase: React.FC = () => {
           ))}
         </div>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className={styles.grid}>
           {missions.map(mission => (
             <MissionCard key={mission.id} {...mission} />
           ))}
         </div>
         
-        <div className="text-center mt-12">
+        <div className={styles.viewAllContainer}>
           <Button variant="outline" size="large">
             View All 147 Active Missions →
           </Button>

@@ -2,16 +2,17 @@ import React, { useState } from 'react';
 import { Button } from '../../atoms/Button';
 import { PersonalImpact } from './components/PersonalImpact';
 import { GlobalImpact } from './components/GlobalImpact';
+import styles from './ImpactDashboard.module.css';
 
 const ImpactDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('personal');
   
   return (
-    <section className="py-20">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">Your Code in Action</h2>
+    <section className={styles.impactDashboard}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>Your Code in Action</h2>
         
-        <div className="flex justify-center gap-2 mb-12">
+        <div className={styles.tabs}>
           <Button
             variant={activeTab === 'personal' ? 'primary' : 'outline'}
             onClick={() => setActiveTab('personal')}

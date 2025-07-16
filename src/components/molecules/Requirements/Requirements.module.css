@@ -1,0 +1,122 @@
+/* Requirements CSS Module */
+
+.requirements {
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-gray-200);
+  padding: 1rem;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-primary);
+}
+
+.progress {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+/* Requirements list */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.item--completed {
+  color: var(--color-text-primary);
+}
+
+.icon {
+  flex-shrink: 0;
+  margin-top: 0.125rem;
+}
+
+.check {
+  color: var(--color-success);
+  width: 1rem;
+  height: 1rem;
+}
+
+.circle {
+  color: var(--color-gray-400);
+  width: 1rem;
+  height: 1rem;
+}
+
+.text {
+  line-height: 1.5;
+}
+
+.item--completed .text {
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* Test button */
+.testButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+  transition: all 0.2s ease;
+}
+
+.testButton:disabled {
+  opacity: 0.6;
+}
+
+.testButton--ready {
+  background-color: var(--color-primary);
+  color: white;
+  cursor: pointer;
+}
+
+.testButton--ready:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.testButton--ready:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.testButtonIcon {
+  width: 1rem;
+  height: 1rem;
+} 

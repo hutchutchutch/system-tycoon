@@ -1,0 +1,116 @@
+/* MissionCard CSS Module */
+
+.card {
+  transition: box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+.content {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+/* Difficulty Stars */
+.difficultyStars {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.star {
+  width: 1rem;
+  height: 1rem;
+}
+
+.star--filled {
+  fill: #fbbf24;
+  color: #fbbf24;
+}
+
+.star--empty {
+  color: #d1d5db;
+}
+
+/* Title */
+.title {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+/* Info Section */
+.info {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+}
+
+.infoItem {
+  margin: 0;
+}
+
+.playerCount {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.playerIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Crisis Section */
+.crisisSection {
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  font-size: var(--font-size-base);
+}
+
+.crisisText {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Skills Section */
+.skillsSection {
+  margin-bottom: 1.5rem;
+  flex: 1;
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+/* Join Button */
+.joinButton {
+  width: 100%;
+  margin-top: auto;
+} 

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Input } from '../../atoms/Input';
+import styles from './BrowserAddressBar.module.css';
 import type { BrowserAddressBarProps } from './BrowserAddressBar.types';
 
 export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
@@ -65,20 +67,20 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
 
   const getSecurityIcon = () => {
     if (loading) {
-      return <Icon name="loader" size="sm" className="browser-address-bar__security-icon--loading" />;
+      return <Icon name="loader" size="sm" className={styles['securityIcon--loading']} />;
     }
     if (secure) {
-      return <Icon name="lock" size="sm" className="browser-address-bar__security-icon--secure" />;
+      return <Icon name="lock" size="sm" className={styles['securityIcon--secure']} />;
     }
-    return <Icon name="unlock" size="sm" className="browser-address-bar__security-icon--insecure" />;
+    return <Icon name="unlock" size="sm" className={styles['securityIcon--insecure']} />;
   };
 
   return (
-    <div className={`browser-address-bar ${className}`}>
+    <div className={clsx(styles.browserAddressBar, className)}>
       {/* Navigation controls */}
-      <div className="browser-address-bar__navigation">
+      <div className={styles.navigation}>
         <button
-          className="browser-address-bar__nav-button"
+          className={styles.navButton}
           onClick={onGoBack}
           disabled={!canGoBack}
           aria-label="Go back"
@@ -87,7 +89,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
         </button>
         
         <button
-          className="browser-address-bar__nav-button"
+          className={styles.navButton}
           onClick={onGoForward}
           disabled={!canGoForward}
           aria-label="Go forward"
@@ -96,7 +98,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
         </button>
         
         <button
-          className="browser-address-bar__nav-button"
+          className={styles.navButton}
           onClick={onRefresh}
           aria-label="Refresh page"
         >
@@ -105,7 +107,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
 
         {onHome && (
           <button
-            className="browser-address-bar__nav-button"
+            className={styles.navButton}
             onClick={onHome}
             aria-label="Go home"
           >
@@ -115,26 +117,26 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
       </div>
 
       {/* URL input area */}
-      <div className="browser-address-bar__url-container">
+      <div className={styles.urlContainer}>
         {/* Security indicator */}
-        <div className="browser-address-bar__security">
+        <div className={styles.security}>
           {getSecurityIcon()}
         </div>
 
         {/* URL input */}
-        <div className="browser-address-bar__input-wrapper">
+        <div className={styles.inputWrapper}>
           {editable ? (
-            <Input
+            <input
               value={getDisplayUrl()}
-              onChange={handleUrlChange}
+              onChange={(e) => handleUrlChange(e.target.value)}
               onKeyPress={handleKeyPress}
               onFocus={handleFocus}
               onBlur={handleBlur}
-              className="browser-address-bar__input"
+              className={styles.input}
               placeholder="Enter URL or search term"
             />
           ) : (
-            <div className="browser-address-bar__url-display">
+            <div className={styles.urlDisplay}>
               {getDisplayUrl()}
             </div>
           )}
@@ -143,7 +145,9 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
         {/* Bookmark button */}
         {onBookmark && (
           <button
-            className={`browser-address-bar__bookmark ${isBookmarked ? 'browser-address-bar__bookmark--active' : ''}`}
+            className={clsx(styles.bookmark, {
+              [styles['bookmark--active']]: isBookmarked
+            })}
             onClick={onBookmark}
             aria-label={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
           >
@@ -153,9 +157,9 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
       </div>
 
       {/* Additional controls */}
-      <div className="browser-address-bar__controls">
+      <div className={styles.controls}>
         <button
-          className="browser-address-bar__control"
+          className={styles.control}
           aria-label="Settings"
         >
           <Icon name="settings" size="sm" />

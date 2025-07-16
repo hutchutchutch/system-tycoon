@@ -1,0 +1,104 @@
+/* Collaboration Feature Section Styles */
+.collaboration {
+  padding-top: var(--spacing-4xl);
+  padding-bottom: var(--spacing-4xl);
+  background-color: var(--color-primary-50);
+}
+
+.container {
+  max-width: var(--container-lg);
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+.title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
+}
+
+.grid {
+  display: grid;
+  gap: var(--spacing-3xl);
+  align-items: center;
+}
+
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.featureCard {
+  padding: var(--spacing-lg);
+}
+
+.featureContent {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.featureIcon {
+  color: var(--color-primary-600);
+  flex-shrink: 0;
+}
+
+.featureIcon svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.featureText h3 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-xs);
+  color: var(--color-text-primary);
+}
+
+.featureText p {
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+}
+
+.demoContainer {
+  position: relative;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .collaboration {
+    padding-top: var(--spacing-3xl);
+    padding-bottom: var(--spacing-3xl);
+  }
+  
+  .title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .grid {
+    gap: var(--spacing-2xl);
+  }
+  
+  .features {
+    gap: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .featureCard {
+    padding: var(--spacing-md);
+  }
+} 

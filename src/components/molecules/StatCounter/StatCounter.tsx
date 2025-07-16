@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import clsx from 'clsx';
 import { Badge } from '../../atoms/Badge';
+import styles from './StatCounter.module.css';
 
 interface StatCounterProps {
   icon: string;
@@ -7,6 +9,8 @@ interface StatCounterProps {
   label: string;
   prefix?: string;
   increment?: boolean;
+  size?: 'small' | 'default' | 'large';
+  className?: string;
 }
 
 export const StatCounter: React.FC<StatCounterProps> = ({
@@ -14,9 +18,12 @@ export const StatCounter: React.FC<StatCounterProps> = ({
   value,
   label,
   prefix = '',
-  increment = false
+  increment = false,
+  size = 'default',
+  className
 }) => {
   const [displayValue, setDisplayValue] = useState(increment ? value - 10 : value);
+  const [isAnimating, setIsAnimating] = useState(true);
 
   useEffect(() => {
     if (increment) {
@@ -45,6 +52,8 @@ export const StatCounter: React.FC<StatCounterProps> = ({
 
       if (progress < 1) {
         requestAnimationFrame(animate);
+      } else {
+        setIsAnimating(false);
       }
     };
 
@@ -52,12 +61,20 @@ export const StatCounter: React.FC<StatCounterProps> = ({
   }, []);
 
   return (
-    <div className="text-center">
-      <div className="text-4xl mb-2">{icon}</div>
-      <div className="text-3xl font-bold text-gray-900">
+    <div className={clsx(
+      styles.container,
+      size !== 'default' && styles[`container--${size}`],
+      className
+    )}>
+      <div className={styles.icon}>{icon}</div>
+      <div className={clsx(
+        styles.value,
+        isAnimating && styles['value--animated']
+      )}>
         {prefix}{displayValue.toLocaleString()}
+        {increment && <span className={styles.incrementBadge}>↑</span>}
       </div>
-      <div className="text-sm text-gray-600">{label}</div>
+      <div className={styles.label}>{label}</div>
     </div>
   );
 };

@@ -1,0 +1,85 @@
+/* StatCounter CSS Module */
+
+.container {
+  text-align: center;
+  padding: 1rem;
+}
+
+/* Icon */
+.icon {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+/* Value display */
+.value {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  font-weight: bold;
+  color: var(--color-text-primary);
+  margin-bottom: 0.25rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* With animation */
+.value--animated {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+/* Label */
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+/* Size variants */
+.container--small .icon {
+  font-size: 1.5rem;
+}
+
+.container--small .value {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+}
+
+.container--large .icon {
+  font-size: 3rem;
+  margin-bottom: 0.75rem;
+}
+
+.container--large .value {
+  font-size: 2.5rem;
+  line-height: 3rem;
+}
+
+/* Animations */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Increment indicator */
+.incrementBadge {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

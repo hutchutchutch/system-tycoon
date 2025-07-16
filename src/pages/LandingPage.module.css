@@ -1,0 +1,139 @@
+/* Landing Page CSS Module - Following Atomic Design System */
+
+/* Page Container */
+.page {
+  min-height: 100vh;
+  background-color: var(--color-neutral-50);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Content Wrapper */
+.content {
+  padding-top: 0; /* CrisisAlert handles its own spacing */
+}
+
+/* Section Spacing & Layout */
+.heroSection {
+  position: relative;
+  z-index: 1;
+}
+
+.processSection {
+  background-color: var(--color-neutral-100);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.missionsSection {
+  background-color: var(--color-neutral-50);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.impactSection {
+  background: linear-gradient(135deg, 
+    var(--color-primary-50) 0%, 
+    var(--color-secondary-50) 100%);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.learningSection {
+  background-color: var(--color-neutral-100);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.partnersSection {
+  background-color: var(--color-neutral-50);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.collaborationSection {
+  background: linear-gradient(135deg, 
+    var(--color-secondary-50) 0%, 
+    var(--color-primary-50) 100%);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.certificationSection {
+  background-color: var(--color-neutral-100);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.pricingSection {
+  background-color: var(--color-neutral-50);
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.ctaSection {
+  /* FooterCTA handles its own gradient background */
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .page {
+    font-size: var(--text-sm);
+  }
+}
+
+/* Performance Optimizations */
+.page {
+  /* Enable hardware acceleration for smooth scrolling */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Print Styles */
+@media print {
+  .page {
+    background: white;
+    min-height: auto;
+  }
+  
+  .content {
+    padding: 0;
+  }
+}
+
+/* Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .processSection,
+  .learningSection,
+  .certificationSection {
+    background-color: var(--color-neutral-200);
+  }
+  
+  .impactSection,
+  .collaborationSection {
+    background: var(--color-neutral-100);
+  }
+}
+
+/* Dark Mode Support (if design tokens support it) */
+@media (prefers-color-scheme: dark) {
+  .page {
+    background-color: var(--color-neutral-900);
+  }
+  
+  .processSection,
+  .learningSection,
+  .certificationSection {
+    background-color: var(--color-neutral-800);
+  }
+  
+  .missionsSection,
+  .partnersSection,
+  .pricingSection {
+    background-color: var(--color-neutral-850);
+  }
+} 

@@ -1,5 +1,5 @@
-/* Import Design System */
-@import './styles/design-system/index.css';
+/* Import Global Styles - Foundation and Utilities */
+@import './styles/global.css';
 
 /* Tailwind CSS - Used alongside design system for utility classes */
 @tailwind base;

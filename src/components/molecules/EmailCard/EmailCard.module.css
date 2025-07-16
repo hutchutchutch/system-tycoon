@@ -1,0 +1,246 @@
+/* Email Card component styles */
+
+.emailCard {
+  display: flex;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-gray-200);
+  transition: background-color 0.2s ease;
+  gap: 12px;
+}
+
+/* Clickable state */
+.emailCard--clickable {
+  cursor: pointer;
+}
+
+.emailCard--clickable:hover {
+  background-color: var(--color-gray-50);
+}
+
+/* Selected state */
+.emailCard--selected {
+  background-color: var(--color-primary-50);
+  border-left: 3px solid var(--color-primary-500);
+  padding-left: 13px;
+}
+
+.emailCard--selected:hover {
+  background-color: var(--color-primary-100);
+}
+
+/* Read/Unread states */
+.emailCard--unread {
+  font-weight: 600;
+}
+
+.emailCard--read {
+  font-weight: 400;
+}
+
+/* Compact variant */
+.emailCard--compact {
+  padding: 12px;
+}
+
+/* Status section */
+.status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.statusButton {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.statusButton:hover {
+  background-color: var(--color-gray-100);
+}
+
+.statusButton:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Avatar section */
+.avatar {
+  flex-shrink: 0;
+}
+
+/* Content section */
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Header row */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Sender info */
+.sender {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.senderName {
+  color: var(--color-gray-900);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emailCard--unread .senderName {
+  font-weight: 600;
+}
+
+.senderEmail {
+  color: var(--color-gray-600);
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Meta info */
+.meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Priority indicators */
+.priority {
+  flex-shrink: 0;
+}
+
+.priority--high {
+  color: var(--color-red-500);
+}
+
+.priority--low {
+  color: var(--color-gray-400);
+}
+
+/* Attachment indicator */
+.attachment {
+  color: var(--color-gray-500);
+  flex-shrink: 0;
+}
+
+/* Timestamp */
+.timestamp {
+  color: var(--color-gray-600);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Subject line */
+.subject {
+  color: var(--color-gray-900);
+  font-size: 14px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emailCard--read .subject {
+  color: var(--color-gray-700);
+}
+
+/* Preview text */
+.preview {
+  color: var(--color-gray-600);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Tags */
+.tags {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.tagMore {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  color: var(--color-gray-600);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .emailCard {
+    padding: 12px;
+  }
+  
+  .senderEmail {
+    display: none;
+  }
+  
+  .preview {
+    display: none;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.emailCard--clickable:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: -2px;
+}
+
+/* Animation for new emails */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.emailCard--new {
+  animation: slideIn 0.3s ease-out;
+} 

@@ -1,0 +1,115 @@
+/* SkillTree CSS Module */
+
+.container {
+  position: relative;
+}
+
+/* Module row */
+.module {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+/* Status indicator */
+.indicator {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.indicator--completed {
+  background-color: var(--color-success);
+}
+
+.indicator--inProgress {
+  background-color: var(--color-warning);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.indicator--locked {
+  background-color: var(--color-gray-300);
+}
+
+/* Icons */
+.icon {
+  color: white;
+}
+
+.icon--check {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.icon--loader {
+  width: 1.25rem;
+  height: 1.25rem;
+  animation: spin 1s linear infinite;
+}
+
+.icon--lock {
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-gray-600);
+}
+
+/* Module info */
+.moduleInfo {
+  margin-left: 1rem;
+  flex: 1;
+}
+
+.moduleName {
+  font-size: var(--font-size-sm);
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.moduleName--active {
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.moduleName--locked {
+  color: var(--color-gray-400);
+}
+
+/* Connecting line */
+.connectingLine {
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  height: 100%;
+  width: 1px;
+  pointer-events: none;
+}
+
+.connectingLinePath {
+  stroke: #e5e7eb;
+  stroke-width: 2;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

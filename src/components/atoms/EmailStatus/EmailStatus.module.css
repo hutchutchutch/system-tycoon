@@ -1,0 +1,135 @@
+/* EmailStatus Component CSS Module */
+
+/* Base EmailStatus Styles */
+.email-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* Status Icon */
+.email-status__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Status Dot */
+.email-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Status Label */
+.email-status__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+}
+
+/* Status Variants */
+.email-status--read .email-status__icon {
+  color: var(--color-neutral-500);
+}
+
+.email-status--read .email-status__dot {
+  background: var(--color-neutral-400);
+}
+
+.email-status--unread .email-status__icon {
+  color: var(--color-primary-600);
+}
+
+.email-status--unread .email-status__dot {
+  background: var(--color-primary-600);
+}
+
+.email-status--replied .email-status__icon {
+  color: var(--color-secondary-600);
+}
+
+.email-status--replied .email-status__dot {
+  background: var(--color-secondary-600);
+}
+
+.email-status--forwarded .email-status__icon {
+  color: var(--color-secondary-500);
+}
+
+.email-status--forwarded .email-status__dot {
+  background: var(--color-secondary-500);
+}
+
+.email-status--draft .email-status__icon {
+  color: var(--color-neutral-600);
+}
+
+.email-status--draft .email-status__dot {
+  background: var(--color-neutral-500);
+}
+
+.email-status--urgent .email-status__icon {
+  color: var(--color-error-600);
+}
+
+.email-status--urgent .email-status__dot {
+  background: var(--color-error-600);
+  animation: urgent-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Size Variants */
+.email-status--sm .email-status__icon {
+  width: 12px;
+  height: 12px;
+}
+
+.email-status--sm .email-status__dot {
+  width: 6px;
+  height: 6px;
+}
+
+.email-status--sm .email-status__label {
+  font-size: var(--text-xs);
+}
+
+.email-status--md .email-status__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.email-status--md .email-status__dot {
+  width: 8px;
+  height: 8px;
+}
+
+.email-status--md .email-status__label {
+  font-size: var(--text-sm);
+}
+
+.email-status--lg .email-status__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.email-status--lg .email-status__dot {
+  width: 10px;
+  height: 10px;
+}
+
+.email-status--lg .email-status__label {
+  font-size: var(--text-base);
+}
+
+/* Animations */
+@keyframes urgent-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

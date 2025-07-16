@@ -1,5 +1,6 @@
 import React from 'react';
 import { LearningTrackCard } from '../../molecules/LearningTrackCard';
+import styles from './LearningPaths.module.css';
 
 const LearningPaths: React.FC = () => {
   const tracks = [
@@ -45,13 +46,13 @@ const LearningPaths: React.FC = () => {
   ];
   
   return (
-    <section className="py-20 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-8">
+    <section className={styles.learningPaths}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Master Real Skills. Earn Real Credentials.
         </h2>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className={styles.grid}>
           {tracks.map(track => (
             <LearningTrackCard key={track.title} {...track} />
           ))}

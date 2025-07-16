@@ -1,0 +1,116 @@
+/* Input Component CSS Module */
+
+/* Base Input Styles */
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-neutral-900);
+  background: white;
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  transition: all var(--duration-fast) var(--ease-out);
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--color-neutral-500);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-neutral-400);
+}
+
+.input:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.input:disabled {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  cursor: not-allowed;
+}
+
+/* Input Variants */
+.input--error {
+  border-color: var(--color-error-500);
+}
+
+.input--error:focus {
+  border-color: var(--color-error-600);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Input Sizes */
+.input--sm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.input--md {
+  /* Default size - no additional styles needed */
+}
+
+.input--lg {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-lg);
+}
+
+/* Input with Icon */
+.input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.input-wrapper__icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-neutral-500);
+  pointer-events: none;
+}
+
+.input-wrapper__icon--left {
+  left: var(--space-3);
+}
+
+.input-wrapper__icon--right {
+  right: var(--space-3);
+}
+
+.input--with-icon-left {
+  padding-left: var(--space-10);
+}
+
+.input--with-icon-right {
+  padding-right: var(--space-10);
+}
+
+/* Input Group */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input-group__label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-700);
+}
+
+.input-group__error {
+  font-size: var(--text-sm);
+  color: var(--color-error-600);
+}
+
+.input-group__hint {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+} 

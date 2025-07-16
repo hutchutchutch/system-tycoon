@@ -1,0 +1,201 @@
+/* Browser Header component styles */
+
+.browserHeader {
+  display: flex;
+  align-items: center;
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-300);
+  height: 40px;
+  padding: 0 12px;
+  position: relative;
+  user-select: none;
+}
+
+/* Window controls container */
+.windowControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+}
+
+/* Left side controls (macOS style) */
+.windowControls--left {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Right side controls (Windows/Linux style) */
+.windowControls--right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Control buttons */
+.control {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+  background-color: transparent;
+}
+
+/* macOS style control dots */
+.controlDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+}
+
+/* macOS style controls */
+.control--close .controlDot {
+  background-color: #ff5f56;
+}
+
+.control--minimize .controlDot {
+  background-color: #ffbd2e;
+}
+
+.control--maximize .controlDot {
+  background-color: #27c93f;
+}
+
+/* Windows/Linux style controls */
+.windowControls--right .control {
+  width: 46px;
+  height: 32px;
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--color-gray-700);
+}
+
+.windowControls--right .control:hover {
+  background-color: var(--color-gray-200);
+}
+
+.windowControls--right .control--close:hover {
+  background-color: #e81123;
+  color: white;
+}
+
+/* Hover state for macOS controls */
+.windowControls--left:hover .controlDot {
+  opacity: 1;
+}
+
+.windowControls--left:not(:hover) .controlDot {
+  background-color: var(--color-gray-400);
+}
+
+/* Tab container */
+.tabs {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  margin: 0 80px; /* Space for window controls */
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Tab list */
+.tabList {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.tabList::-webkit-scrollbar {
+  display: none;
+}
+
+/* New tab button */
+.newTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background-color: transparent;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.newTab:hover {
+  background-color: var(--color-gray-200);
+  color: var(--color-gray-800);
+}
+
+.newTab:active {
+  background-color: var(--color-gray-300);
+}
+
+/* Focus styles */
+.control:focus,
+.newTab:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Responsive behavior */
+@media (max-width: 768px) {
+  .browserHeader {
+    padding: 0 8px;
+  }
+  
+  .tabs {
+    margin: 0 60px;
+  }
+  
+  .windowControls--left {
+    left: 8px;
+  }
+  
+  .windowControls--right {
+    right: 8px;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .browserHeader {
+    background-color: var(--color-gray-800);
+    border-bottom-color: var(--color-gray-700);
+  }
+  
+  .windowControls--right .control {
+    color: var(--color-gray-300);
+  }
+  
+  .windowControls--right .control:hover {
+    background-color: var(--color-gray-700);
+  }
+  
+  .newTab {
+    color: var(--color-gray-400);
+  }
+  
+  .newTab:hover {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-200);
+  }
+} 

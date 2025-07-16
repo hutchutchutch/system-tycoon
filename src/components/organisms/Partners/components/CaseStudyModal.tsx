@@ -1,7 +1,9 @@
 import React from 'react';
+import { clsx } from 'clsx';
 import { Card } from '../../../atoms/Card';
 import { Button } from '../../../atoms/Button';
 import { X } from 'lucide-react';
+import styles from './CaseStudyModal.module.css';
 
 interface CaseStudyModalProps {
   partner: {
@@ -29,32 +31,35 @@ export const CaseStudyModal: React.FC<CaseStudyModalProps> = ({ partner, onClose
   const study = caseStudies[partner.id] || caseStudies.redcross;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="max-w-2xl w-full p-8 relative">
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-        >
-          <X size={24} />
-        </button>
-        
-        <div className="text-center mb-6">
-          <div className="text-6xl mb-4">{partner.logo}</div>
-          <h3 className="text-2xl font-bold">{partner.name}</h3>
-        </div>
-        
-        <div className="space-y-4">
-          <h4 className="text-xl font-semibold">{study.title}</h4>
-          <p className="text-3xl font-bold text-blue-600">{study.impact}</p>
-          <p className="text-gray-600">{study.story}</p>
-        </div>
-        
-        <div className="mt-8 flex justify-center">
-          <Button variant="primary" onClick={onClose}>
-            Close
-          </Button>
-        </div>
-      </Card>
+    <div className={styles.overlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <Card className={styles.modalCard}>
+          <button
+            onClick={onClose}
+            className={styles.closeButton}
+            aria-label="Close modal"
+          >
+            <X size={24} />
+          </button>
+          
+          <div className={styles.header}>
+            <div className={styles.partnerLogo}>{partner.logo}</div>
+            <h3 className={styles.partnerName}>{partner.name}</h3>
+          </div>
+          
+          <div className={styles.content}>
+            <h4 className={styles.caseTitle}>{study.title}</h4>
+            <p className={styles.impact}>{study.impact}</p>
+            <p className={styles.story}>{study.story}</p>
+          </div>
+          
+          <div className={styles.footer}>
+            <Button variant="primary" onClick={onClose}>
+              Close
+            </Button>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };

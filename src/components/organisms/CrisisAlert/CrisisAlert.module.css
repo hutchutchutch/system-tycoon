@@ -1,0 +1,93 @@
+/* CrisisAlert CSS Module */
+
+.alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  background-color: var(--color-danger);
+  color: white;
+  padding: 0.75rem;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-out;
+  z-index: 50;
+}
+
+.alert--visible {
+  transform: translateY(0);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1rem;
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.icon {
+  font-size: 1.25rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.message {
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+/* Button override for white variant */
+.joinButton {
+  color: white !important;
+  border-color: white !important;
+  background: transparent !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.joinButton:hover {
+  background-color: white !important;
+  color: var(--color-danger) !important;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .message {
+    font-size: var(--font-size-base);
+  }
+}
+
+@media (max-width: 640px) {
+  .container {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .content {
+    justify-content: center;
+  }
+
+  .joinButton {
+    width: 100%;
+  }
+}
+
+/* Animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

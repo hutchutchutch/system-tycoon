@@ -1,0 +1,73 @@
+/* Card Component CSS Module */
+
+/* Base Card Styles */
+.card {
+  background: white;
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+/* Card Variants */
+.card--interactive {
+  cursor: pointer;
+}
+
+.card--interactive:hover:not(.card--disabled) {
+  border-color: var(--color-neutral-300);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+
+.card--selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.card--disabled {
+  background: var(--color-neutral-50);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Card Sections */
+.card__header {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-neutral-200);
+  background: var(--color-neutral-50);
+}
+
+.card__body {
+  padding: var(--space-6);
+}
+
+.card__footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: 1px solid var(--color-neutral-200);
+  background: var(--color-neutral-50);
+}
+
+/* Compact Card Variant */
+.card--compact .card__header {
+  padding: var(--space-3) var(--space-4);
+}
+
+.card--compact .card__body {
+  padding: var(--space-4);
+}
+
+.card--compact .card__footer {
+  padding: var(--space-3) var(--space-4);
+}
+
+/* Borderless Card Variant */
+.card--borderless {
+  border: none;
+  box-shadow: none;
+}
+
+.card--borderless:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+} 

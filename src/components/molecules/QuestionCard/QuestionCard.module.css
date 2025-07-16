@@ -1,0 +1,164 @@
+/* QuestionCard CSS Module */
+
+.card {
+  position: relative;
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.card:hover:not(.card--disabled) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.card--selected {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary-light);
+}
+
+.card--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Category variants */
+.card--product {
+  border-left: 4px solid var(--color-primary);
+}
+
+.card--business {
+  border-left: 4px solid var(--color-success);
+}
+
+.card--marketing {
+  border-left: 4px solid var(--color-warning);
+}
+
+.card--technical {
+  border-left: 4px solid var(--color-info);
+}
+
+/* Category indicator */
+.categoryIndicator {
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 60%;
+  border-radius: 0 2px 2px 0;
+}
+
+/* Content */
+.content {
+  padding-right: 3rem;
+}
+
+.text {
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+  margin: 0 0 0.75rem 0;
+  color: var(--color-text-primary);
+}
+
+.speaker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+/* Impact icons */
+.impactIcons {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.impactIcon {
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--color-gray-100);
+  transition: all 0.2s ease;
+}
+
+.impactIcon:hover {
+  transform: scale(1.1);
+  background: var(--color-gray-200);
+}
+
+/* Impact preview */
+.impactPreview {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 0.5rem;
+  padding: 0.75rem;
+  background: var(--color-gray-900);
+  color: white;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 10;
+  width: 250px;
+  font-size: var(--font-size-sm);
+}
+
+.impactPreview::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-gray-900);
+}
+
+.impactPreview h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.impactPreview ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style-type: disc;
+}
+
+.impactPreview li {
+  margin-bottom: 0.25rem;
+}
+
+/* Selected badge */
+.selectedBadge {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+} 

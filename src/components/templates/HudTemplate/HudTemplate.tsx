@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppSelector } from '../../../hooks/redux';
-import GameHUD from '../../organisms/GameHUD';
+import { GameHUD } from '../../organisms/GameHUD';
+import styles from './HudTemplate.module.css';
 
 interface HudTemplateProps {
   children?: React.ReactNode;
@@ -11,26 +12,23 @@ interface HudTemplateProps {
  * HudTemplate - Basic template with HUD for game screens
  * 
  * Redux State Management:
- * - game.player: Player stats and resources
- * - game.metrics: Performance metrics and scores
- * - ui.notifications: Active notifications/toasts
- * - ui.hudSettings: HUD display preferences
+ * - game: Current game state and progress
+ * - auth.user: Current user information
  */
 export const HudTemplate: React.FC<HudTemplateProps> = ({ 
   children,
   showMetrics = true 
 }) => {
   // Redux state selectors
-  const player = useAppSelector((state) => state.game.player);
-  const metrics = useAppSelector((state) => state.game.metrics);
-  const notifications = useAppSelector((state) => state.ui.notifications);
+  const gameState = useAppSelector((state) => state.game);
+  const user = useAppSelector((state) => state.auth.user);
 
   return (
-    <div className="hud-template">
-      <div className="hud-template__hud">
-        <GameHUD showMetrics={showMetrics} />
+    <div className={styles.hudTemplate}>
+      <div className={styles.hud}>
+        <GameHUD />
       </div>
-      <main className="hud-template__content">
+      <main className={styles.content}>
         {children}
       </main>
     </div>

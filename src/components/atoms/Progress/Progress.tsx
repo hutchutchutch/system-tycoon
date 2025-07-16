@@ -1,13 +1,16 @@
 import React from 'react';
 import { clsx } from 'clsx';
+import styles from './Progress.module.css';
 
 export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
   value: number;
   max?: number;
-  variant?: 'primary' | 'success' | 'warning' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'success' | 'warning' | 'error';
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   label?: string;
+  striped?: boolean;
+  animated?: boolean;
 }
 
 /**
@@ -27,33 +30,40 @@ export const Progress: React.FC<ProgressProps> = ({
   size = 'md',
   showLabel = false,
   label,
+  striped = false,
+  animated = false,
   className,
   ...props
 }) => {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
   const classes = clsx(
-    'progress',
-    `progress--${size}`,
-    variant !== 'primary' && `progress--${variant}`,
+    styles.progress,
+    styles[`progress--${size}`],
+    styles[`progress--${variant}`],
+    {
+      [styles['progress--striped']]: striped,
+      [styles['progress--animated']]: animated && striped,
+    },
     className
   );
 
   return (
     <div className={classes} {...props}>
       <div
-        className="progress__bar"
+        className={styles.progress__bar}
         style={{ width: `${percentage}%` }}
         role="progressbar"
         aria-valuenow={value}
         aria-valuemin={0}
         aria-valuemax={max}
-      />
-      {showLabel && (
-        <span className="sr-only">
-          {label || `${percentage.toFixed(0)}%`}
-        </span>
-      )}
+      >
+        {showLabel && (
+          <span className={styles.progress__label}>
+            {label || `${percentage.toFixed(0)}%`}
+          </span>
+        )}
+      </div>
     </div>
   );
 };

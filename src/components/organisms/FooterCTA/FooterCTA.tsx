@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '../../atoms/Button';
 import { CountdownTimer } from '../../molecules/CountdownTimer';
 import { AnimatedCounter } from '../../molecules/AnimatedCounter';
+import styles from './FooterCTA.module.css';
 
 const FooterCTA: React.FC = () => {
   const [stats] = useState({
@@ -10,26 +11,26 @@ const FooterCTA: React.FC = () => {
   });
   
   return (
-    <section className="py-20 bg-gradient-to-br from-green-600 to-blue-600 text-white">
-      <div className="container mx-auto px-4">
-        <h2 className="text-5xl font-bold text-center mb-4">
+    <section className={styles.footerCta}>
+      <div className={styles.container}>
+        <h2 className={styles.title}>
           Ready to Code for Good?
         </h2>
         
-        <p className="text-xl text-center mb-8 opacity-90 max-w-2xl mx-auto">
+        <p className={styles.description}>
           Join a global community using technology to solve humanity's greatest challenges.
           Your next line of code could save lives.
         </p>
         
-        <div className="flex justify-center gap-8 mb-8 flex-wrap">
-          <div className="text-center">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">🌍</span>
-              <span className="font-mono text-2xl">
+        <div className={styles.stats}>
+          <div className={styles.statItem}>
+            <div className={styles.statValue}>
+              <span className={styles.statIcon}>🌍</span>
+              <span className={styles.statNumber}>
                 <AnimatedCounter value={stats.activeDevelopers} />
               </span>
             </div>
-            <p className="text-sm opacity-75">developers solving missions</p>
+            <p className={styles.statLabel}>developers solving missions</p>
           </div>
           <CountdownTimer 
             icon="⏰"
@@ -38,8 +39,12 @@ const FooterCTA: React.FC = () => {
           />
         </div>
         
-        <div className="flex justify-center gap-4">
-          <Button variant="secondary" size="large" className="hover:scale-105 transition-transform">
+        <div className={styles.actions}>
+          <Button 
+            variant="secondary" 
+            size="large" 
+            className={styles.ctaButton}
+          >
             🚀 Start Your First Mission - Free
           </Button>
         </div>

@@ -1,0 +1,208 @@
+/* AuthLayout CSS Module - Following Atomic Design System */
+
+/* Layout Container */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, 
+    var(--color-primary-900) 0%, 
+    var(--color-primary-800) 50%,
+    var(--color-primary-700) 100%);
+}
+
+/* Navigation */
+.nav {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: var(--space-4) 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  background: none;
+  border: none;
+  color: var(--color-white);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+}
+
+.logo:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.navActions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.navButton {
+  color: var(--color-white);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.navButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Main Container */
+.container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.content {
+  width: 100%;
+  max-width: 500px;
+}
+
+/* Form Container */
+.formContainer {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  border: 1px solid var(--color-neutral-200);
+}
+
+/* Tab Navigation */
+.tabs {
+  display: flex;
+  background: var(--color-neutral-50);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+.tab {
+  flex: 1;
+  background: none;
+  border: none;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
+}
+
+.tab:hover {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+}
+
+.tabActive {
+  background: var(--color-white);
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+.tabActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, 
+    var(--color-primary-500), 
+    var(--color-primary-600));
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+}
+
+/* Form Content */
+.formContent {
+  /* This will contain the Outlet content (SignInPage/SignUpPage) */
+  /* The auth pages handle their own internal styling */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navContainer {
+    padding: 0 var(--space-3);
+  }
+  
+  .logo {
+    font-size: var(--font-size-lg);
+  }
+  
+  .container {
+    padding: var(--space-6) var(--space-3);
+  }
+  
+  .content {
+    max-width: 100%;
+  }
+  
+  .tab {
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  .navContainer {
+    flex-direction: column;
+    gap: var(--space-3);
+    padding: var(--space-2);
+  }
+  
+  .nav {
+    padding: var(--space-3) 0;
+  }
+  
+  .container {
+    padding: var(--space-4) var(--space-2);
+  }
+  
+  .tab {
+    padding: var(--space-3);
+  }
+}
+
+/* Animation for tab switching */
+.formContent {
+  animation: fadeIn var(--duration-fast) var(--ease-out);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.logo:focus,
+.tab:focus {
+  outline: 2px solid var(--color-white);
+  outline-offset: 2px;
+}
+
+.tab:focus {
+  outline-color: var(--color-primary-400);
+} 

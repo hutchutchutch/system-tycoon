@@ -1,0 +1,214 @@
+/* ImageComparison CSS Module */
+
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  user-select: none;
+}
+
+.container--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Sides */
+.leftSide {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #4ade80, #16a34a);
+}
+
+.rightSide {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, #2563eb, #1e40af);
+}
+
+/* Assets */
+.asset {
+  position: absolute;
+  object-fit: contain;
+}
+
+/* Nature assets positioning */
+.pineTree1 {
+  bottom: 2.5rem;
+  left: 2.5rem;
+  width: 6rem;
+  height: 8rem;
+}
+
+.roundTree {
+  bottom: 5rem;
+  right: 5rem;
+  width: 7rem;
+  height: 7rem;
+}
+
+.rocks {
+  bottom: 1.25rem;
+  left: 33.333333%;
+  width: 5rem;
+  height: 4rem;
+}
+
+.boulder {
+  bottom: 3rem;
+  right: 33.333333%;
+  width: 6rem;
+  height: 5rem;
+}
+
+.pineTree2 {
+  bottom: 1.25rem;
+  left: 50%;
+  width: 5rem;
+  height: 7rem;
+  opacity: 0.8;
+}
+
+/* Tech assets positioning */
+.api {
+  top: 5rem;
+  left: 2.5rem;
+  width: 5rem;
+  height: 5rem;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.database {
+  bottom: 5rem;
+  right: 2.5rem;
+  width: 6rem;
+  height: 6rem;
+}
+
+.compute {
+  top: 33.333333%;
+  right: 25%;
+  width: 7rem;
+  height: 7rem;
+}
+
+.cache {
+  bottom: 33.333333%;
+  left: 25%;
+  width: 5rem;
+  height: 5rem;
+}
+
+.loadBalancer {
+  top: 25%;
+  left: 50%;
+  width: 6rem;
+  height: 6rem;
+}
+
+/* Connection lines */
+.connections {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.connectionLine {
+  stroke: rgba(255, 255, 255, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+}
+
+/* Slider */
+.slider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0.25rem;
+  background-color: white;
+  z-index: 30;
+  cursor: ew-resize;
+  transition: transform 0.2s ease;
+}
+
+.slider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.slider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid #9ca3af;
+  border-radius: 50%;
+}
+
+.slider:not(.slider--disabled):hover::before {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.slider--dragging::before {
+  transform: translate(-50%, -50%) scale(1.1);
+}
+
+.slider--disabled {
+  cursor: not-allowed;
+}
+
+/* Labels */
+.label {
+  position: absolute;
+  z-index: 20;
+}
+
+.label--left {
+  top: 1rem;
+  left: 1rem;
+}
+
+.label--right {
+  top: 1rem;
+  right: 1rem;
+  text-align: right;
+}
+
+.labelTitle {
+  color: white;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.labelSubtitle {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--font-size-sm);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+} 

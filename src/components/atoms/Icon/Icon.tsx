@@ -2,6 +2,7 @@ import React from 'react';
 import * as LucideIcons from 'lucide-react';
 import { clsx } from 'clsx';
 import type { IconProps } from './Icon.types';
+import styles from './Icon.module.css';
 
 const iconSizes = {
   xs: 12,
@@ -108,11 +109,21 @@ export const Icon: React.FC<IconProps> = ({
     return null;
   }
 
+  // If color is a named variant, apply the CSS class
+  const colorClass = ['primary', 'secondary', 'success', 'warning', 'error', 'neutral', 'current'].includes(color)
+    ? styles[`icon--${color}`]
+    : undefined;
+
   return (
     <IconComponent
       size={iconSizes[size]}
-      color={color}
-      className={clsx('icon', `icon--${size}`, className)}
+      color={colorClass ? undefined : color} // Only use color prop if not using CSS class
+      className={clsx(
+        styles.icon, 
+        styles[`icon--${size}`],
+        colorClass,
+        className
+      )}
       aria-label={ariaLabel}
       aria-hidden={!ariaLabel}
     />

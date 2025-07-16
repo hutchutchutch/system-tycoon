@@ -1,0 +1,415 @@
+/* System Design Canvas component styles */
+
+.systemDesignCanvas {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--color-neutral-50);
+}
+
+/* React Flow Container */
+.canvasContainer {
+  width: 100%;
+  height: 100%;
+}
+
+/* Component Drawer */
+.componentDrawer {
+  background: rgba(31, 41, 55, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  border: 1px solid rgba(75, 85, 99, 0.3);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.componentDrawer__header {
+  padding: 16px;
+  border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+}
+
+.componentDrawer__search {
+  margin-top: 12px;
+}
+
+.componentDrawer__categories {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+/* Component Category */
+.componentCategory {
+  margin-bottom: 4px;
+}
+
+.componentCategory__header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(55, 65, 81, 0.5);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.componentCategory__header:hover {
+  background: rgba(75, 85, 99, 0.6);
+}
+
+.componentCategory__icon {
+  color: var(--color-primary-400);
+  flex-shrink: 0;
+}
+
+.componentCategory__title {
+  flex: 1;
+  text-align: left;
+}
+
+.componentCategory__count {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.componentCategory__chevron {
+  transition: transform 0.2s ease;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.componentCategory--expanded .componentCategory__chevron {
+  transform: rotate(180deg);
+}
+
+.componentCategory__items {
+  padding: 8px 4px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Component Item */
+.componentItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  background: rgba(55, 65, 81, 0.3);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: white;
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+.componentItem:hover {
+  background: rgba(79, 70, 229, 0.2);
+  border-color: rgba(79, 70, 229, 0.4);
+  transform: translateX(4px);
+}
+
+.componentItem:active {
+  cursor: grabbing;
+}
+
+.componentItem__icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(79, 70, 229, 0.2);
+  border-radius: 8px;
+  color: var(--color-primary-400);
+}
+
+.componentItem__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.componentItem__name {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.componentItem__cost {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Mentor Chat */
+.mentorChat {
+  background-color: white;
+  border-radius: 16px;
+  border: 1px solid var(--color-neutral-200);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.mentorChat__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: var(--color-primary-500);
+  color: white;
+}
+
+.mentorChat__avatar {
+  width: 40px;
+  height: 40px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.mentorChat__info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.mentorChat__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.mentorChat__status {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.mentorChat__statusDot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--color-green-400);
+  border-radius: 50%;
+}
+
+.mentorChat__messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background-color: var(--color-neutral-50);
+}
+
+.mentorChat__message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.mentorChat__messageAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 12px;
+  background-color: var(--color-primary-500);
+  color: white;
+  flex-shrink: 0;
+}
+
+.mentorChat__messageContent {
+  flex: 1;
+  max-width: 240px;
+}
+
+.mentorChat__messageBubble {
+  background-color: white;
+  color: var(--color-gray-800);
+  padding: 12px;
+  border-radius: 16px;
+  border-top-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.mentorChat__messageTime {
+  font-size: 12px;
+  color: var(--color-gray-400);
+  margin-left: 8px;
+  margin-top: 4px;
+}
+
+.mentorChat__input {
+  padding: 16px;
+  background-color: white;
+  border-top: 1px solid var(--color-neutral-200);
+}
+
+.mentorChat__inputPlaceholder {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-500);
+  border: 2px dashed var(--color-neutral-300);
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 14px;
+}
+
+/* Collapsed states */
+.collapsedToggle {
+  background-color: var(--color-gray-800);
+  padding: 16px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 80px;
+  min-height: 80px;
+}
+
+.collapsedToggle:hover {
+  background-color: var(--color-gray-700);
+  transform: scale(1.05);
+}
+
+.collapsedToggle__icon {
+  margin-bottom: 4px;
+}
+
+.collapsedToggle__text {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.mentorAvatar {
+  width: 64px;
+  height: 64px;
+  background-color: var(--color-primary-600);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mentorAvatar:hover {
+  background-color: var(--color-primary-700);
+  transform: scale(1.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scrollbar styling */
+.componentDrawer__categories::-webkit-scrollbar,
+.mentorChat__messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.componentDrawer__categories::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.componentDrawer__categories::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.componentDrawer__categories::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.mentorChat__messages::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: 3px;
+}
+
+.mentorChat__messages::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: 3px;
+}
+
+.mentorChat__messages::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-500);
+}
+
+/* Focus styles */
+.componentCategory__header:focus,
+.componentItem:focus,
+.collapsedToggle:focus,
+.mentorAvatar:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Dark theme adjustments */
+@media (prefers-color-scheme: dark) {
+  .systemDesignCanvas {
+    background-color: var(--color-gray-900);
+  }
+  
+  .mentorChat {
+    background-color: var(--color-gray-800);
+    border-color: var(--color-gray-700);
+  }
+  
+  .mentorChat__messages {
+    background-color: var(--color-gray-850);
+  }
+  
+  .mentorChat__messageBubble {
+    background-color: var(--color-gray-700);
+    color: var(--color-gray-100);
+  }
+  
+  .mentorChat__input {
+    background-color: var(--color-gray-800);
+    border-top-color: var(--color-gray-700);
+  }
+  
+  .mentorChat__inputPlaceholder {
+    background-color: var(--color-gray-750);
+    border-color: var(--color-gray-600);
+    color: var(--color-gray-400);
+  }
+} 

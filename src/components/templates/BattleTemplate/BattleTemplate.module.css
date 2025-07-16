@@ -1,0 +1,79 @@
+/* Battle Template Layout Styles */
+.battleTemplate {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--color-danger-900) 0%,
+    var(--color-danger-800) 50%,
+    var(--color-warning-800) 100%);
+  color: var(--color-text-inverse);
+}
+
+.header {
+  padding: var(--spacing-lg);
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 2px solid var(--color-danger-600);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.header h1 {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  color: var(--color-text-inverse);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.content {
+  flex: 1;
+  padding: var(--spacing-lg);
+  overflow-y: auto;
+}
+
+.footer {
+  padding: var(--spacing-md);
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid var(--color-danger-600);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Battle-specific animations */
+.battleTemplate {
+  animation: battleStart 1s ease-out;
+}
+
+@keyframes battleStart {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: var(--spacing-md);
+  }
+  
+  .header h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .content {
+    padding: var(--spacing-md);
+  }
+  
+  .footer {
+    padding: var(--spacing-sm);
+    min-height: 60px;
+  }
+} 

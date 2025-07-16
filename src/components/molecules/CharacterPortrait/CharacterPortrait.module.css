@@ -1,0 +1,191 @@
+/* Character Portrait component styles */
+
+.characterPortrait {
+  position: relative;
+  display: inline-block;
+  border-radius: 50%;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+/* Size variants */
+.characterPortrait--small {
+  width: 64px;
+  height: 64px;
+}
+
+.characterPortrait--medium {
+  width: 120px;
+  height: 120px;
+}
+
+.characterPortrait--large {
+  width: 128px;
+  height: 128px;
+}
+
+/* Clickable state */
+.characterPortrait--clickable {
+  cursor: pointer;
+}
+
+.characterPortrait--clickable:hover {
+  transform: scale(1.05);
+}
+
+.characterPortrait--clickable:active {
+  transform: scale(0.95);
+}
+
+/* Glow effect */
+.glow {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--color-primary-400), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.characterPortrait--available .glow {
+  opacity: 0.6;
+  animation: pulse 2s infinite;
+}
+
+.characterPortrait:hover .glow {
+  opacity: 0.8;
+}
+
+/* Image */
+.image {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--color-gray-200);
+  background-color: var(--color-gray-100);
+  z-index: 1;
+  transition: border-color 0.3s ease;
+}
+
+.characterPortrait--available .image {
+  border-color: var(--color-primary-400);
+}
+
+.characterPortrait:hover .image {
+  border-color: var(--color-primary-500);
+}
+
+/* Badge */
+.badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: var(--color-red-500);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 12px;
+  border: 2px solid var(--color-white);
+  z-index: 2;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge size adjustments */
+.characterPortrait--small .badge {
+  font-size: 10px;
+  padding: 1px 4px;
+  border-width: 1px;
+  bottom: -2px;
+  right: -2px;
+}
+
+.characterPortrait--large .badge {
+  font-size: 14px;
+  padding: 3px 8px;
+  bottom: 4px;
+  right: 4px;
+}
+
+/* Focus styles */
+.characterPortrait--clickable:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 4px;
+}
+
+/* Animations */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+}
+
+/* Loading state */
+.characterPortrait--loading .image {
+  background: linear-gradient(90deg, var(--color-gray-200), var(--color-gray-300), var(--color-gray-200));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .image {
+    border-color: var(--color-gray-700);
+    background-color: var(--color-gray-800);
+  }
+  
+  .characterPortrait--available .image {
+    border-color: var(--color-primary-500);
+  }
+  
+  .characterPortrait:hover .image {
+    border-color: var(--color-primary-400);
+  }
+  
+  .glow {
+    background: radial-gradient(circle, var(--color-primary-600), transparent);
+  }
+  
+  .badge {
+    background-color: var(--color-red-600);
+    border-color: var(--color-gray-900);
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .characterPortrait,
+  .glow,
+  .image {
+    transition: none;
+  }
+  
+  .characterPortrait--available .glow {
+    animation: none;
+    opacity: 0.4;
+  }
+} 

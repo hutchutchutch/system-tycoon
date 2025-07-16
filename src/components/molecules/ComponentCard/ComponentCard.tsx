@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { useDraggable } from '@dnd-kit/core';
 import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
+import styles from './ComponentCard.module.css';
 import type { ComponentCardProps } from './ComponentCard.types';
 
 /**
@@ -57,60 +58,60 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
       ref={variant === 'drawer' ? setNodeRef : undefined}
       style={style}
       className={clsx(
-        'component-card',
-        `component-card--${variant}`,
-        `component-card--${status}`,
+        styles.componentCard,
+        styles[`componentCard--${variant}`],
+        styles[`componentCard--${status}`],
         {
-          'component-card--dragging': isDragging,
-          'component-card--selected': isSelected,
-          'component-card--locked': data.locked,
-          'component-card--hovered': isHovered,
+          [styles['componentCard--dragging']]: isDragging,
+          [styles['componentCard--selected']]: isSelected,
+          [styles['componentCard--locked']]: data.locked,
+          [styles['componentCard--hovered']]: isHovered,
         },
         className
       )}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onSelect}
+      {...(variant === 'drawer' ? { ...attributes, ...listeners } : {})}
       role={variant === 'canvas' ? 'button' : undefined}
       tabIndex={variant === 'canvas' ? 0 : undefined}
-      {...(variant === 'drawer' ? { ...attributes, ...listeners } : {})}
     >
-      <div className="component-card__header">
+      <div className={styles.header}>
         <Icon 
           name={data.icon as any || 'server'} 
           size="md" 
-          className="component-card__icon"
+          className={styles.icon}
         />
-        <h3 className="component-card__name">{data.name}</h3>
+        <h3 className={styles.name}>{data.name}</h3>
         {data.locked && (
           <Icon 
             name="lock" 
             size="sm" 
-            className="component-card__lock-icon"
+            className={styles.lockIcon}
             aria-label="Component locked"
           />
         )}
       </div>
       
       {variant === 'canvas' && (
-        <div className="component-card__metrics">
-          <div className="component-card__metric">
-            <span className="component-card__metric-label">Load</span>
-            <span className="component-card__metric-value">
+        <div className={styles.metrics}>
+          <div className={styles.metric}>
+            <span className={styles.metricLabel}>Load</span>
+            <span className={styles.metricValue}>
               {Math.round((data.capacity / 100) * 75)}%
             </span>
           </div>
-          <div className="component-card__metric">
-            <span className="component-card__metric-label">Cost</span>
-            <span className="component-card__metric-value">${data.cost}/mo</span>
+          <div className={styles.metric}>
+            <span className={styles.metricLabel}>Cost</span>
+            <span className={styles.metricValue}>${data.cost}/mo</span>
           </div>
         </div>
       )}
       
       {variant === 'drawer' && (
-        <div className="component-card__footer">
-          <span className="component-card__cost">${data.cost}/mo</span>
-          <Badge variant="info" size="sm">
+        <div className={styles.footer}>
+          <span className={styles.cost}>${data.cost}/mo</span>
+          <Badge variant="default" size="sm">
             {data.capacity} req/s
           </Badge>
         </div>
