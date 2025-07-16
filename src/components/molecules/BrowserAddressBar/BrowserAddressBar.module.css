@@ -1,9 +1,9 @@
-/* Browser Address Bar component styles */
+/* Browser Address Bar component styles - Using Design Tokens */
 
 .browserAddressBar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
   height: 36px;
   padding: 0;
@@ -13,7 +13,7 @@
 .navigation {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
   flex-shrink: 0;
 }
 
@@ -25,230 +25,252 @@
   height: 32px;
   border: none;
   background-color: transparent;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-500);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .navButton:hover:not(:disabled) {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
-}
-
-.navButton:active:not(:disabled) {
-  background-color: var(--color-gray-300);
+  background-color: var(--color-neutral-200);
+  color: var(--color-neutral-600);
 }
 
 .navButton:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* URL container */
-.urlContainer {
+.navButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Address input container */
+.addressContainer {
   display: flex;
   align-items: center;
   flex: 1;
-  background-color: var(--color-white);
-  border: 1px solid var(--color-gray-300);
-  border-radius: 20px;
+  min-width: 0;
   height: 32px;
-  padding: 0 12px;
-  gap: 8px;
-  transition: all 0.2s ease;
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 0 var(--space-3);
+  transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
 }
 
-.urlContainer:hover {
-  background-color: var(--color-gray-50);
+.addressContainer:focus-within {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-.urlContainer:focus-within {
-  border-color: var(--color-primary-400);
-  box-shadow: 0 0 0 3px var(--color-primary-100);
+.addressContainer:hover:not(:focus-within) {
+  border-color: var(--color-neutral-300);
+  background: var(--color-neutral-50);
 }
 
 /* Security indicator */
-.security {
+.securityIndicator {
   display: flex;
   align-items: center;
+  gap: var(--space-1);
   flex-shrink: 0;
+  margin-right: var(--space-2);
 }
 
-.securityIcon--loading {
-  color: var(--color-primary-500);
-  animation: spin 1s linear infinite;
-}
-
-.securityIcon--secure {
-  color: var(--color-green-600);
+.securityIcon {
+  color: var(--color-success-500);
 }
 
 .securityIcon--insecure {
-  color: var(--color-gray-500);
+  color: var(--color-error-500);
 }
 
-/* Input wrapper */
-.inputWrapper {
+.securityText {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-600);
+}
+
+/* URL input */
+.urlInput {
   flex: 1;
-  display: flex;
-  align-items: center;
   min-width: 0;
-}
-
-.input {
-  width: 100%;
   border: none;
   background: transparent;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-gray-900);
+  color: var(--color-neutral-700);
+  font-size: var(--text-sm);
+  font-family: var(--font-mono);
   outline: none;
   padding: 0;
 }
 
-.input::placeholder {
-  color: var(--color-gray-500);
+.urlInput::placeholder {
+  color: var(--color-neutral-400);
+  font-family: var(--font-sans);
 }
 
-/* URL display (non-editable) */
-.urlDisplay {
-  flex: 1;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--color-gray-700);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  user-select: none;
+/* Address bar actions */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
 }
 
-/* Bookmark button */
-.bookmark {
+.actionButton {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
   border: none;
-  background-color: transparent;
-  color: var(--color-gray-500);
+  background: transparent;
+  color: var(--color-neutral-500);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.bookmark:hover {
-  color: var(--color-orange-500);
+.actionButton:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
 }
 
-.bookmark--active {
-  color: var(--color-orange-500);
+.actionButton:active {
+  transform: scale(0.9);
 }
 
-/* Additional controls */
-.controls {
+/* Browser controls (bookmarks, extensions, etc.) */
+.browserControls {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
   flex-shrink: 0;
 }
 
-.control {
+.controlButton {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
   border: none;
-  background-color: transparent;
-  color: var(--color-gray-600);
+  background: transparent;
+  color: var(--color-neutral-500);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.control:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+.controlButton:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
+}
+
+.controlButton:active {
+  transform: scale(0.95);
+}
+
+/* Loading state */
+.addressContainer--loading {
+  position: relative;
+}
+
+.addressContainer--loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary-500) 0%,
+    var(--color-primary-300) 50%,
+    var(--color-primary-500) 100%
+  );
+  animation: loadingBar 2s infinite;
+}
+
+@keyframes loadingBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Focus styles */
-.navButton:focus,
-.bookmark:focus,
-.control:focus {
-  outline: 2px solid var(--color-primary-400);
+.navButton:focus-visible,
+.actionButton:focus-visible,
+.controlButton:focus-visible {
+  outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
 }
 
-/* Animations */
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* URL styling - highlight protocol, domain, etc. */
+.urlDisplay {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
 }
 
-/* Dark theme support */
-@media (prefers-color-scheme: dark) {
-  .urlContainer {
-    background-color: var(--color-gray-800);
-    border-color: var(--color-gray-700);
-  }
-  
-  .urlContainer:hover {
-    background-color: var(--color-gray-750);
-  }
-  
-  .urlContainer:focus-within {
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px var(--color-primary-900);
-  }
-  
-  .input {
-    color: var(--color-gray-100);
-  }
-  
-  .input::placeholder {
-    color: var(--color-gray-500);
-  }
-  
-  .urlDisplay {
-    color: var(--color-gray-300);
-  }
-  
-  .navButton,
-  .control {
-    color: var(--color-gray-400);
-  }
-  
-  .navButton:hover:not(:disabled),
-  .control:hover {
-    background-color: var(--color-gray-700);
-    color: var(--color-gray-200);
-  }
+.urlProtocol {
+  color: var(--color-neutral-400);
+  flex-shrink: 0;
 }
 
-/* Responsive behavior */
-@media (max-width: 480px) {
+.urlDomain {
+  color: var(--color-neutral-700);
+  font-weight: var(--font-medium);
+  flex-shrink: 0;
+}
+
+.urlPath {
+  color: var(--color-neutral-500);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .browserAddressBar {
-    gap: 4px;
+    gap: var(--space-1);
   }
   
   .navigation {
-    gap: 2px;
+    gap: 0;
   }
   
   .navButton,
-  .control {
+  .controlButton {
     width: 28px;
     height: 28px;
   }
   
-  .urlContainer {
-    padding: 0 8px;
+  .addressContainer {
+    height: 28px;
+    padding: 0 var(--space-2);
+  }
+  
+  .securityText {
+    display: none;
+  }
+  
+  .browserControls {
+    margin-left: var(--space-1);
+  }
+  
+  .urlInput,
+  .urlDisplay {
+    font-size: var(--text-xs);
   }
 } 

@@ -1,0 +1,431 @@
+/* InitialExperience - Modern Browser Interface with Design Tokens */
+
+.initialExperience {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--color-neutral-50);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  transition: background-color var(--duration-normal) var(--ease-out);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .initialExperience {
+  background: var(--color-neutral-50); /* This will be the dark background in dark mode */
+}
+
+/* Blank state - showing desktop-like interface */
+.initialExperience--blank {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: var(--space-6);
+}
+
+[data-theme="dark"] .initialExperience--blank {
+  background: linear-gradient(135deg, #1a1d23 0%, #2d3340 100%);
+}
+
+.blankBrowser {
+  width: 100%;
+  height: 100%;
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .blankBrowser {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+/* Browser Chrome */
+.browserChrome {
+  background: var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-200);
+  padding: var(--space-3);
+}
+
+[data-theme="dark"] .browserChrome {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+.tabBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  min-width: 160px;
+}
+
+[data-theme="dark"] .tab {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+  color: var(--color-neutral-700);
+}
+
+.tab--active {
+  background: var(--color-white);
+  border-bottom-color: var(--color-white);
+  color: var(--color-neutral-900);
+  font-weight: var(--font-medium);
+}
+
+[data-theme="dark"] .tab--active {
+  background: var(--color-neutral-50);
+  border-bottom-color: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+}
+
+.tabCloseButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  border: none;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.tabCloseButton:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .tabCloseButton:hover {
+  background: var(--color-neutral-300);
+  color: var(--color-neutral-800);
+}
+
+/* Address Bar */
+.addressBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.addressBarInput {
+  flex: 1;
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-300);
+  border-radius: var(--radius-xl);
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  outline: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+[data-theme="dark"] .addressBarInput {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+  color: var(--color-neutral-700);
+}
+
+.addressBarInput:focus {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.addressBarInput::placeholder {
+  color: var(--color-neutral-500);
+}
+
+/* Navigation Buttons */
+.navButtons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.navButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.navButton:hover {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-300);
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .navButton:hover {
+  background: var(--color-neutral-300);
+  border-color: var(--color-neutral-400);
+  color: var(--color-neutral-800);
+}
+
+.navButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Content Area */
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-white);
+  position: relative;
+}
+
+[data-theme="dark"] .content {
+  background: var(--color-neutral-50);
+}
+
+/* App Icons Grid */
+.iconGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-8);
+  max-width: 600px;
+  padding: var(--space-12);
+}
+
+.appIcon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xl);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  text-decoration: none;
+  color: var(--color-neutral-700);
+  position: relative;
+  overflow: hidden;
+}
+
+.appIcon::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, 
+    rgba(59, 130, 246, 0.05), 
+    rgba(147, 197, 253, 0.05)
+  );
+  border-radius: var(--radius-xl);
+  opacity: 0;
+  transition: opacity var(--duration-normal) var(--ease-out);
+}
+
+.appIcon:hover::before {
+  opacity: 1;
+}
+
+.appIcon:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  background: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="dark"] .appIcon {
+  color: var(--color-neutral-600);
+}
+
+[data-theme="dark"] .appIcon:hover {
+  background: rgba(45, 51, 64, 0.8);
+}
+
+.appIcon--primary {
+  background: linear-gradient(135deg, 
+    var(--color-primary-500), 
+    var(--color-primary-600)
+  );
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+}
+
+.appIcon--primary::before {
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.1), 
+    rgba(255, 255, 255, 0.2)
+  );
+}
+
+.appIcon--primary:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: var(--shadow-xl);
+  background: linear-gradient(135deg, 
+    var(--color-primary-600), 
+    var(--color-primary-700)
+  );
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-2);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.appIcon:hover .iconWrapper {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.appIcon--primary .iconWrapper {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.iconLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-align: center;
+  line-height: var(--leading-snug);
+}
+
+/* Browser state with BrowserWindow */
+.initialExperience--browser {
+  padding: 0;
+  background: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .initialExperience--browser {
+  background: var(--color-neutral-200);
+}
+
+/* Notification dot for email icon */
+.notificationDot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-error-500);
+  border: 2px solid var(--color-white);
+  border-radius: var(--radius-full);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+[data-theme="dark"] .notificationDot {
+  border-color: var(--color-neutral-50);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+/* Window Controls */
+.windowControls {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.windowControl {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.windowControl--close {
+  background: #ff5f57;
+}
+
+.windowControl--minimize {
+  background: #ffbd2e;
+}
+
+.windowControl--maximize {
+  background: #28ca42;
+}
+
+.windowControl:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .iconGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-6);
+    padding: var(--space-8);
+  }
+
+  .appIcon {
+    padding: var(--space-4);
+  }
+
+  .iconWrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .browserChrome {
+    padding: var(--space-2);
+  }
+
+  .tab {
+    min-width: 120px;
+    padding: var(--space-2) var(--space-3);
+  }
+}
+
+/* Loading states */
+.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading .iconWrapper {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} 

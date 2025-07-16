@@ -1,4 +1,4 @@
-/* Browser Window component styles */
+/* Browser Window component styles - Using Design Tokens */
 
 .browserWindow {
   display: flex;
@@ -6,82 +6,101 @@
   width: 100%;
   height: 100%;
   background-color: var(--color-white);
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-2xl);
   overflow: hidden;
+  font-family: var(--font-sans);
+  border: 1px solid var(--color-neutral-200);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .browserWindow {
+  background-color: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
 }
 
 /* Browser chrome (header area) */
 .chrome {
   display: flex;
   flex-direction: column;
-  background-color: var(--color-gray-100);
-  border-bottom: 1px solid var(--color-gray-300);
+  background: var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .chrome {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
 }
 
 /* Tab bar */
 .tabBar {
   display: flex;
   align-items: center;
-  height: 40px;
-  padding: 0 12px;
-  position: relative;
+  height: 36px;
+  padding: 0 var(--space-3);
+  background: var(--color-neutral-100);
+  border-bottom: 1px solid var(--color-neutral-200);
 }
 
-/* Tabs container */
+[data-theme="dark"] .tabBar {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+}
+
 .tabs {
   display: flex;
   align-items: center;
+  gap: var(--space-1);
   flex: 1;
-  gap: 4px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
 }
 
-.tabs::-webkit-scrollbar {
-  display: none;
-}
-
-/* New tab button */
-.newTab {
+.newTabButton {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
-  border: none;
+  margin-left: var(--space-2);
   background-color: transparent;
-  color: var(--color-gray-600);
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-500);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-  margin-left: 4px;
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.newTab:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+.newTabButton:hover {
+  background-color: var(--color-neutral-200);
+  color: var(--color-neutral-700);
 }
 
-.newTab:active {
-  background-color: var(--color-gray-300);
+[data-theme="dark"] .newTabButton:hover {
+  background-color: var(--color-neutral-300);
+  color: var(--color-neutral-800);
 }
 
-/* Controls area (address bar, navigation buttons) */
+.newTabButton:active {
+  transform: scale(0.95);
+}
+
+/* Controls bar (navigation + address) */
 .controls {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-  gap: 12px;
-  background-color: var(--color-gray-50);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-neutral-100);
 }
 
-/* Navigation buttons */
-.navButtons {
+[data-theme="dark"] .controls {
+  background: var(--color-neutral-200);
+}
+
+.navigation {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
 }
 
 .navButton {
@@ -92,108 +111,201 @@
   height: 32px;
   border: none;
   background-color: transparent;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-500);
   cursor: pointer;
-  border-radius: 4px;
-  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
 .navButton:hover:not(:disabled) {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+  background-color: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+[data-theme="dark"] .navButton:hover:not(:disabled) {
+  background-color: var(--color-neutral-300);
+  color: var(--color-neutral-800);
 }
 
 .navButton:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+}
+
+.navButton:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* Address bar container */
+.addressBarContainer {
+  flex: 1;
+  max-width: 600px;
+}
+
+/* Window controls (minimize, maximize, close) */
+.windowControls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.windowControl {
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.windowControl--close {
+  background-color: #ff5f56;
+}
+
+.windowControl--minimize {
+  background-color: #ffbd2e;
+}
+
+.windowControl--maximize {
+  background-color: #27ca3f;
+}
+
+.windowControl:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.windowControl:active {
+  transform: scale(0.9);
 }
 
 /* Content area */
 .content {
   flex: 1;
-  overflow: auto;
-  background-color: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  position: relative;
+  overflow: hidden;
 }
 
-/* Loading state */
-.browserWindow--loading .content {
+[data-theme="dark"] .content {
+  background: var(--color-neutral-50);
+}
+
+/* User info area (top right) */
+.userInfo {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--color-gray-500);
+  gap: var(--space-4);
+  background: var(--color-white);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-neutral-200);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  z-index: var(--z-50);
+  box-shadow: var(--shadow-sm);
 }
 
-/* Focus styles */
-.newTab:focus,
-.navButton:focus {
-  outline: 2px solid var(--color-primary-400);
-  outline-offset: 2px;
+[data-theme="dark"] .userInfo {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+  color: var(--color-neutral-600);
 }
 
-/* Responsive behavior */
+.userProfile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.userName {
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .userName {
+  color: var(--color-neutral-800);
+}
+
+.userTitle {
+  font-size: var(--text-xs);
+  color: var(--color-neutral-600);
+}
+
+[data-theme="dark"] .userTitle {
+  color: var(--color-neutral-500);
+}
+
+.userStats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+}
+
+.statLabel {
+  color: var(--color-neutral-600);
+}
+
+[data-theme="dark"] .statLabel {
+  color: var(--color-neutral-500);
+}
+
+.statValue {
+  font-weight: var(--font-medium);
+  color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .statValue {
+  color: var(--color-neutral-700);
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .browserWindow {
-    border-radius: 0;
-    box-shadow: none;
+  .chrome {
+    padding: 0 var(--space-2);
+  }
+  
+  .controls {
+    gap: var(--space-2);
+    padding: var(--space-2);
+  }
+  
+  .userInfo {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin: var(--space-2);
+  }
+  
+  .userStats {
+    flex-direction: column;
+    gap: var(--space-1);
   }
   
   .tabBar {
-    padding: 0 8px;
+    padding: 0 var(--space-2);
   }
   
-  .controls {
-    padding: 6px 8px;
-  }
-}
-
-/* Dark theme support */
-@media (prefers-color-scheme: dark) {
-  .browserWindow {
-    background-color: var(--color-gray-900);
-  }
-  
-  .chrome {
-    background-color: var(--color-gray-800);
-    border-bottom-color: var(--color-gray-700);
-  }
-  
-  .controls {
-    background-color: var(--color-gray-850);
-  }
-  
-  .content {
-    background-color: var(--color-gray-900);
-  }
-  
-  .newTab {
-    color: var(--color-gray-400);
-  }
-  
-  .newTab:hover {
-    background-color: var(--color-gray-700);
-    color: var(--color-gray-200);
+  .newTabButton {
+    width: 24px;
+    height: 24px;
   }
   
   .navButton {
-    color: var(--color-gray-400);
+    width: 28px;
+    height: 28px;
   }
-  
-  .navButton:hover:not(:disabled) {
-    background-color: var(--color-gray-700);
-    color: var(--color-gray-200);
-  }
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.content > * {
-  animation: fadeIn 0.2s ease-out;
 } 

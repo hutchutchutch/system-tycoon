@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Plus, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
 import { BrowserTab } from '../../atoms/BrowserTab';
-import { Button } from '../../atoms/Button';
 import { BrowserAddressBar } from '../../molecules/BrowserAddressBar';
 import styles from './BrowserWindow.module.css';
 import type { BrowserWindowProps } from './BrowserWindow.types';
@@ -42,7 +41,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
             
             {onNewTab && (
               <button
-                className={styles.newTab}
+                className={styles.newTabButton}
                 onClick={onNewTab}
                 aria-label="New tab"
               >
@@ -53,12 +52,43 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
         </div>
 
         <div className={styles.controls}>
-          {activeTabData && (
-            <BrowserAddressBar
-              url={activeTabData.url}
-              secure={activeTabData.url.startsWith('https://')}
-            />
-          )}
+          <div className={styles.navigation}>
+            <button
+              className={styles.navButton}
+              disabled
+              aria-label="Go back"
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <button
+              className={styles.navButton}
+              disabled
+              aria-label="Go forward"
+            >
+              <ArrowRight size={16} />
+            </button>
+            <button
+              className={styles.navButton}
+              aria-label="Refresh"
+            >
+              <RotateCcw size={16} />
+            </button>
+          </div>
+
+          <div className={styles.addressBarContainer}>
+            {activeTabData && (
+              <BrowserAddressBar
+                url={activeTabData.url}
+                secure={activeTabData.url.startsWith('https://')}
+              />
+            )}
+          </div>
+
+          <div className={styles.windowControls}>
+            <button className={styles['windowControl--close']} aria-label="Close" />
+            <button className={styles['windowControl--minimize']} aria-label="Minimize" />
+            <button className={styles['windowControl--maximize']} aria-label="Maximize" />
+          </div>
         </div>
       </div>
 

@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { Mail, User, HelpCircle, Newspaper } from 'lucide-react';
+import { Mail, User, HelpCircle, Newspaper, ArrowLeft, ArrowRight, RotateCcw, X } from 'lucide-react';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
-// CSS now handled by design system at src/styles/design-system/pages/initial-experience.css
+import styles from './InitialExperience.module.css';
 
 const InitialExperienceContent: React.FC = () => {
   const [showBrowser, setShowBrowser] = useState(false);
@@ -80,55 +80,87 @@ const InitialExperienceContent: React.FC = () => {
 
   if (!showBrowser) {
     return (
-      <div className="initial-experience initial-experience--blank">
-        <div className="initial-experience__blank-browser">
-          <div className="initial-experience__browser-chrome">
-            <div className="initial-experience__tab-bar">
-              <div className="initial-experience__tab initial-experience__tab--active">
-                New Tab
+      <div className={`${styles.initialExperience} ${styles['initialExperience--blank']}`}>
+        <div className={styles.blankBrowser}>
+          <div className={styles.browserChrome}>
+            <div className={styles.tabBar}>
+              <div className={`${styles.tab} ${styles['tab--active']}`}>
+                <span>New Tab</span>
+              </div>
+              <div className={styles.windowControls}>
+                <button className={styles['windowControl--close']} aria-label="Close" />
+                <button className={styles['windowControl--minimize']} aria-label="Minimize" />
+                <button className={styles['windowControl--maximize']} aria-label="Maximize" />
               </div>
             </div>
-            <div className="initial-experience__address-bar">
-              <input type="text" value="" placeholder="Search or enter address" readOnly />
+            
+            <div className={styles.addressBar}>
+              <div className={styles.navButtons}>
+                <button className={styles.navButton} disabled aria-label="Go back">
+                  <ArrowLeft size={16} />
+                </button>
+                <button className={styles.navButton} disabled aria-label="Go forward">
+                  <ArrowRight size={16} />
+                </button>
+                <button className={styles.navButton} aria-label="Refresh">
+                  <RotateCcw size={16} />
+                </button>
+              </div>
+              <input 
+                type="text" 
+                className={styles.addressBarInput}
+                value="" 
+                placeholder="Search or enter address" 
+                readOnly 
+              />
             </div>
           </div>
           
-          <div className="initial-experience__content">
-            <div className="initial-experience__icon-grid">
+          <div className={styles.content}>
+            <div className={styles.iconGrid}>
               <button 
-                className="initial-experience__app-icon"
+                className={styles.appIcon}
                 onClick={handleProfileIconClick}
                 aria-label="Open profile"
               >
-                <User size={32} />
-                <span>Profile</span>
+                <div className={styles.iconWrapper}>
+                  <User size={24} />
+                </div>
+                <span className={styles.iconLabel}>Profile</span>
               </button>
               
               <button 
-                className="initial-experience__app-icon"
+                className={styles.appIcon}
                 onClick={handleHelpIconClick}
                 aria-label="Open help"
               >
-                <HelpCircle size={32} />
-                <span>Help</span>
+                <div className={styles.iconWrapper}>
+                  <HelpCircle size={24} />
+                </div>
+                <span className={styles.iconLabel}>Help</span>
               </button>
               
               <button 
-                className="initial-experience__app-icon"
+                className={styles.appIcon}
                 onClick={handleNewsIconClick}
                 aria-label="Open news"
               >
-                <Newspaper size={32} />
-                <span>News</span>
+                <div className={styles.iconWrapper}>
+                  <Newspaper size={24} />
+                </div>
+                <span className={styles.iconLabel}>News</span>
               </button>
               
               <button 
-                className="initial-experience__app-icon initial-experience__app-icon--primary"
+                className={`${styles.appIcon} ${styles['appIcon--primary']}`}
                 onClick={handleEmailIconClick}
                 aria-label="Open email"
               >
-                <Mail size={32} />
-                <span>Email</span>
+                <div className={styles.iconWrapper}>
+                  <Mail size={24} />
+                </div>
+                <span className={styles.iconLabel}>Email</span>
+                <div className={styles.notificationDot} />
               </button>
             </div>
           </div>
@@ -138,7 +170,7 @@ const InitialExperienceContent: React.FC = () => {
   }
 
   return (
-    <div className="initial-experience initial-experience--browser">
+    <div className={`${styles.initialExperience} ${styles['initialExperience--browser']}`}>
       <BrowserWindow
         activeTab={activeTab}
         tabs={tabs.map(tab => ({

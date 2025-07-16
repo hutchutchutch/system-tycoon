@@ -1,0 +1,40 @@
+/* GameLayout CSS Module - Using Design Tokens */
+
+.gameLayout {
+  min-height: 100vh;
+  width: 100%;
+  background: var(--color-neutral-50);
+  color: var(--color-neutral-900);
+  font-family: var(--font-sans);
+  transition: all var(--duration-fast) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dark mode support */
+[data-theme="dark"] .gameLayout {
+  background: var(--color-neutral-50); /* This becomes dark in dark mode */
+  color: var(--color-neutral-800);
+}
+
+.mainWithHUD {
+  flex: 1;
+  min-height: calc(100vh - 64px);
+  padding-top: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.mainNoHUD {
+  flex: 1;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mainWithHUD {
+    min-height: calc(100vh - 56px);
+  }
+} 
