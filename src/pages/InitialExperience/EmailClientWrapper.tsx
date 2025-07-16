@@ -133,55 +133,10 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     );
   }
 
-  // Show email detail view for Alex's crisis email
-  if (showEmailDetail && selectedEmail && selectedEmail.id === 'crisis-1') {
-    return (
-      <div className="email-client-wrapper">
-        <div className="email-detail-view">
-          <div className="email-detail-header">
-            <button 
-              className="email-detail-back"
-              onClick={() => setShowEmailDetail(false)}
-            >
-              ← Back to Inbox
-            </button>
-            <h2>{selectedEmail.subject}</h2>
-          </div>
-          
-          <div className="email-detail-meta">
-            <strong>From:</strong> {selectedEmail.sender.name} &lt;{selectedEmail.sender.email}&gt;<br />
-            <strong>To:</strong> Me<br />
-            <strong>Date:</strong> {selectedEmail.timestamp.toLocaleString()}
-          </div>
-          
-          <div className="email-detail-content">
-            <p>I know this is out of nowhere, but I desperately need help.</p>
-            
-            <p>My daughter Emma and 12 other kids in our neighborhood got sick last week with identical symptoms - rash, fatigue, joint pain. Doctors are baffled. But we're finding more cases when people search online.</p>
-            
-            <p>I built a simple website on my home computer where families can report symptoms and locations. We're starting to see patterns - it might be environmental. Maybe the old factory site they're building the new playground on?</p>
-            
-            <p><strong>But my laptop keeps crashing!</strong> 200+ families are trying to access it. Some can't submit their reports. If we can't collect this data, we can't prove anything to the city.</p>
-            
-            <p>I know you don't have a CS background, but you've always been smart and pick things up fast. Could you look at this?</p>
-            
-            <p>I found this tool: <a 
-              href="#" 
-              onClick={(e) => {
-                e.preventDefault();
-                onOpenSystemDesign?.();
-              }}
-              className="email-link crisis-link"
-            >systembuilder.tech/emergency/alexsite</a></p>
-            
-            <p className="email-urgent">Please. Emma's getting worse. We need this data to save these kids.</p>
-            
-            <p>- Alex</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleBackToList = () => {
+    setShowEmailDetail(false);
+    setSelectedEmailId(null);
+  };
 
   return (
     <div className="email-client-wrapper">
@@ -197,6 +152,10 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         onSearchChange={handleSearchChange}
         onEmailCompose={handleEmailCompose}
         onEmailReply={handleEmailReply}
+        showEmailDetail={showEmailDetail}
+        selectedEmailDetail={selectedEmail || undefined}
+        onBackToList={handleBackToList}
+        onOpenSystemDesign={onOpenSystemDesign}
       />
     </div>
   );

@@ -21,6 +21,10 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   onEmailCompose,
   onEmailReply,
   className,
+  showEmailDetail = false,
+  selectedEmailDetail,
+  onBackToList,
+  onOpenSystemDesign,
 }) => {
   const [viewMode, setViewMode] = useState<'comfortable' | 'compact'>('comfortable');
 
@@ -133,7 +137,56 @@ export const EmailClient: React.FC<EmailClientProps> = ({
         </div>
 
         <div className={styles.list}>
-          {filteredEmails.length === 0 ? (
+          {showEmailDetail && selectedEmailDetail ? (
+            <div className={styles.emailDetail}>
+              <div className={styles.emailDetailHeader}>
+                <button 
+                  className={styles.emailDetailBack}
+                  onClick={onBackToList}
+                >
+                  ← Back to Inbox
+                </button>
+                <h2 className={styles.emailDetailSubject}>{selectedEmailDetail.subject}</h2>
+              </div>
+              
+              <div className={styles.emailDetailMeta}>
+                <strong>From:</strong> {selectedEmailDetail.sender.name} &lt;{selectedEmailDetail.sender.email}&gt;<br />
+                <strong>To:</strong> Me<br />
+                <strong>Date:</strong> {selectedEmailDetail.timestamp.toLocaleString()}
+              </div>
+              
+              {selectedEmailDetail.id === 'crisis-1' ? (
+                <div className={styles.emailDetailContent}>
+                  <p>I know this is out of nowhere, but I desperately need help.</p>
+                  
+                  <p>My daughter Emma and 12 other kids in our neighborhood got sick last week with identical symptoms - rash, fatigue, joint pain. Doctors are baffled. But we're finding more cases when people search online.</p>
+                  
+                  <p>I built a simple website on my home computer where families can report symptoms and locations. We're starting to see patterns - it might be environmental. Maybe the old factory site they're building the new playground on?</p>
+                  
+                  <p><strong>But my laptop keeps crashing!</strong> 200+ families are trying to access it. Some can't submit their reports. If we can't collect this data, we can't prove anything to the city.</p>
+                  
+                  <p>I know you don't have a CS background, but you've always been smart and pick things up fast. Could you look at this?</p>
+                  
+                  <p>I found this tool: <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onOpenSystemDesign?.();
+                    }}
+                    className={styles.emailLink}
+                  >systembuilder.tech/emergency/alexsite</a></p>
+                  
+                  <p className={styles.emailUrgent}>Please. Emma's getting worse. We need this data to save these kids.</p>
+                  
+                  <p>- Alex</p>
+                </div>
+              ) : (
+                <div className={styles.emailDetailContent}>
+                  <p>{selectedEmailDetail.preview}</p>
+                </div>
+              )}
+            </div>
+          ) : filteredEmails.length === 0 ? (
             <div className={styles.empty}>
               <p>No emails found</p>
             </div>

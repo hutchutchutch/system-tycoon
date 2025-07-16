@@ -20,4 +20,8 @@ export interface EmailClientProps {
   onEmailCompose: () => void;
   onEmailReply: (emailId: string) => void;
   className?: string;
+  showEmailDetail?: boolean;
+  selectedEmailDetail?: EmailData;
+  onBackToList?: () => void;
+  onOpenSystemDesign?: () => void;
 } 
