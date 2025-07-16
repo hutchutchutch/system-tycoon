@@ -1,122 +1,222 @@
-/* Requirements CSS Module */
+/* Requirements Component - Design System CSS Module */
 
 .requirements {
-  background: white;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-gray-200);
-  padding: 1rem;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  border: 1px solid var(--color-neutral-200);
+  font-family: var(--font-sans);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-/* Header */
-.header {
+[data-theme="dark"] .requirements {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+.requirements__header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--color-gray-100);
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
 }
 
-.title {
-  font-size: 1.125rem;
-  font-weight: 600;
+.requirements__title {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-neutral-900);
   margin: 0;
-  color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
-.progress {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  font-weight: 500;
+[data-theme="dark"] .requirements__title {
+  color: var(--color-neutral-800);
 }
 
-/* Requirements list */
-.list {
+.requirements__counter {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-100);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+}
+
+[data-theme="dark"] .requirements__counter {
+  color: var(--color-neutral-500);
+  background: var(--color-neutral-200);
+}
+
+.requirements__list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
-.item {
+.requirement {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  transition: all 0.2s ease;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-neutral-200);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.item--completed {
-  color: var(--color-text-primary);
+[data-theme="dark"] .requirement {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
 }
 
-.icon {
+.requirement--completed {
+  background: var(--color-green-50);
+  border-color: var(--color-green-200);
+}
+
+[data-theme="dark"] .requirement--completed {
+  background: var(--color-green-950);
+  border-color: var(--color-green-800);
+}
+
+.requirement__icon {
   flex-shrink: 0;
-  margin-top: 0.125rem;
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  color: var(--color-neutral-400);
+  transition: all var(--duration-fast) var(--ease-out);
 }
 
-.check {
-  color: var(--color-success);
-  width: 1rem;
-  height: 1rem;
+[data-theme="dark"] .requirement__icon {
+  color: var(--color-neutral-500);
 }
 
-.circle {
-  color: var(--color-gray-400);
-  width: 1rem;
-  height: 1rem;
+.requirement--completed .requirement__icon {
+  color: var(--color-green-600);
 }
 
-.text {
-  line-height: 1.5;
+[data-theme="dark"] .requirement--completed .requirement__icon {
+  color: var(--color-green-400);
 }
 
-.item--completed .text {
-  text-decoration: line-through;
-  opacity: 0.7;
+.requirement__content {
+  flex: 1;
+  min-width: 0;
 }
 
-/* Test button */
-.testButton {
-  width: 100%;
+.requirement__description {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  margin: 0;
+  line-height: var(--leading-relaxed);
+}
+
+[data-theme="dark"] .requirement__description {
+  color: var(--color-neutral-600);
+}
+
+.requirement--completed .requirement__description {
+  color: var(--color-green-700);
+}
+
+[data-theme="dark"] .requirement--completed .requirement__description {
+  color: var(--color-green-200);
+}
+
+.requirements__actions {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
+.runTestButton {
+  background: var(--color-primary-600);
+  color: var(--color-white);
   border: none;
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-500);
-  cursor: not-allowed;
-  transition: all 0.2s ease;
-}
-
-.testButton:disabled {
-  opacity: 0.6;
-}
-
-.testButton--ready {
-  background-color: var(--color-primary);
-  color: white;
+  padding: var(--space-3) var(--space-5);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
   cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-sans);
 }
 
-.testButton--ready:hover {
-  background-color: var(--color-primary-dark);
+.runTestButton:hover {
+  background: var(--color-primary-700);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
 }
 
-.testButton--ready:active {
+.runTestButton:active {
   transform: translateY(0);
+}
+
+.runTestButton:disabled {
+  background: var(--color-neutral-300);
+  color: var(--color-neutral-500);
+  cursor: not-allowed;
+  transform: none;
   box-shadow: none;
 }
 
-.testButtonIcon {
-  width: 1rem;
-  height: 1rem;
+[data-theme="dark"] .runTestButton:disabled {
+  background: var(--color-neutral-700);
+  color: var(--color-neutral-500);
+}
+
+.runTestButton:focus {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+}
+
+/* Progress indicator */
+.requirements__progress {
+  margin-bottom: var(--space-4);
+}
+
+.progressBar {
+  width: 100%;
+  height: 8px;
+  background: var(--color-neutral-200);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+[data-theme="dark"] .progressBar {
+  background: var(--color-neutral-700);
+}
+
+.progressBar__fill {
+  height: 100%;
+  background: var(--color-primary-500);
+  border-radius: var(--radius-full);
+  transition: width var(--duration-normal) var(--ease-out);
+}
+
+.progressBar__fill--complete {
+  background: var(--color-green-500);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .requirements {
+    padding: var(--space-3);
+  }
+  
+  .requirements__actions {
+    flex-direction: column;
+  }
+  
+  .runTestButton {
+    width: 100%;
+    justify-content: center;
+  }
 } 

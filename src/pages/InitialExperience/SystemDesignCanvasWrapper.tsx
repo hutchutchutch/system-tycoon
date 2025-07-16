@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CrisisSystemDesignCanvas } from './CrisisSystemDesignCanvas';
-// CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
+import styles from './SystemDesignCanvasWrapper.module.css';
 
 interface SystemDesignCanvasWrapperProps {
   onMissionComplete?: () => void;
@@ -29,21 +29,18 @@ export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps>
 
   if (loading) {
     return (
-      <div className="system-design-wrapper">
-        <div className="system-design-loading">
-          <div className="system-design-loading__spinner"></div>
-          <p>Analyzing Alex's broken system...</p>
+      <div className={styles.systemDesignWrapper}>
+        <div className={styles.systemDesignLoading}>
+          <div className={styles.loadingSpinner}></div>
+          <p className={styles.loadingText}>Analyzing Alex's broken system...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="system-design-wrapper">      
-      <CrisisSystemDesignCanvas
-        missionId={currentMission}
-        onMissionComplete={handleMissionComplete}
-      />
+    <div className={styles.systemDesignWrapper}>      
+      <CrisisSystemDesignCanvas />
     </div>
   );
 };

@@ -1,0 +1,56 @@
+/* SystemDesignCanvasWrapper - Ensures proper height for react-flow viewport */
+
+.systemDesignWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-neutral-50);
+  font-family: var(--font-sans);
+}
+
+/* Dark mode support */
+[data-theme="dark"] .systemDesignWrapper {
+  background: var(--color-neutral-50);
+}
+
+/* Loading state */
+.systemDesignLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-4);
+}
+
+.loadingSpinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--color-neutral-200);
+  border-top: 3px solid var(--color-primary-500);
+  border-radius: var(--radius-full);
+  animation: spin var(--duration-slow) linear infinite;
+}
+
+[data-theme="dark"] .loadingSpinner {
+  border-color: var(--color-neutral-400);
+  border-top-color: var(--color-primary-400);
+}
+
+.loadingText {
+  color: var(--color-neutral-700);
+  font-size: var(--text-base);
+  margin: 0;
+  text-align: center;
+}
+
+[data-theme="dark"] .loadingText {
+  color: var(--color-neutral-600);
+}
+
+/* Spinner animation */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 
