@@ -19,7 +19,7 @@
 /* Blank state - showing desktop-like interface */
 .initialExperience--blank {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: var(--space-4);
+  padding: var(--space-2);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -328,7 +328,7 @@
 /* Browser state with BrowserWindow */
 .initialExperience--browser {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: var(--space-4);
+  padding: var(--space-2);
   height: 100%;
   display: flex;
   flex-direction: column;
