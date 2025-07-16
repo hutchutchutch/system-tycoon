@@ -50,6 +50,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const [mentorQuery, setMentorQuery] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const [selectedMentorIndex, setSelectedMentorIndex] = useState(0);
+  const [expandedMentor, setExpandedMentor] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEmails = async () => {
@@ -85,10 +86,10 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
           return;
         }
 
-        // Fetch mentor info
+        // Fetch mentor info with all fields for rich mentor cards
         const { data: mentorData, error: mentorsError } = await supabase
           .from('mentors')
-          .select('id, name, title');
+          .select('id, name, title, tags, tagline, quote, signature, personality, specialty, lore');
 
         if (mentorsError) {
           console.error('Error fetching mentors:', mentorsError);
@@ -110,6 +111,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
           return acc;
         }, {} as Record<string, MentorInfo>) || {};
 
+        console.log('Loaded mentors:', mentorsLookup);
         setChatMessages(messages || []);
         setMentors(mentorsLookup);
         setFullMentors(fullMentorData || []);
@@ -195,8 +197,26 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
-      console.log('Sending message:', newMessage);
+      // Create a user message
+      const userMessage: GroupChatMessage = {
+        id: `user-${Date.now()}`,
+        sender_id: 'current-user',
+        sender_type: 'user',
+        message_content: newMessage.trim(),
+        timestamp: new Date().toISOString()
+      };
+      
+      // Add to chat messages
+      setChatMessages(prev => [...prev, userMessage]);
       setNewMessage('');
+      
+      // Scroll to bottom after message is added
+      setTimeout(() => {
+        const messagesContainer = document.querySelector(`.${styles.chatMessages}`);
+        if (messagesContainer) {
+          messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+      }, 100);
     }
   };
 
@@ -216,6 +236,13 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     }, 0);
   };
 
+  const handleToggleMentorCard = (mentorId: string) => {
+    console.log('Toggling mentor card for:', mentorId);
+    console.log('Current expandedMentor:', expandedMentor);
+    console.log('Mentor data:', mentors[mentorId]);
+    setExpandedMentor(expandedMentor === mentorId ? null : mentorId);
+  };
+
   const handleMessageChange = (value: string) => {
     setNewMessage(value);
     
@@ -230,11 +257,13 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         setMentorQuery(query.toLowerCase());
         setShowMentorSuggestions(true);
         setCursorPosition(lastAtIndex);
+        setSelectedMentorIndex(0); // Reset to first mentor when showing suggestions
       } else {
         setShowMentorSuggestions(false);
       }
     } else {
       setShowMentorSuggestions(false);
+      setSelectedMentorIndex(0);
     }
   };
 
@@ -244,6 +273,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     const newText = `${beforeAt}@${mentorName} ${afterQuery}`;
     setNewMessage(newText);
     setShowMentorSuggestions(false);
+    setSelectedMentorIndex(0);
     
     // Focus input and set cursor position
     setTimeout(() => {
@@ -254,6 +284,33 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         input.setSelectionRange(newCursorPos, newCursorPos);
       }
     }, 0);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showMentorSuggestions && filteredMentors.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentorIndex(prev => 
+          prev < filteredMentors.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentorIndex(prev => 
+          prev > 0 ? prev - 1 : filteredMentors.length - 1
+        );
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const selectedMentor = filteredMentors[selectedMentorIndex];
+        if (selectedMentor) {
+          handleMentorSelect(selectedMentor.name);
+        }
+      } else if (e.key === 'Escape') {
+        setShowMentorSuggestions(false);
+        setSelectedMentorIndex(0);
+      }
+    } else if (e.key === 'Enter') {
+      handleSendMessage();
+    }
   };
 
   const selectedEmail = selectedEmailId ? emails.find(e => e.id === selectedEmailId) : null;
@@ -336,28 +393,129 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                   <div className={styles.chatEmpty}>No messages yet</div>
                 ) : (
                   chatMessages.map(message => {
-                    const mentor = mentors[message.sender_id];
+                    const isUserMessage = message.sender_type === 'user';
+                    const mentor = isUserMessage ? null : mentors[message.sender_id];
+                    
                     return (
-                      <div key={message.id} className={styles.chatMessage}>
-                        <div className={styles.chatAvatar}>
-                          {mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'}
-                        </div>
-                        <div className={styles.chatContent}>
-                          <div className={styles.chatMessageHeader}>
-                            <div className={styles.chatSender}>
-                              {mentor?.name || 'AI Mentor'} ({mentor?.title || 'AI'})
-                            </div>
-                            <button
-                              className={styles.chatReplyButton}
-                              onClick={() => handleReplyToMentor(mentor?.name || 'AI Mentor')}
-                              title={`Reply to ${mentor?.name || 'AI Mentor'}`}
-                            >
-                              <Reply size={14} />
-                            </button>
+                      <div key={message.id} className={`${styles.chatMessage} ${isUserMessage ? styles.userMessage : ''}`}>
+                        <div className={styles.chatAvatarSection}>
+                          <div 
+                            className={styles.chatAvatar}
+                            title={isUserMessage ? undefined : mentor?.name || 'AI Mentor'}
+                            onClick={!isUserMessage ? () => handleToggleMentorCard(message.sender_id) : undefined}
+                            style={!isUserMessage ? { cursor: 'pointer' } : undefined}
+                          >
+                            {isUserMessage 
+                              ? 'You'.substring(0, 2).toUpperCase()
+                              : mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'
+                            }
                           </div>
-                          <div className={styles.chatText}>{message.message_content}</div>
-                          <div className={styles.chatTime}>
-                            {new Date(message.timestamp).toLocaleString()}
+                          {!isUserMessage && (
+                            <div 
+                              className={styles.mentorName}
+                              onClick={() => handleToggleMentorCard(message.sender_id)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              {mentor?.name || 'AI Mentor'}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className={styles.chatMessageContent}>
+                          {/* Expandable Mentor Card */}
+                          {!isUserMessage && expandedMentor === message.sender_id && (
+                            <div className={styles.mentorCardExpanded}>
+                              <div className={styles.mentorCardInfo}>
+                                <h3 className={styles.mentorCardName}>
+                                  {mentor?.name || 'AI Mentor'}
+                                </h3>
+                                <p className={styles.mentorCardTitle}>
+                                  {mentor?.title || 'AI Assistant'}
+                                </p>
+                                {mentor?.tagline && (
+                                  <p className={styles.mentorCardTagline}>
+                                    "{mentor.tagline}"
+                                  </p>
+                                )}
+                              </div>
+
+                              {mentor?.quote && (
+                                <div className={styles.mentorCardQuote}>
+                                  "{mentor.quote}"
+                                </div>
+                              )}
+
+                              {mentor?.signature && (
+                                <div className={styles.mentorCardSection}>
+                                  <h4 className={styles.mentorCardSectionTitle}>Legacy</h4>
+                                  <p className={styles.mentorCardText}>{mentor.signature.legacy}</p>
+                                  {mentor.signature.knownFor && (
+                                    <p className={styles.mentorCardKnownFor}>
+                                      <strong>Known for:</strong> {mentor.signature.knownFor}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {mentor?.specialty && (
+                                <div className={styles.mentorCardSection}>
+                                  <h4 className={styles.mentorCardSectionTitle}>Expertise</h4>
+                                  {mentor.specialty.domains && mentor.specialty.domains.length > 0 && (
+                                    <div className={styles.mentorCardDomains}>
+                                      <strong>Domains:</strong> {mentor.specialty.domains.join(', ')}
+                                    </div>
+                                  )}
+                                  {mentor.specialty.tools && mentor.specialty.tools.length > 0 && (
+                                    <div className={styles.mentorCardTools}>
+                                      <strong>Tools:</strong> {mentor.specialty.tools.join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {mentor?.personality && (
+                                <div className={styles.mentorCardPersonality}>
+                                  <h4 className={styles.mentorCardSectionTitle}>Personality</h4>
+                                  {mentor.personality.style && (
+                                    <p className={styles.mentorCardText}>{mentor.personality.style}</p>
+                                  )}
+                                  {mentor.personality.traits && (
+                                    <p className={styles.mentorCardTraits}>
+                                      <strong>Traits:</strong> {mentor.personality.traits}
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+
+                              {mentor?.lore && (
+                                <div className={styles.mentorCardLore}>
+                                  <strong>Legend:</strong> {mentor.lore}
+                                </div>
+                              )}
+
+                              {mentor?.tags && mentor.tags.length > 0 && (
+                                <div className={styles.mentorCardTags}>
+                                  {mentor.tags.map((tag: string, index: number) => (
+                                    <span key={index} className={styles.mentorCardTag}>
+                                      {tag}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          <div className={styles.chatContent}>
+                            <div className={styles.chatText}>{message.message_content}</div>
+                            {!isUserMessage && (
+                              <button
+                                className={styles.chatReplyButton}
+                                onClick={() => handleReplyToMentor(mentor?.name || 'AI Mentor')}
+                                title={`Reply to ${mentor?.name || 'AI Mentor'}`}
+                              >
+                                <Reply size={14} />
+                              </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -370,10 +528,12 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                 <div className={styles.chatInputContainer}>
                   {showMentorSuggestions && filteredMentors.length > 0 && (
                     <div className={styles.mentorSuggestions}>
-                      {filteredMentors.map(mentor => (
+                      {filteredMentors.map((mentor, index) => (
                         <div
                           key={mentor.id}
-                          className={styles.mentorSuggestion}
+                          className={`${styles.mentorSuggestion} ${
+                            index === selectedMentorIndex ? styles.highlighted : ''
+                          }`}
                           onClick={() => handleMentorSelect(mentor.name)}
                         >
                           <div className={styles.mentorSuggestionAvatar}>
@@ -393,16 +553,15 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                       type="text"
                       value={newMessage}
                       onChange={(e) => handleMessageChange(e.target.value)}
+                      onKeyDown={handleKeyDown}
                       placeholder="Type your message... (use @ to mention mentors)"
                       className={`${styles.chatTextInput} chatTextInput`}
-                      onKeyPress={(e) => {
-                        if (e.key === 'Enter' && !showMentorSuggestions) {
-                          handleSendMessage();
-                        }
-                      }}
                       onBlur={() => {
                         // Delay hiding suggestions to allow click events
-                        setTimeout(() => setShowMentorSuggestions(false), 200);
+                        setTimeout(() => {
+                          setShowMentorSuggestions(false);
+                          setSelectedMentorIndex(0);
+                        }, 200);
                       }}
                     />
                     <button 

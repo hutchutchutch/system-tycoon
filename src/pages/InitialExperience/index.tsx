@@ -1,4 +1,5 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
@@ -10,6 +11,7 @@ import { MissionInitializer } from '../../components/mission/MissionInitializer'
 import styles from './InitialExperience.module.css';
 
 const InitialExperienceContent: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>('home');
   const [tabs, setTabs] = useState<any[]>([{
     id: 'home',
@@ -19,6 +21,24 @@ const InitialExperienceContent: React.FC = () => {
     closable: false, // Home tab cannot be closed
   }]);
   const [missionComplete, setMissionComplete] = useState(false);
+
+  // Check for crisis parameter and automatically open system design canvas
+  useEffect(() => {
+    const isCrisis = searchParams.get('crisis') === 'true';
+    if (isCrisis) {
+      // Automatically open the system design canvas for crisis mode
+      const crisisTab = {
+        id: 'system-design',
+        title: 'System Builder - Emergency: Health Crisis',
+        url: 'https://systembuilder.tech/emergency/healthcrisis',
+        component: SystemDesignCanvasWrapper,
+        closable: true,
+      };
+      
+      setTabs(prev => [...prev, crisisTab]);
+      setActiveTab('system-design');
+    }
+  }, [searchParams]);
 
   // Generic function to open a new tab
   const openNewTab = useCallback((tabConfig: any) => {
@@ -79,16 +99,27 @@ const InitialExperienceContent: React.FC = () => {
   }, [openNewTab]);
 
   const handleOpenSystemDesignTab = useCallback(() => {
-    const newTab = {
-      id: 'system-design',
-      title: 'System Builder - Emergency: Alex\'s Site',
-      url: 'https://systembuilder.tech/emergency/alexsite',
-      component: SystemDesignCanvasWrapper,
-      closable: true,
-    };
+    // Open the system design canvas in a new browser tab with crisis parameter
+    const newWindow = window.open('/game?crisis=true', '_blank', 'noopener,noreferrer');
     
-    setTabs(prev => [...prev, newTab]);
-    setActiveTab('system-design');
+    // Focus the new window if it opened successfully
+    if (newWindow) {
+      newWindow.focus();
+    }
+    
+    // Fallback: If popup blocked, create tab within the current browser window
+    if (!newWindow || newWindow.closed) {
+      const newTab = {
+        id: 'system-design',
+        title: 'System Builder - Emergency: Health Crisis',
+        url: 'https://systembuilder.tech/emergency/healthcrisis',
+        component: SystemDesignCanvasWrapper,
+        closable: true,
+      };
+      
+      setTabs(prev => [...prev, newTab]);
+      setActiveTab('system-design');
+    }
   }, []);
 
   const handleMissionComplete = useCallback(() => {

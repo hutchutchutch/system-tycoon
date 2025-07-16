@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { clsx } from 'clsx';
+import { Reply } from 'lucide-react';
 import { EmailCard } from '../../molecules/EmailCard';
 import { EmailSidebar } from '../../molecules/EmailSidebar';
 import { EmailToolbar } from '../../molecules/EmailToolbar';
@@ -13,7 +14,6 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   selectedFolder,
   searchQuery,
   onEmailSelect,
-  onEmailToggleSelect,
   onFolderSelect,
   onSearchChange,
   onEmailCompose,
@@ -31,6 +31,106 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   chatLoading = false,
 }) => {
   const [newMessage, setNewMessage] = useState('');
+  const [showMentorSuggestions, setShowMentorSuggestions] = useState(false);
+  const [mentorQuery, setMentorQuery] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedMentorIndex, setSelectedMentorIndex] = useState(0);
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      console.log('Sending message:', newMessage);
+      setNewMessage('');
+    }
+  };
+
+  const handleReplyToMentor = (mentorName: string) => {
+    setNewMessage(`@${mentorName} `);
+    setTimeout(() => {
+      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }, 0);
+  };
+
+  const handleMessageChange = (value: string) => {
+    setNewMessage(value);
+    
+    // Check for @ mentions
+    const lastAtIndex = value.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const textAfterAt = value.slice(lastAtIndex + 1);
+      const spaceIndex = textAfterAt.indexOf(' ');
+      const query = spaceIndex === -1 ? textAfterAt : textAfterAt.slice(0, spaceIndex);
+      
+      if (spaceIndex === -1 && query.length >= 0) {
+        setMentorQuery(query.toLowerCase());
+        setShowMentorSuggestions(true);
+        setCursorPosition(lastAtIndex);
+        setSelectedMentorIndex(0);
+      } else {
+        setShowMentorSuggestions(false);
+        setSelectedMentorIndex(0);
+      }
+    } else {
+      setShowMentorSuggestions(false);
+      setSelectedMentorIndex(0);
+    }
+  };
+
+  const handleMentorSelect = (mentorName: string) => {
+    const beforeAt = newMessage.slice(0, cursorPosition);
+    const afterQuery = newMessage.slice(cursorPosition + 1 + mentorQuery.length);
+    const newText = `${beforeAt}@${mentorName} ${afterQuery}`;
+    setNewMessage(newText);
+    setShowMentorSuggestions(false);
+    setSelectedMentorIndex(0);
+    
+    setTimeout(() => {
+      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        const newCursorPos = beforeAt.length + mentorName.length + 2;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 0);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showMentorSuggestions && filteredMentors.length > 0) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedMentorIndex(prev => 
+          prev < filteredMentors.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedMentorIndex(prev => 
+          prev > 0 ? prev - 1 : filteredMentors.length - 1
+        );
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        const selectedMentor = filteredMentors[selectedMentorIndex];
+        if (selectedMentor) {
+          handleMentorSelect(selectedMentor.name);
+        }
+      } else if (e.key === 'Escape') {
+        setShowMentorSuggestions(false);
+        setSelectedMentorIndex(0);
+      }
+    } else if (e.key === 'Enter') {
+      handleSendMessage();
+    }
+  };
+
+  // Filter mentors for suggestions
+  const filteredMentors = React.useMemo(() => {
+    if (!mentorQuery) return Object.values(mentors);
+    return Object.values(mentors).filter(mentor =>
+      mentor.name.toLowerCase().includes(mentorQuery)
+    );
+  }, [mentors, mentorQuery]);
 
   const filteredEmails = useMemo(() => {
     let filtered = [...emails];
@@ -52,13 +152,6 @@ export const EmailClient: React.FC<EmailClientProps> = ({
 
     return filtered;
   }, [emails, selectedFolder, searchQuery]);
-
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      console.log('Sending message:', newMessage);
-      setNewMessage('');
-    }
-  };
 
   return (
     <div className={clsx(styles.emailClient, className)}>
@@ -93,20 +186,36 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                   <div className={styles.chatEmpty}>No messages yet</div>
                 ) : (
                   chatMessages.map(message => {
-                    const mentor = mentors[message.sender_id];
+                    const isUserMessage = message.sender_type === 'user';
+                    const mentor = isUserMessage ? null : mentors[message.sender_id];
+                    
                     return (
-                      <div key={message.id} className={styles.chatMessage}>
+                      <div key={message.id} className={`${styles.chatMessage} ${isUserMessage ? styles.userMessage : ''}`}>
                         <div className={styles.chatAvatar}>
-                          {mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'}
+                          {isUserMessage 
+                            ? 'You'.substring(0, 2).toUpperCase()
+                            : mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'
+                          }
                         </div>
                         <div className={styles.chatContent}>
-                          <div className={styles.chatSender}>
-                            {mentor?.name || 'AI Mentor'} ({mentor?.title || 'AI'})
+                          <div className={styles.chatMessageHeader}>
+                            <div className={styles.chatSender}>
+                              {isUserMessage ? 'You' : mentor?.name || 'AI Mentor'}
+                            </div>
                           </div>
                           <div className={styles.chatText}>{message.message_content}</div>
                           <div className={styles.chatTime}>
-                            {new Date(message.timestamp).toLocaleString()}
+                            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </div>
+                          {!isUserMessage && (
+                            <button
+                              className={styles.chatReplyButton}
+                              onClick={() => handleReplyToMentor(mentor?.name || 'AI Mentor')}
+                              title={`Reply to ${mentor?.name || 'AI Mentor'}`}
+                            >
+                              <Reply size={14} />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -114,25 +223,53 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                 )}
               </div>
               
-              <div className={styles.chatInput}>
-                <input
-                  type="text"
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message..."
-                  className={styles.chatTextInput}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <button 
-                  className={styles.chatSendButton}
-                  onClick={handleSendMessage}
-                >
-                  Send
-                </button>
+              <div className={styles.chatInputSection}>
+                <div className={styles.chatInputContainer}>
+                  {showMentorSuggestions && filteredMentors.length > 0 && (
+                    <div className={styles.mentorSuggestions}>
+                      {filteredMentors.map((mentor, index) => (
+                        <div
+                          key={mentor.id}
+                          className={`${styles.mentorSuggestion} ${
+                            index === selectedMentorIndex ? styles.highlighted : ''
+                          }`}
+                          onClick={() => handleMentorSelect(mentor.name)}
+                        >
+                          <div className={styles.mentorSuggestionAvatar}>
+                            {mentor.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className={styles.mentorSuggestionInfo}>
+                            <div className={styles.mentorSuggestionName}>{mentor.name}</div>
+                            <div className={styles.mentorSuggestionTitle}>{mentor.title}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className={styles.chatInput}>
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => handleMessageChange(e.target.value)}
+                      placeholder="Type your message... (use @ to mention mentors)"
+                      className={`${styles.chatInputField} chatTextInput`}
+                      onKeyDown={handleKeyDown}
+                      onBlur={() => {
+                        setTimeout(() => {
+                          setShowMentorSuggestions(false);
+                          setSelectedMentorIndex(0);
+                        }, 200);
+                      }}
+                    />
+                    <button 
+                      className={styles.chatSendButton}
+                      onClick={handleSendMessage}
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           ) : showEmailDetail && selectedEmailDetail ? (
@@ -184,7 +321,6 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                     key={email.id}
                     email={email}
                     onClick={() => onEmailSelect(email.id)}
-                    onToggleSelect={() => onEmailToggleSelect(email.id)}
                     selected={selectedEmails.includes(email.id)}
                   />
                 ))

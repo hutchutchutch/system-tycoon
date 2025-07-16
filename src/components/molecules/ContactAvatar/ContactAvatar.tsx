@@ -16,7 +16,10 @@ export const ContactAvatar: React.FC<ContactAvatarProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
 
-  const getInitials = (name: string) => {
+  const getInitials = (name?: string) => {
+    if (!name || typeof name !== 'string') {
+      return '??';
+    }
     return name
       .split(' ')
       .map(word => word.charAt(0).toUpperCase())

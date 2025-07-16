@@ -25,6 +25,23 @@ export interface MentorInfo {
   id: string;
   name: string;
   title: string;
+  bio?: string;
+  tags?: string[];
+  tagline?: string;
+  quote?: string;
+  signature?: {
+    legacy: string;
+    knownFor: string;
+  };
+  personality?: {
+    style: string;
+    traits: string;
+  };
+  specialty?: {
+    tools: string[];
+    domains: string[];
+  };
+  lore?: string;
 }
 
 export interface EmailClientProps {
@@ -34,7 +51,6 @@ export interface EmailClientProps {
   selectedFolder: string;
   searchQuery: string;
   onEmailSelect: (emailId: string) => void;
-  onEmailToggleSelect: (emailId: string) => void;
   onFolderSelect: (folderId: string) => void;
   onSearchChange: (query: string) => void;
   onEmailCompose: () => void;

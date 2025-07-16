@@ -4,7 +4,7 @@ export type OnlineStatus = 'online' | 'away' | 'busy' | 'offline';
 
 export interface ContactAvatarProps {
   /** Contact name for fallback initials */
-  name: string;
+  name?: string;
   
   /** Optional avatar image URL */
   src?: string;

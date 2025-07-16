@@ -40,15 +40,36 @@ export async function fetchEmails(): Promise<EmailData[]> {
   try {
     const { data, error } = await supabase
       .from('mission_emails')
-      .select('*')
-      .order('timestamp', { ascending: false });
+      .select(`
+        *,
+        mission_characters (
+          name,
+          email,
+          avatar_url
+        )
+      `)
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching emails:', error);
       return getFallbackEmails();
     }
 
-    return data ? data.map(convertToEmailData) : getFallbackEmails();
+    return data ? data.map(row => ({
+      id: row.id,
+      sender_name: row.mission_characters?.name || row.sender_name || 'Unknown Sender',
+      sender_email: row.mission_characters?.email || row.sender_email || 'unknown@example.com',
+      sender_avatar: row.mission_characters?.avatar_url || row.sender_avatar,
+      subject: row.subject,
+      preview: row.preview,
+      content: row.body || row.content || '', // Use body field if content is empty
+      timestamp: row.created_at || row.timestamp,
+      status: row.status,
+      priority: row.priority,
+      has_attachments: row.has_attachments,
+      tags: row.tags || [],
+      category: row.category,
+    })) : getFallbackEmails();
   } catch (error) {
     console.error('Error in fetchEmails:', error);
     return getFallbackEmails();
@@ -60,16 +81,37 @@ export async function fetchEmailsByCategory(category: string): Promise<EmailData
   try {
     const { data, error } = await supabase
       .from('mission_emails')
-      .select('*')
+      .select(`
+        *,
+        mission_characters (
+          name,
+          email,
+          avatar_url
+        )
+      `)
       .eq('category', category)
-      .order('timestamp', { ascending: false });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching emails by category:', error);
       return getFallbackEmails().filter(email => email.category === category);
     }
 
-    return data ? data.map(convertToEmailData) : [];
+    return data ? data.map(row => ({
+      id: row.id,
+      sender_name: row.mission_characters?.name || row.sender_name || 'Unknown Sender',
+      sender_email: row.mission_characters?.email || row.sender_email || 'unknown@example.com',
+      sender_avatar: row.mission_characters?.avatar_url || row.sender_avatar,
+      subject: row.subject,
+      preview: row.preview,
+      content: row.body || row.content || '',
+      timestamp: row.created_at || row.timestamp,
+      status: row.status,
+      priority: row.priority,
+      has_attachments: row.has_attachments,
+      tags: row.tags || [],
+      category: row.category,
+    })) : [];
   } catch (error) {
     console.error('Error in fetchEmailsByCategory:', error);
     return getFallbackEmails().filter(email => email.category === category);
