@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
 import { clsx } from 'clsx';
-import { useDraggable } from '@dnd-kit/core';
 import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
 import styles from './ComponentCard.module.css';
@@ -14,7 +13,7 @@ import type { ComponentCardProps } from './ComponentCard.types';
  * State Management:
  * - Local state for hover effects and UI interactions only
  * - Component data passed via props from parent
- * - Dragging state managed by DnD context
+ * - Dragging state managed by HTML Drag and Drop API
  * - Selection state controlled by parent
  * 
  * Redux Integration:
@@ -29,17 +28,12 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
   isDragging = false,
   isSelected = false,
   onSelect,
+  onDragStart,
+  onDragEnd,
   className,
 }) => {
   // Local UI state for hover effects
   const [isHovered, setIsHovered] = useState(false);
-  
-  // Draggable setup for drawer variant
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: data.id,
-    data: data,
-    disabled: data.locked || variant === 'canvas',
-  });
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -49,14 +43,22 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
     setIsHovered(false);
   }, []);
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-  } : undefined;
+  const handleDragStart = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    // Set the component data for the drag operation
+    event.dataTransfer.setData('application/reactflow', data.type);
+    event.dataTransfer.setData('application/component', JSON.stringify(data));
+    event.dataTransfer.effectAllowed = 'move';
+    
+    // Call parent handler
+    onDragStart?.(event, data);
+  }, [data, onDragStart]);
+
+  const handleDragEnd = useCallback(() => {
+    onDragEnd?.();
+  }, [onDragEnd]);
 
   return (
     <div
-      ref={variant === 'drawer' ? setNodeRef : undefined}
-      style={style}
       className={clsx(
         styles.componentCard,
         styles[`componentCard--${variant}`],
@@ -72,7 +74,10 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onSelect}
-      {...(variant === 'drawer' ? { ...attributes, ...listeners } : {})}
+      // HTML Drag and Drop API
+      draggable={variant === 'drawer' && !data.locked}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
       role={variant === 'canvas' ? 'button' : undefined}
       tabIndex={variant === 'canvas' ? 0 : undefined}
     >

@@ -11,7 +11,7 @@ export interface ComponentDrawerProps {
   categories: CategoryData[];
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onComponentDragStart: (component: ComponentData) => void;
-  onComponentDragEnd: () => void;
+  onComponentDragStart?: (component: ComponentData) => void;
+  onComponentDragEnd?: () => void;
   className?: string;
 }

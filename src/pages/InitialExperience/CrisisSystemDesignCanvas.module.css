@@ -61,14 +61,13 @@
   border-color: var(--color-neutral-300);
 }
 
-/* Floating Component Drawer Card - Top Side */
+/* Floating Component Drawer Card - Left Side */
 .componentDrawerCard {
   position: absolute;
   top: var(--space-6);
-  left: 50%;
-  transform: translateX(-50%);
-  width: 400px;
-  height: 300px;
+  left: var(--space-6);
+  width: 340px;
+  height: 600px;
   background: var(--color-white);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-2xl);
@@ -413,8 +412,9 @@
 /* Responsive Design */
 @media (max-width: 1024px) {
   .componentDrawerCard {
-    width: 350px;
-    height: 280px;
+    width: 300px;
+    height: 560px;
+    left: var(--space-4);
   }
   
   .requirementsCard {
@@ -426,9 +426,10 @@
 
 @media (max-width: 768px) {
   .componentDrawerCard {
-    width: 300px;
-    height: 250px;
+    width: 280px;
+    height: 500px;
     top: var(--space-3);
+    left: var(--space-3);
   }
   
   .requirementsCard {

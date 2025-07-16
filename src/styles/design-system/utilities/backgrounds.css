@@ -1,0 +1,50 @@
+/* Background utilities */
+
+/* Dots pattern background */
+.bg-dots {
+  background-color: var(--color-neutral-50);
+  background-image: radial-gradient(var(--color-neutral-300) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.bg-dots-dark {
+  background-color: var(--color-neutral-900);
+  background-image: radial-gradient(var(--color-neutral-700) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+.bg-dots-subtle {
+  background-color: var(--color-neutral-50);
+  background-image: radial-gradient(var(--color-neutral-200) 0.5px, transparent 0.5px);
+  background-size: 16px 16px;
+  background-position: 0 0, 8px 8px;
+}
+
+.bg-dots-primary {
+  background-color: var(--color-primary-50);
+  background-image: radial-gradient(var(--color-primary-200) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: 0 0, 10px 10px;
+}
+
+/* Animated dots for enhanced visual appeal */
+.bg-dots-animated {
+  background-color: var(--color-neutral-50);
+  background-image: 
+    radial-gradient(var(--color-neutral-300) 1px, transparent 1px),
+    radial-gradient(var(--color-primary-200) 0.5px, transparent 0.5px);
+  background-size: 20px 20px, 40px 40px;
+  background-position: 0 0, 10px 10px;
+  animation: dots-drift 60s linear infinite;
+}
+
+@keyframes dots-drift {
+  0% {
+    background-position: 0 0, 10px 10px;
+  }
+  100% {
+    background-position: 20px 20px, 30px 30px;
+  }
+} 

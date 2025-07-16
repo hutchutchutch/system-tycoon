@@ -83,7 +83,7 @@
   transform: scale(0.95);
 }
 
-/* Controls bar (navigation + address) */
+/* Controls bar (address + window controls) */
 .controls {
   display: flex;
   align-items: center;
@@ -96,45 +96,7 @@
   background: var(--color-neutral-200);
 }
 
-.navigation {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex-shrink: 0;
-}
 
-.navButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: none;
-  background-color: transparent;
-  color: var(--color-neutral-500);
-  cursor: pointer;
-  border-radius: var(--radius-md);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.navButton:hover:not(:disabled) {
-  background-color: var(--color-neutral-200);
-  color: var(--color-neutral-700);
-}
-
-[data-theme="dark"] .navButton:hover:not(:disabled) {
-  background-color: var(--color-neutral-300);
-  color: var(--color-neutral-800);
-}
-
-.navButton:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.navButton:active:not(:disabled) {
-  transform: scale(0.95);
-}
 
 /* Address bar container */
 .addressBarContainer {
@@ -302,10 +264,5 @@
   .newTabButton {
     width: 24px;
     height: 24px;
-  }
-  
-  .navButton {
-    width: 28px;
-    height: 28px;
   }
 } 

@@ -55,6 +55,14 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
     });
   }, []);
 
+  const handleComponentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, component: ComponentData) => {
+    onComponentDragStart?.(component);
+  }, [onComponentDragStart]);
+
+  const handleComponentDragEnd = useCallback(() => {
+    onComponentDragEnd?.();
+  }, [onComponentDragEnd]);
+
   return (
     <div className={clsx(styles.drawer, className)}>
       <div className={styles.header}>
@@ -113,8 +121,8 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
                         key={component.id}
                         data={component}
                         variant="drawer"
-                        onDragStart={() => onComponentDragStart(component)}
-                        onDragEnd={onComponentDragEnd}
+                        onDragStart={handleComponentDragStart}
+                        onDragEnd={handleComponentDragEnd}
                       />
                     ))
                   )}

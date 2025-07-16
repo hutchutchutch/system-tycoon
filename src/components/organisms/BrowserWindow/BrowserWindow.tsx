@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { clsx } from 'clsx';
-import { Plus, ArrowLeft, ArrowRight, RotateCcw } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { BrowserTab } from '../../atoms/BrowserTab';
 import { BrowserAddressBar } from '../../molecules/BrowserAddressBar';
 import styles from './BrowserWindow.module.css';
@@ -52,29 +52,6 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
         </div>
 
         <div className={styles.controls}>
-          <div className={styles.navigation}>
-            <button
-              className={styles.navButton}
-              disabled
-              aria-label="Go back"
-            >
-              <ArrowLeft size={16} />
-            </button>
-            <button
-              className={styles.navButton}
-              disabled
-              aria-label="Go forward"
-            >
-              <ArrowRight size={16} />
-            </button>
-            <button
-              className={styles.navButton}
-              aria-label="Refresh"
-            >
-              <RotateCcw size={16} />
-            </button>
-          </div>
-
           <div className={styles.addressBarContainer}>
             {activeTabData && (
               <BrowserAddressBar

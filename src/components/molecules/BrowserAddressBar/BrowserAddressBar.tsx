@@ -65,15 +65,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
     }
   };
 
-  const getSecurityIcon = () => {
-    if (loading) {
-      return <Icon name="loader" size="sm" className={styles['securityIcon--loading']} />;
-    }
-    if (secure) {
-      return <Icon name="lock" size="sm" className={styles['securityIcon--secure']} />;
-    }
-    return <Icon name="unlock" size="sm" className={styles['securityIcon--insecure']} />;
-  };
+
 
   return (
     <div className={clsx(styles.browserAddressBar, className)}>
@@ -117,11 +109,8 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
       </div>
 
       {/* URL input area */}
-      <div className={styles.urlContainer}>
-        {/* Security indicator */}
-        <div className={styles.security}>
-          {getSecurityIcon()}
-        </div>
+      <div className={styles.addressContainer}>
+
 
         {/* URL input */}
         <div className={styles.inputWrapper}>

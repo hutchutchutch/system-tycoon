@@ -20,5 +20,7 @@ export interface ComponentCardProps {
   isDragging?: boolean;
   isSelected?: boolean;
   onSelect?: () => void;
+  onDragStart?: (event: React.DragEvent<HTMLDivElement>, component: ComponentData) => void;
+  onDragEnd?: () => void;
   className?: string;
 }

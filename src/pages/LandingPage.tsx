@@ -17,7 +17,7 @@ import styles from './LandingPage.module.css';
 
 export const LandingPage: React.FC = () => {
   return (
-    <main className={styles.page}>
+    <main className={clsx(styles.page, 'bg-dots')}>
       {/* Fixed Crisis Alert Bar */}
       <CrisisAlert />
       

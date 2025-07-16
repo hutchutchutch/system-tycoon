@@ -1,36 +1,57 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge, Handle, Position } from '@xyflow/react';
-import type { Connection, Node, Edge, NodeProps } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider } from '@xyflow/react';
+import type { Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AlertTriangle, Server, Database, Users, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { completeStep, updateMetrics } from '../../features/mission/missionSlice';
+import { 
+  addNode, 
+  onNodesChange, 
+  onEdgesChange, 
+  addEdge, 
+  setDraggedComponent,
+  selectNodes,
+  selectEdges
+} from '../../features/design/designSlice';
 import { Requirements } from '../../components/molecules';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './CrisisSystemDesignCanvas.module.css';
+import type { ComponentData } from '../../components/molecules/ComponentCard/ComponentCard.types';
 
 interface CustomNodeData extends Record<string, unknown> {
   label: string;
-  icon: React.ComponentType;
+  icon: string; // Changed from React.ComponentType to string
   description?: string;
 }
 
 // Custom Node Component
-const CustomNode: React.FC<NodeProps> = ({ data, selected }) => {
+const CustomNode: React.FC<any> = ({ data, selected }) => {
   const nodeData = data as CustomNodeData;
-  const IconComponent = nodeData.icon;
+  
+  // Map icon string to actual icon component
+  const getIconComponent = (iconType: string) => {
+    switch (iconType) {
+      case 'users':
+        return <Users size={20} />;
+      case 'server':
+        return <Server size={20} />;
+      case 'database':
+        return <Database size={20} />;
+      default:
+        return <Server size={20} />;
+    }
+  };
   
   return (
     <div className={`${styles.customNode} ${selected ? styles.selected : ''}`}>
-      <Handle type="target" position={Position.Top} />
       <div className={styles.nodeHeader}>
-        <IconComponent className={styles.nodeIcon} />
+        {getIconComponent(nodeData.icon)}
         <h4 className={styles.nodeTitle}>{nodeData.label}</h4>
       </div>
       {nodeData.description && (
         <p className={styles.nodeDescription}>{nodeData.description}</p>
       )}
-      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 };
@@ -40,50 +61,51 @@ const nodeTypes = {
   custom: CustomNode,
 };
 
-const components = [
+const components: ComponentData[] = [
   {
     id: 'families',
     name: 'Families',
+    type: 'server',
+    category: 'compute',
+    cost: 0,
+    capacity: 200,
     description: 'Affected families trying to report',
-    icon: Users,
-    color: '#fbbf24'
+    icon: 'users'
   },
   {
     id: 'web_server',
     name: 'Web Server',
+    type: 'server',
+    category: 'compute',
+    cost: 50,
+    capacity: 1000,
     description: 'Handles user requests and serves web pages',
-    icon: Server,
-    color: '#3b82f6'
+    icon: 'server'
   },
   {
     id: 'database',
     name: 'Database',
+    type: 'database',
+    category: 'storage',
+    cost: 100,
+    capacity: 5000,
     description: 'Stores and manages application data',
-    icon: Database,
-    color: '#10b981'
+    icon: 'database'
   }
 ];
 
-export const CrisisSystemDesignCanvas: React.FC = () => {
+const CrisisSystemDesignCanvasInner: React.FC = () => {
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
+  const nodes = useAppSelector(selectNodes);
+  const edges = useAppSelector(selectEdges);
+  const draggedComponent = useAppSelector(state => state.design.draggedComponent);
+  
+  const { screenToFlowPosition } = useReactFlow();
   
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-  const [nodes, setNodes, onNodesChange] = useNodesState([
-    {
-      id: 'families',
-      type: 'custom',
-      position: { x: 250, y: 50 },
-      data: { 
-        label: '200+ Families Trying to Report',
-        icon: Users,
-        description: 'Families affected by the crisis'
-      } as CustomNodeData,
-    },
-  ]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
     familiesHelped: 0,
@@ -91,6 +113,19 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
     dataLost: 47,
     systemHealth: 'critical' as 'critical' | 'warning' | 'healthy'
   });
+
+  // Initialize with the families node if not already present
+  useEffect(() => {
+    if (nodes.length === 0) {
+      const familiesComponent = components.find(c => c.id === 'families');
+      if (familiesComponent) {
+        dispatch(addNode({
+          component: familiesComponent,
+          position: { x: 250, y: 50 }
+        }));
+      }
+    }
+  }, [nodes.length, dispatch]);
 
   const requirements = [
     {
@@ -101,7 +136,7 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
     {
       id: 'connect_server_db',
       description: 'Connect web server to database',
-      completed: edges.some((e: Edge) => 
+      completed: edges.some((e) => 
         (e.source.includes('web_server') && e.target.includes('database')) ||
         (e.source.includes('database') && e.target.includes('web_server'))
       )
@@ -109,21 +144,16 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
     {
       id: 'connect_families',
       description: 'Connect families to web server',
-      completed: edges.some((e: Edge) => 
-        (e.source === 'families' && e.target.includes('web_server')) ||
-        (e.source.includes('web_server') && e.target === 'families')
+      completed: edges.some((e) => 
+        (e.source.includes('families') && e.target.includes('web_server')) ||
+        (e.source.includes('web_server') && e.target.includes('families'))
       )
     }
   ];
 
-  const onConnect = useCallback((params: Edge | Connection) => {
-    const newEdge = { 
-      ...params, 
-      animated: true, 
-      style: { stroke: '#ef4444', strokeWidth: 2 }
-    };
-    setEdges((eds) => addEdge(newEdge, eds));
-  }, [setEdges]);
+  const onConnect = useCallback((params: Connection) => {
+    dispatch(addEdge(params));
+  }, [dispatch]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -133,33 +163,37 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
   const onDrop = useCallback((event: React.DragEvent) => {
     event.preventDefault();
 
-    const reactFlowBounds = (event.currentTarget as HTMLElement).getBoundingClientRect();
-    const componentId = event.dataTransfer.getData('application/reactflow');
-    const component = components.find(c => c.id === componentId);
+    // Check if we have a dragged component from data transfer
+    const componentData = event.dataTransfer.getData('application/component');
+    const componentType = event.dataTransfer.getData('application/reactflow');
+    
+    if (!componentData && !componentType) return;
 
-    if (!component) return;
+    let component: ComponentData;
+    
+    if (componentData) {
+      component = JSON.parse(componentData);
+    } else if (componentType) {
+      // Fallback to finding component by type
+      const foundComponent = components.find(c => c.type === componentType);
+      if (!foundComponent) return;
+      component = foundComponent;
+    } else {
+      return;
+    }
 
-    const position = {
-      x: event.clientX - reactFlowBounds.left - 90,
-      y: event.clientY - reactFlowBounds.top - 30,
-    };
+    const position = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
 
-    const newNode: Node = {
-      id: `${componentId}_${Date.now()}`,
-      type: 'custom',
-      position,
-      data: { 
-        label: component.name,
-        icon: component.icon,
-        description: component.description
-      } as CustomNodeData,
-    };
+    dispatch(addNode({ component, position }));
+  }, [screenToFlowPosition, dispatch]);
 
-    setNodes((nds) => nds.concat(newNode));
-  }, [setNodes]);
-
-  const onDragStart = (event: React.DragEvent, componentId: string) => {
-    event.dataTransfer.setData('application/reactflow', componentId);
+  const onDragStart = (event: React.DragEvent, component: ComponentData) => {
+    dispatch(setDraggedComponent(component));
+    event.dataTransfer.setData('application/reactflow', component.type);
+    event.dataTransfer.setData('application/component', JSON.stringify(component));
     event.dataTransfer.effectAllowed = 'move';
   };
 
@@ -201,8 +235,8 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
+            onNodesChange={(changes) => dispatch(onNodesChange(changes))}
+            onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
@@ -239,9 +273,11 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
                 key={component.id}
                 className={styles.componentCard}
                 draggable
-                onDragStart={(e) => onDragStart(e, component.id)}
+                onDragStart={(e) => onDragStart(e, component)}
               >
-                <component.icon className={styles.componentIcon} />
+                {component.icon === 'users' && <Users className={styles.componentIcon} />}
+                {component.icon === 'server' && <Server className={styles.componentIcon} />}
+                {component.icon === 'database' && <Database className={styles.componentIcon} />}
                 <div className={styles.componentInfo}>
                   <h4 className={styles.componentName}>{component.name}</h4>
                   <p className={styles.componentDescription}>{component.description}</p>
@@ -275,3 +311,10 @@ export const CrisisSystemDesignCanvas: React.FC = () => {
     </div>
   );
 };
+
+// Export wrapped with ReactFlowProvider
+export const CrisisSystemDesignCanvas: React.FC = () => (
+  <ReactFlowProvider>
+    <CrisisSystemDesignCanvasInner />
+  </ReactFlowProvider>
+);

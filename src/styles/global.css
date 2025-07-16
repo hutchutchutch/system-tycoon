@@ -8,6 +8,7 @@
 
 /* 2. Utilities - Shared animations and helpers */
 @import './design-system/utilities/animations.css';
+@import './design-system/utilities/backgrounds.css';
 @import './utilities/visibility.css';
 @import './design-system/utilities/debug.css';
 

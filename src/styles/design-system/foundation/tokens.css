@@ -25,6 +25,18 @@
   --color-secondary-800: #166534;
   --color-secondary-900: #14532D;
 
+  /* Accent Colors - Based on Secondary for consistency */
+  --color-accent-50: var(--color-secondary-50);
+  --color-accent-100: var(--color-secondary-100);
+  --color-accent-200: var(--color-secondary-200);
+  --color-accent-300: var(--color-secondary-300);
+  --color-accent-400: var(--color-secondary-400);
+  --color-accent-500: var(--color-secondary-500);
+  --color-accent-600: var(--color-secondary-600);
+  --color-accent-700: var(--color-secondary-700);
+  --color-accent-800: var(--color-secondary-800);
+  --color-accent-900: var(--color-secondary-900);
+
   --color-neutral-50: #F9FAFB;
   --color-neutral-100: #F3F4F6;
   --color-neutral-200: #E5E7EB;
@@ -107,6 +119,14 @@
   --color-white: #FFFFFF;
   --color-black: #000000;
 
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-700);
+  --color-text-muted: var(--color-neutral-500);
+  --color-text-inverse: var(--color-white);
+  --color-text-inverse-secondary: rgba(255, 255, 255, 0.85);
+  --color-text-inverse-muted: rgba(255, 255, 255, 0.65);
+
   /* Game Phase Color Schemes */
   --meeting-bg-gradient-start: #667EEA;
   --meeting-bg-gradient-end: #764BA2;
@@ -185,12 +205,43 @@
   --text-small: var(--text-sm);
   --text-caption: var(--text-xs);
 
+  /* Font size aliases for compatibility */
+  --font-size-xs: var(--text-xs);
+  --font-size-sm: var(--text-sm);
+  --font-size-base: var(--text-base);
+  --font-size-lg: var(--text-lg);
+  --font-size-xl: var(--text-xl);
+  --font-size-2xl: var(--text-2xl);
+  --font-size-3xl: var(--text-3xl);
+  --font-size-4xl: var(--text-4xl);
+  --font-size-5xl: var(--text-5xl);
+  --font-size-6xl: var(--text-6xl);
+
+  /* Font weight aliases for compatibility */
+  --font-weight-thin: var(--font-thin);
+  --font-weight-extralight: var(--font-extralight);
+  --font-weight-light: var(--font-light);
+  --font-weight-normal: var(--font-normal);
+  --font-weight-medium: var(--font-medium);
+  --font-weight-semibold: var(--font-semibold);
+  --font-weight-bold: var(--font-bold);
+  --font-weight-extrabold: var(--font-extrabold);
+  --font-weight-black: var(--font-black);
+
   --leading-none: 1;
   --leading-tight: 1.25;
   --leading-snug: 1.375;
   --leading-normal: 1.5;
   --leading-relaxed: 1.625;
   --leading-loose: 2;
+
+  /* Line Height aliases for compatibility */
+  --line-height-none: var(--leading-none);
+  --line-height-tight: var(--leading-tight);
+  --line-height-snug: var(--leading-snug);
+  --line-height-normal: var(--leading-normal);
+  --line-height-relaxed: var(--leading-relaxed);
+  --line-height-loose: var(--leading-loose);
 
   /* Context-Specific Typography */
   --meeting-dialogue-text: 1.125rem/1.75rem;
@@ -238,6 +289,16 @@
   --space-80: 20rem;
   --space-96: 24rem;
 
+  /* Spacing aliases for compatibility */
+  --spacing-xs: var(--space-1);
+  --spacing-sm: var(--space-2);
+  --spacing-md: var(--space-4);
+  --spacing-lg: var(--space-6);
+  --spacing-xl: var(--space-8);
+  --spacing-2xl: var(--space-10);
+  --spacing-3xl: var(--space-16);
+  --spacing-4xl: var(--space-20);
+
   /* Border Radius */
   --radius-none: 0;
   --radius-sm: 0.125rem;
@@ -264,6 +325,14 @@
   --duration-slow: 500ms;
   --duration-slower: 700ms;
   --duration-slowest: 1000ms;
+
+  /* Transition aliases for compatibility */
+  --transition-instant: var(--duration-instant);
+  --transition-fast: var(--duration-fast);
+  --transition-normal: var(--duration-normal);
+  --transition-slow: var(--duration-slow);
+  --transition-slower: var(--duration-slower);
+  --transition-slowest: var(--duration-slowest);
 
   /* Easing Functions */
   --ease-linear: linear;

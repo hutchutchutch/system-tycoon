@@ -19,17 +19,16 @@ const LandingHero: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.content}>
           <h1 className={styles.title}>
-            System Tycoon
+            Worldly Problems
             <br />
             <span className={styles.subtitle}>
-              Tech Consultant Simulator
+              Software Solutions
             </span>
           </h1>
           
           <p className={styles.description}>
             Navigate the journey from financial desperation to tech consulting success. 
-            Build systems, manage clients, and grow your consulting empire through 
-            realistic browser-based professional tools.
+            Build systems, manage clients, and grow your consulting empire.
           </p>
           
           <div className={styles.actions}>
