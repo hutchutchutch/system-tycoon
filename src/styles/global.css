@@ -19,6 +19,7 @@
 
 html {
   font-size: 16px;
+  height: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -26,11 +27,16 @@ html {
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--leading-normal);
   color: var(--color-neutral-900);
   background: var(--color-neutral-50);
+}
+
+#root {
+  height: 100%;
 }
 
 /* Focus Styles */

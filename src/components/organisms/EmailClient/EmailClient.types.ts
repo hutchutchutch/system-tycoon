@@ -13,6 +13,20 @@ export interface EmailTab {
   count?: number;
 }
 
+export interface GroupChatMessage {
+  id: string;
+  sender_id: string;
+  sender_type: 'user' | 'mentor';
+  message_content: string;
+  timestamp: string;
+}
+
+export interface MentorInfo {
+  id: string;
+  name: string;
+  title: string;
+}
+
 export interface EmailClientProps {
   emails: EmailData[];
   folders: EmailFolder[];
@@ -34,4 +48,8 @@ export interface EmailClientProps {
   tabs?: EmailTab[];
   selectedTab?: string;
   onTabSelect?: (tabId: string) => void;
+  // Chat-related props
+  chatMessages?: GroupChatMessage[];
+  mentors?: Record<string, MentorInfo>;
+  chatLoading?: boolean;
 } 

@@ -1,0 +1,1 @@
+export { EmailTabs, type EmailTab } from './EmailTabs'; 

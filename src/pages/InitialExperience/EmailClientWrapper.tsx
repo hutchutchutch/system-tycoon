@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { EmailClient } from '../../components/organisms/EmailClient';
+import { Reply } from 'lucide-react';
+import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
+import { EmailCard } from '../../components/molecules/EmailCard';
 import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
 import type { EmailData as EmailCardData } from '../../components/molecules/EmailCard/EmailCard.types';
 import { fetchEmails, updateEmailStatus, type EmailData } from '../../services/emailService';
-// CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
+import { supabase } from '../../services/supabase';
+import type { GroupChatMessage, MentorInfo } from '../../components/organisms/EmailClient/EmailClient.types';
+import styles from './EmailClientWrapper.module.css';
 
 interface EmailClientWrapperProps {
   onOpenSystemDesign?: () => void;
@@ -37,6 +41,15 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [showEmailDetail, setShowEmailDetail] = useState(false);
   const [selectedTab, setSelectedTab] = useState('primary');
+  const [chatMessages, setChatMessages] = useState<GroupChatMessage[]>([]);
+  const [mentors, setMentors] = useState<Record<string, MentorInfo>>({});
+  const [fullMentors, setFullMentors] = useState<any[]>([]);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState('');
+  const [showMentorSuggestions, setShowMentorSuggestions] = useState(false);
+  const [mentorQuery, setMentorQuery] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(0);
+  const [selectedMentorIndex, setSelectedMentorIndex] = useState(0);
 
   useEffect(() => {
     const loadEmails = async () => {
@@ -57,13 +70,64 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
       }
     };
 
+    const loadChatData = async () => {
+      try {
+        setChatLoading(true);
+        
+        // Fetch group chat messages
+        const { data: messages, error: messagesError } = await supabase
+          .from('group_chat_messages')
+          .select('*')
+          .order('timestamp', { ascending: true });
+
+        if (messagesError) {
+          console.error('Error fetching chat messages:', messagesError);
+          return;
+        }
+
+        // Fetch mentor info
+        const { data: mentorData, error: mentorsError } = await supabase
+          .from('mentors')
+          .select('id, name, title');
+
+        if (mentorsError) {
+          console.error('Error fetching mentors:', mentorsError);
+          return;
+        }
+
+        // Fetch full mentor data for recommendations
+        const { data: fullMentorData, error: fullMentorsError } = await supabase
+          .from('mentors')
+          .select('id, name, signature, specialty');
+
+        if (fullMentorsError) {
+          console.error('Error fetching full mentor data:', fullMentorsError);
+        }
+
+        // Create mentors lookup
+        const mentorsLookup = mentorData?.reduce((acc, mentor) => {
+          acc[mentor.id] = mentor;
+          return acc;
+        }, {} as Record<string, MentorInfo>) || {};
+
+        setChatMessages(messages || []);
+        setMentors(mentorsLookup);
+        setFullMentors(fullMentorData || []);
+      } catch (error) {
+        console.error('Error loading chat data:', error);
+      } finally {
+        setChatLoading(false);
+      }
+    };
+
     loadEmails();
+    loadChatData();
   }, []);
 
   const folders: EmailFolder[] = [
     { id: 'inbox', name: 'Inbox', count: 5, icon: 'inbox' },
     { id: 'sent', name: 'Sent', count: 0, icon: 'send' },
-    { id: 'drafts', name: 'Drafts', count: 0, icon: 'file-text' },
+    { id: 'mentorchat', name: 'Mentor Chat', count: 3, icon: 'message-circle' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
 
@@ -104,6 +168,8 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
 
   const handleFolderSelect = (folderId: string) => {
     setSelectedFolder(folderId);
+    setShowEmailDetail(false);
+    setSelectedEmailId(null);
   };
 
   const handleSearchChange = (query: string) => {
@@ -122,46 +188,295 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     setSelectedTab(tabId);
   };
 
+  const handleBackToList = () => {
+    setShowEmailDetail(false);
+    setSelectedEmailId(null);
+  };
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      console.log('Sending message:', newMessage);
+      setNewMessage('');
+    }
+  };
+
+  const handleRecommendationClick = (message: string) => {
+    setNewMessage(message);
+  };
+
+  const handleReplyToMentor = (mentorName: string) => {
+    setNewMessage(`@${mentorName} `);
+    // Focus the input after setting the message
+    setTimeout(() => {
+      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        input.setSelectionRange(input.value.length, input.value.length);
+      }
+    }, 0);
+  };
+
+  const handleMessageChange = (value: string) => {
+    setNewMessage(value);
+    
+    // Check for @ mentions
+    const lastAtIndex = value.lastIndexOf('@');
+    if (lastAtIndex !== -1) {
+      const textAfterAt = value.slice(lastAtIndex + 1);
+      const spaceIndex = textAfterAt.indexOf(' ');
+      const query = spaceIndex === -1 ? textAfterAt : textAfterAt.slice(0, spaceIndex);
+      
+      if (spaceIndex === -1 && query.length >= 0) {
+        setMentorQuery(query.toLowerCase());
+        setShowMentorSuggestions(true);
+        setCursorPosition(lastAtIndex);
+      } else {
+        setShowMentorSuggestions(false);
+      }
+    } else {
+      setShowMentorSuggestions(false);
+    }
+  };
+
+  const handleMentorSelect = (mentorName: string) => {
+    const beforeAt = newMessage.slice(0, cursorPosition);
+    const afterQuery = newMessage.slice(cursorPosition + 1 + mentorQuery.length);
+    const newText = `${beforeAt}@${mentorName} ${afterQuery}`;
+    setNewMessage(newText);
+    setShowMentorSuggestions(false);
+    
+    // Focus input and set cursor position
+    setTimeout(() => {
+      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
+      if (input) {
+        input.focus();
+        const newCursorPos = beforeAt.length + mentorName.length + 2;
+        input.setSelectionRange(newCursorPos, newCursorPos);
+      }
+    }, 0);
+  };
+
   const selectedEmail = selectedEmailId ? emails.find(e => e.id === selectedEmailId) : null;
+
+  // Filter mentors for suggestions
+  const filteredMentors = React.useMemo(() => {
+    if (!mentorQuery) return Object.values(mentors);
+    return Object.values(mentors).filter(mentor =>
+      mentor.name.toLowerCase().includes(mentorQuery)
+    );
+  }, [mentors, mentorQuery]);
+
+  // Filter emails
+  const filteredEmails = React.useMemo(() => {
+    let filtered = [...emails];
+
+    // Filter by folder
+    if (selectedFolder !== 'inbox') {
+      filtered = filtered.filter(email => email.category === selectedFolder);
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(email =>
+        email.sender.name.toLowerCase().includes(query) ||
+        email.subject.toLowerCase().includes(query) ||
+        email.preview.toLowerCase().includes(query)
+      );
+    }
+
+    return filtered.filter(email => email.category === selectedTab);
+  }, [emails, selectedFolder, searchQuery, selectedTab]);
 
   if (loading) {
     return (
-      <div className="email-client-wrapper">
-        <div className="email-client-loading">
-          <div className="email-client-loading__spinner"></div>
+      <div className={styles.wrapper}>
+        <div className={styles.loading}>
+          <div className={styles.loadingSpinner}></div>
           <p>Loading your emails...</p>
         </div>
       </div>
     );
   }
 
-  const handleBackToList = () => {
-    setShowEmailDetail(false);
-    setSelectedEmailId(null);
-  };
-
   return (
-    <div className="email-client-wrapper">
-      <EmailClient
-        emails={emails.filter(email => email.category === selectedTab)}
+    <div className={styles.wrapper}>
+      {/* Fixed Sidebar */}
+      <EmailSidebar
         folders={folders}
-        selectedEmails={selectedEmails}
         selectedFolder={selectedFolder}
-        searchQuery={searchQuery}
-        onEmailSelect={handleEmailSelect}
-        onEmailToggleSelect={handleEmailToggleSelect}
         onFolderSelect={handleFolderSelect}
-        onSearchChange={handleSearchChange}
         onEmailCompose={handleEmailCompose}
-        onEmailReply={handleEmailReply}
-        showEmailDetail={showEmailDetail}
-        selectedEmailDetail={selectedEmail || undefined}
-        onBackToList={handleBackToList}
-        onOpenSystemDesign={onOpenSystemDesign}
-        tabs={tabs}
-        selectedTab={selectedTab}
-        onTabSelect={handleTabSelect}
       />
+
+      <div className={styles.main}>
+        {/* Fixed Toolbar */}
+        <EmailToolbar
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          tabs={tabs}
+          selectedTab={selectedTab}
+          onTabSelect={handleTabSelect}
+          searchPlaceholder={selectedFolder === 'mentorchat' ? 'Search messages...' : 'Search emails...'}
+        />
+
+        {/* Scrollable Content */}
+        <div className={styles.content}>
+          {selectedFolder === 'mentorchat' ? (
+            <div className={styles.chatInterface}>
+              <div className={styles.chatHeader}>
+                <h3>Mentor Group Chat</h3>
+                <span className={styles.chatOnline}>{Object.keys(mentors).length} mentors online</span>
+              </div>
+              
+              <div className={styles.chatMessages}>
+                {chatLoading ? (
+                  <div className={styles.chatLoading}>Loading messages...</div>
+                ) : chatMessages.length === 0 ? (
+                  <div className={styles.chatEmpty}>No messages yet</div>
+                ) : (
+                  chatMessages.map(message => {
+                    const mentor = mentors[message.sender_id];
+                    return (
+                      <div key={message.id} className={styles.chatMessage}>
+                        <div className={styles.chatAvatar}>
+                          {mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'}
+                        </div>
+                        <div className={styles.chatContent}>
+                          <div className={styles.chatMessageHeader}>
+                            <div className={styles.chatSender}>
+                              {mentor?.name || 'AI Mentor'} ({mentor?.title || 'AI'})
+                            </div>
+                            <button
+                              className={styles.chatReplyButton}
+                              onClick={() => handleReplyToMentor(mentor?.name || 'AI Mentor')}
+                              title={`Reply to ${mentor?.name || 'AI Mentor'}`}
+                            >
+                              <Reply size={14} />
+                            </button>
+                          </div>
+                          <div className={styles.chatText}>{message.message_content}</div>
+                          <div className={styles.chatTime}>
+                            {new Date(message.timestamp).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+              
+              <div className={styles.chatInputSection}>
+                <div className={styles.chatInputContainer}>
+                  {showMentorSuggestions && filteredMentors.length > 0 && (
+                    <div className={styles.mentorSuggestions}>
+                      {filteredMentors.map(mentor => (
+                        <div
+                          key={mentor.id}
+                          className={styles.mentorSuggestion}
+                          onClick={() => handleMentorSelect(mentor.name)}
+                        >
+                          <div className={styles.mentorSuggestionAvatar}>
+                            {mentor.name.substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className={styles.mentorSuggestionInfo}>
+                            <div className={styles.mentorSuggestionName}>{mentor.name}</div>
+                            <div className={styles.mentorSuggestionTitle}>{mentor.title}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <div className={styles.chatInput}>
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => handleMessageChange(e.target.value)}
+                      placeholder="Type your message... (use @ to mention mentors)"
+                      className={`${styles.chatTextInput} chatTextInput`}
+                      onKeyPress={(e) => {
+                        if (e.key === 'Enter' && !showMentorSuggestions) {
+                          handleSendMessage();
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay hiding suggestions to allow click events
+                        setTimeout(() => setShowMentorSuggestions(false), 200);
+                      }}
+                    />
+                    <button 
+                      className={styles.chatSendButton}
+                      onClick={handleSendMessage}
+                    >
+                      Send
+                    </button>
+                  </div>
+                </div>
+                
+                <MessageRecommendations
+                  mentors={fullMentors}
+                  onRecommendationClick={handleRecommendationClick}
+                />
+              </div>
+            </div>
+          ) : showEmailDetail && selectedEmail ? (
+            <div className={styles.emailDetail}>
+              <div className={styles.emailDetailHeader}>
+                <button 
+                  className={styles.emailDetailBack}
+                  onClick={handleBackToList}
+                >
+                  ← Back to Inbox
+                </button>
+                <h2 className={styles.emailDetailSubject}>{selectedEmail.subject}</h2>
+              </div>
+              
+              <div className={styles.emailDetailMeta}>
+                <strong>From:</strong> {selectedEmail.sender.name} &lt;{selectedEmail.sender.email}&gt;<br />
+                <strong>To:</strong> Me<br />
+                <strong>Date:</strong> {selectedEmail.timestamp.toLocaleString()}
+              </div>
+              
+              <div className={styles.emailDetailContent}>
+                {selectedEmail.content}
+                
+                {selectedEmail.content?.includes('/?crisis=true') && (
+                  <div className={styles.systemDesignPrompt}>
+                    <p>This email mentions a crisis situation that requires immediate system design attention.</p>
+                    <button 
+                      className={styles.systemDesignButton}
+                      onClick={onOpenSystemDesign}
+                    >
+                      Open Crisis System Design Canvas
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.emailList}>
+              {filteredEmails.length === 0 ? (
+                <div className={styles.empty}>
+                  <p>No emails found</p>
+                  {searchQuery && (
+                    <p>Try adjusting your search query</p>
+                  )}
+                </div>
+              ) : (
+                filteredEmails.map(email => (
+                  <EmailCard
+                    key={email.id}
+                    email={email}
+                    onClick={() => handleEmailSelect(email.id)}
+                    selected={selectedEmails.includes(email.id)}
+                  />
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };

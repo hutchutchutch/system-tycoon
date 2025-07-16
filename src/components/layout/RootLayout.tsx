@@ -12,7 +12,7 @@ export const RootLayout: React.FC = () => {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-neutral-50)' }}>
       <Outlet />
     </div>
   );

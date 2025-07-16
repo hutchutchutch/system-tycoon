@@ -149,7 +149,8 @@
   flex-direction: column;
   background: var(--color-white);
   position: relative;
-  overflow: hidden;
+  overflow: auto;
+  min-height: 0;
 }
 
 [data-theme="dark"] .content {

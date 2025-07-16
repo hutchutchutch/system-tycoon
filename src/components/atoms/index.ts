@@ -29,6 +29,8 @@ export type { EmailStatusProps, EmailStatusType } from './EmailStatus';
 export { NotificationDot } from './NotificationDot';
 export type { NotificationDotProps, NotificationVariant } from './NotificationDot';
 
+export { EmailSearchBar } from './EmailSearchBar';
+
 // React Flow handles (for system design) (TODO: Implement)
 // export { Handle } from './Handle';
 // export type { HandleProps } from './Handle';
