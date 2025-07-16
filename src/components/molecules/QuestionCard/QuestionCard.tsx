@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
-import { QuestionCardProps } from './QuestionCard.types';
+import type { QuestionCardProps } from './index';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,

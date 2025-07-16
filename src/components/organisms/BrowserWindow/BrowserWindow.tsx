@@ -52,29 +52,6 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
         </div>
 
         <div className="browser-window__controls">
-          <div className="browser-window__navigation">
-            <Button
-              variant="ghost"
-              size="small"
-              icon={<ArrowLeft size={16} />}
-              disabled
-              aria-label="Go back"
-            />
-            <Button
-              variant="ghost"
-              size="small"
-              icon={<ArrowRight size={16} />}
-              disabled
-              aria-label="Go forward"
-            />
-            <Button
-              variant="ghost"
-              size="small"
-              icon={<RotateCcw size={16} />}
-              aria-label="Refresh"
-            />
-          </div>
-
           {activeTabData && (
             <BrowserAddressBar
               url={activeTabData.url}

@@ -17,6 +17,7 @@ import { Search, ChevronDown, Minimize2, ChevronsRight, Users } from 'lucide-rea
 import { Input } from '../../components/atoms/Input';
 import { Icon } from '../../components/atoms/Icon';
 import { useAppSelector } from '../../hooks/redux';
+import { useTheme } from '../../contexts/ThemeContext';
 import { 
   selectSelectedComponent, 
   selectIsCollaborationMode, 
@@ -95,6 +96,9 @@ const defaultInitialEdges: Edge[] = [
 
 export const SystemDesignPage: React.FC = () => {
   const { scenarioId } = useParams();
+  
+  // Theme context
+  const { theme } = useTheme();
   
   // Redux selectors
   const selectedComponent = useAppSelector(selectSelectedComponent);
@@ -205,6 +209,7 @@ export const SystemDesignPage: React.FC = () => {
         onConnect={onConnect}
         fitView
         style={reactFlowStyle}
+        colorMode={theme}
       >
         {/* Game HUD Panel - Top Center */}
         <Panel position="top-center" className="pointer-events-none">

@@ -76,6 +76,84 @@
   border-left-width: 4px;
 }
 
+/* Dark Mode ReactFlow Overrides */
+[data-theme="dark"] .react-flow__renderer {
+  background: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .react-flow__pane {
+  background: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .react-flow__background {
+  background: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .react-flow__background .react-flow__background-pattern {
+  stroke: var(--color-neutral-200);
+}
+
+[data-theme="dark"] .react-flow__controls {
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .react-flow__controls-button {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-neutral-300);
+}
+
+[data-theme="dark"] .react-flow__controls-button:hover {
+  background: var(--color-neutral-300);
+}
+
+[data-theme="dark"] .react-flow__minimap {
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-neutral-200);
+}
+
+[data-theme="dark"] .react-flow__minimap-mask {
+  fill: var(--color-neutral-50);
+  fill-opacity: 0.8;
+}
+
+[data-theme="dark"] .react-flow__node-component {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+  color: var(--color-neutral-900);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .react-flow__node-component__header {
+  border-bottom-color: var(--color-neutral-300);
+}
+
+[data-theme="dark"] .react-flow__node-component__title {
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .react-flow__node-component__metric-label {
+  color: var(--color-neutral-600);
+}
+
+[data-theme="dark"] .react-flow__node-component__metric-value {
+  color: var(--color-neutral-900);
+}
+
+[data-theme="dark"] .react-flow__edge .react-flow__edge-path {
+  stroke: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .react-flow__connectionline {
+  stroke: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .react-flow__handle {
+  background: var(--color-neutral-300);
+  border-color: var(--color-neutral-100);
+}
+
 .react-flow__node-component--load-high {
   border-color: var(--load-75-90);
   border-left-width: 4px;

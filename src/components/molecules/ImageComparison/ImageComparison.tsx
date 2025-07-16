@@ -2,16 +2,16 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { clsx } from 'clsx';
 import type { ImageComparisonProps } from './ImageComparison.types';
 
-// Import assets
-import treePineImg from '../../../assets/tree_pine.png';
-import treeRoundImg from '../../../assets/tree_round.png';
-import rocksImg from '../../../assets/rocks.png';
-import boulderImg from '../../../assets/boulder.png';
-import apiImg from '../../../assets/api.png';
-import databaseImg from '../../../assets/database.png';
-import computeImg from '../../../assets/compute.png';
-import cacheImg from '../../../assets/cache.png';
-import loadBalancerImg from '../../../assets/load_balancer.png';
+// Public asset paths
+const treePineImg = '/tree_pine.png';
+const treeRoundImg = '/tree_round.png';
+const rocksImg = '/rocks.png';
+const boulderImg = '/boulder.png';
+const apiImg = '/api.png';
+const databaseImg = '/database.png';
+const computeImg = '/compute.png';
+const cacheImg = '/cache.png';
+const loadBalancerImg = '/load_balancer.png';
 
 /**
  * ImageComparison Component

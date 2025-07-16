@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge } from '@xyflow/react';
-import type { Connection, Node, Edge } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useNodesState, useEdgesState, addEdge, Handle, Position } from '@xyflow/react';
+import type { Connection, Node, Edge, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { completeStep, updateMetrics } from '../../features/mission/missionSlice';
+import { Requirements } from '../../components/molecules';
+import { useTheme } from '../../contexts/ThemeContext';
 import './SystemDesignCanvasWrapper.css';
 
 interface CrisisSystemDesignCanvasProps {
@@ -42,13 +44,14 @@ const initialNodes: Node[] = [
   },
   {
     id: 'families',
-    type: 'input',
+    type: 'default',
     position: { x: 50, y: 100 },
     data: { label: '200+ Families\nTrying to Report' },
     style: {
       background: '#e3f2fd',
       border: '2px solid #2196f3',
       borderRadius: '8px',
+      padding: '10px',
     }
   },
 ];
@@ -65,9 +68,10 @@ const initialEdges: Edge[] = [
 
 export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> = ({ 
   missionId, 
-  onMissionComplete 
+  onMissionComplete
 }) => {
   const dispatch = useAppDispatch();
+  const { theme } = useTheme();
   const currentMission = useAppSelector((state) => state.mission.currentMission);
   const unlockedComponents = useAppSelector((state) => state.mission.unlockedComponents);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -85,6 +89,32 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
   // Use unlocked components from Redux state
   const availableComponents = unlockedComponents;
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+  // Update Redux state when dataLost changes
+  useEffect(() => {
+    dispatch(updateMetrics({
+      totalDataLost: metrics.dataLost,
+    }));
+  }, [metrics.dataLost, dispatch]);
+
+  // Requirements for the mission
+  const requirements = [
+    {
+      id: 'separate_web_db',
+      description: 'Separate web server from database',
+      completed: nodes.some(n => n.id === 'web_server') && nodes.some(n => n.id === 'database')
+    },
+    {
+      id: 'connect_web_db',
+      description: 'Connect web server to database',
+      completed: edges.some(e => e.source === 'web_server' && e.target === 'database')
+    },
+    {
+      id: 'connect_families_web',
+      description: 'Connect families to web server',
+      completed: edges.some(e => e.source === 'families' && e.target === 'web_server')
+    }
+  ];
 
   // Tutorial steps
   const tutorialSteps = [
@@ -109,8 +139,26 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
   ];
 
   const onConnect = useCallback((params: Connection) => {
-    setEdges((eds) => addEdge({ ...params, animated: true }, eds));
+    // Add connection validation
+    if (params.source === params.target) return; // Prevent self-connections
+    
+    const newEdge = {
+      ...params,
+      animated: true,
+      style: { strokeWidth: 2 },
+    };
+    
+    setEdges((eds) => addEdge(newEdge, eds));
   }, [setEdges]);
+
+  // Connection validation function
+  const isValidConnection = useCallback((connection: Edge | Connection) => {
+    // Prevent self-connections
+    if (connection.source === connection.target) return false;
+    
+    // Allow all other connections for this tutorial
+    return true;
+  }, []);
 
   // Check mission objectives
   useEffect(() => {
@@ -141,6 +189,7 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
           totalReportsSaved: 153,
           familiesHelped: 153,
           systemUptime: 94,
+          totalDataLost: 0,
         }));
         
         // Complete the mission step
@@ -154,7 +203,7 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
     };
 
     checkObjectives();
-  }, [nodes, edges, missionId, onMissionComplete]);
+  }, [nodes, edges, missionId, onMissionComplete, dispatch]);
 
   // Simulate real-time metrics
   useEffect(() => {
@@ -222,36 +271,42 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
     }
   };
 
+  const handleRunTest = () => {
+    // Run test logic - for now just check if all requirements are met
+    const allCompleted = requirements.every(req => req.completed);
+    if (allCompleted) {
+      // Mission complete!
+      setMetrics({
+        reportsSaved: 153,
+        familiesHelped: 153,
+        uptimePercent: 94,
+        dataLost: 0,
+        currentLoad: 45,
+        systemHealth: 'healthy'
+      });
+      setShowSuccessMessage(true);
+      setShowTutorial(false);
+      
+      // Update Redux state
+      dispatch(updateMetrics({
+        totalReportsSaved: 153,
+        familiesHelped: 153,
+        systemUptime: 94,
+        totalDataLost: 0,
+      }));
+      
+      // Complete the mission step
+      dispatch(completeStep(missionId));
+      
+      // Notify parent after delay
+      setTimeout(() => {
+        onMissionComplete?.();
+      }, 3000);
+    }
+  };
+
   return (
     <div className="crisis-canvas-wrapper">
-      {/* Crisis Dashboard */}
-      <div className="crisis-dashboard">
-        <h3>Crisis Status</h3>
-        <div className="crisis-metrics">
-          <div className={`metric ${metrics.systemHealth}`}>
-            <span className="metric-label">System Health</span>
-            <span className="metric-value">{metrics.systemHealth.toUpperCase()}</span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Reports Saved</span>
-            <span className="metric-value">{metrics.reportsSaved}</span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Data Lost</span>
-            <span className="metric-value critical">{metrics.dataLost}</span>
-          </div>
-          <div className="metric">
-            <span className="metric-label">Uptime</span>
-            <span className="metric-value">{metrics.uptimePercent}%</span>
-          </div>
-        </div>
-        <div className="crisis-message">
-          {metrics.dataLost > 50 && (
-            <p className="urgent">⚠️ Critical data loss! Families can't submit reports!</p>
-          )}
-        </div>
-      </div>
-
       {/* Component Drawer */}
       <div className="component-drawer">
         <h3>Available Components</h3>
@@ -283,12 +338,22 @@ export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> =
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
+          isValidConnection={isValidConnection}
           fitView
+          colorMode={theme}
         >
           <Background />
           <Controls />
           <MiniMap />
         </ReactFlow>
+      </div>
+
+      {/* Requirements Panel */}
+      <div className="requirements-panel">
+        <Requirements 
+          requirements={requirements}
+          onRunTest={handleRunTest}
+        />
       </div>
 
       {/* Tutorial Overlay */}

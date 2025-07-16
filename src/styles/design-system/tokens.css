@@ -48,6 +48,18 @@
   --color-error-800: #991B1B;
   --color-error-900: #7F1D1D;
 
+  /* Success Colors */
+  --color-success-50: #F0FDF4;
+  --color-success-100: #DCFCE7;
+  --color-success-200: #BBF7D0;
+  --color-success-300: #86EFAC;
+  --color-success-400: #4ADE80;
+  --color-success-500: #22C55E;
+  --color-success-600: #16A34A;
+  --color-success-700: #15803D;
+  --color-success-800: #166534;
+  --color-success-900: #14532D;
+
   --color-warning-50: #FFFBEB;
   --color-warning-100: #FEF3C7;
   --color-warning-200: #FDE68A;
@@ -313,25 +325,45 @@
   --z-max: 9999;
 }
 
-/* Dark mode tokens (for future enhancement) */
+/* Dark mode tokens - Soft, eye-friendly palette */
 [data-theme="dark"] {
-  --color-neutral-50: #0F172A;
-  --color-neutral-100: #1E293B;
-  --color-neutral-200: #334155;
-  --color-neutral-300: #475569;
-  --color-neutral-400: #64748B;
-  --color-neutral-500: #94A3B8;
-  --color-neutral-600: #CBD5E1;
-  --color-neutral-700: #E2E8F0;
-  --color-neutral-800: #F1F5F9;
-  --color-neutral-900: #F8FAFC;
-  --color-white: #0F172A;
+  --color-neutral-50: #1a1d23;   /* Soft dark background */
+  --color-neutral-100: #2d3340;  /* Slightly lighter panels */
+  --color-neutral-200: #404754;  /* Borders and dividers */
+  --color-neutral-300: #565d6d;  /* Subtle borders */
+  --color-neutral-400: #6c7586;  /* Icon colors, placeholders */
+  --color-neutral-500: #8892a4;  /* Secondary text */
+  --color-neutral-600: #a5b0c2;  /* Primary text on dark */
+  --color-neutral-700: #c2cde0;  /* High contrast text */
+  --color-neutral-800: #e0ebf8;  /* Headers, emphasis */
+  --color-neutral-900: #f4f7fb;  /* Maximum contrast text */
+  --color-white: #1a1d23;
   
   --component-healthy: #10B981;
   --component-stressed: #F59E0B;
   --component-overloaded: #EF4444;
   
-  --design-canvas-bg: #0F172A;
-  --design-grid-line: #1E293B;
-  --design-grid-dot: #334155;
+  /* Success colors for dark mode */
+  --color-success-50: #14532d;
+  --color-success-100: #166534;
+  --color-success-200: #15803d;
+  --color-success-300: #16a34a;
+  --color-success-400: #22c55e;
+  --color-success-500: #22c55e;
+  --color-success-600: #4ade80;
+  --color-success-700: #86efac;
+  --color-success-800: #bbf7d0;
+  --color-success-900: #dcfce7;
+  
+  --design-canvas-bg: #1a1d23;
+  --design-grid-line: #2d3340;
+  --design-grid-dot: #404754;
+  
+  /* ReactFlow dark mode custom properties */
+  --xy-background-color: #1a1d23;
+  --xy-node-background-default: #2d3340;
+  --xy-node-border-default: #404754;
+  --xy-node-color-default: #c2cde0;
+  --xy-edge-stroke-default: #6c7586;
+  --xy-connectionline-stroke: #6c7586;
 }

@@ -6,7 +6,9 @@ interface SystemDesignCanvasWrapperProps {
   onMissionComplete?: () => void;
 }
 
-export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps> = ({ onMissionComplete }) => {
+export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps> = ({ 
+  onMissionComplete
+}) => {
   const [loading, setLoading] = useState(true);
   const [currentMission, setCurrentMission] = useState('separate_concerns');
 
@@ -37,14 +39,7 @@ export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps>
   }
 
   return (
-    <div className="system-design-wrapper">
-      <div className="system-design-header crisis-header">
-        <h2>Community Health Crisis - Emergency System Repair</h2>
-        <p className="system-design-header__error">
-          ⚠️ CRITICAL: System failing! 200+ families can't report symptoms!
-        </p>
-      </div>
-      
+    <div className="system-design-wrapper">      
       <CrisisSystemDesignCanvas
         missionId={currentMission}
         onMissionComplete={handleMissionComplete}

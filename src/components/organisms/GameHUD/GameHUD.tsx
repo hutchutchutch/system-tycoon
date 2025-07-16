@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/redux';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CAREER_TITLES } from '../../../constants';
-import { Settings, User, Trophy, Star, Sun, Moon } from 'lucide-react';
+import { Settings, User, Trophy, Star, Sun, Moon, AlertTriangle } from 'lucide-react';
 
 interface GameHUDProps {
   className?: string;
@@ -12,6 +12,7 @@ interface GameHUDProps {
 export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const navigate = useNavigate();
   const { profile } = useAppSelector(state => state.auth);
+  const { crisisMetrics } = useAppSelector(state => state.mission);
   const { theme, toggleTheme } = useTheme();
   
   if (!profile) {
@@ -22,6 +23,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const currentLevel = profile.current_level || 1;
   const reputationPoints = profile.reputation_points || 0;
   const careerTitle = profile.career_title || CAREER_TITLES[Math.min(currentLevel - 1, CAREER_TITLES.length - 1)];
+  
+  // Get data lost from mission state
+  const dataLost = crisisMetrics?.totalDataLost || 0;
 
   return (
     <header className={`game-hud ${className}`}>
@@ -48,6 +52,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
             <div className="game-hud__status-dot game-hud__status-dot--online" />
             <span className="game-hud__status-text">System Online</span>
           </div>
+          {dataLost > 0 && (
+            <div className="game-hud__status-item game-hud__status-item--warning">
+              <AlertTriangle size={14} />
+              <span className="game-hud__status-text">Data Lost: {dataLost}</span>
+            </div>
+          )}
         </div>
       </div>
       
