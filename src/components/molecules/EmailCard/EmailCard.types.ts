@@ -17,6 +17,9 @@ export interface EmailData {
   /** Email preview text (first few lines) */
   preview: string;
   
+  /** Full email content */
+  content?: string;
+  
   /** Timestamp when email was received */
   timestamp: Date;
   
@@ -31,6 +34,9 @@ export interface EmailData {
   
   /** Email tags/labels */
   tags?: string[];
+  
+  /** Email category for tab filtering */
+  category?: 'primary' | 'projects' | 'news' | 'promotions';
 }
 
 export interface EmailCardProps {

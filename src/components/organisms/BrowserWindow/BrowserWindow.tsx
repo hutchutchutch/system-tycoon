@@ -35,7 +35,8 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
                 active={tab.id === activeTab}
                 hasNotification={tab.hasNotification}
                 onClick={() => onTabChange(tab.id)}
-                onClose={tabs.length > 1 ? () => onTabClose(tab.id) : undefined}
+                onClose={tab.closable !== false ? () => onTabClose(tab.id) : undefined}
+                showClose={tab.closable !== false}
               />
             ))}
             

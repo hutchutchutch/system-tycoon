@@ -50,8 +50,7 @@
   display: flex;
   align-items: center;
   flex: 1;
-  width: 80%;
-  min-width: 0;
+  min-width: 200px;
   height: 32px;
   background: var(--color-neutral-100);
   border: 1px solid var(--color-neutral-200);
@@ -71,10 +70,17 @@
   background: var(--color-neutral-50);
 }
 
-
+/* Input wrapper - contains the actual input */
+.inputWrapper {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+}
 
 /* URL input */
-.urlInput {
+.input {
   flex: 1;
   min-width: 0;
   border: none;
@@ -84,11 +90,88 @@
   font-family: var(--font-mono);
   outline: none;
   padding: 0;
+  width: 100%;
 }
 
-.urlInput::placeholder {
+.input::placeholder {
   color: var(--color-neutral-400);
   font-family: var(--font-sans);
+}
+
+/* URL display for non-editable state */
+.urlDisplay {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Bookmark button */
+.bookmark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
+.bookmark:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
+}
+
+.bookmark--active {
+  color: var(--color-yellow-500);
+}
+
+.bookmark--active:hover {
+  color: var(--color-yellow-600);
+}
+
+/* Controls section */
+.controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: var(--space-2);
+  flex-shrink: 0;
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--color-neutral-500);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.control:hover {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-600);
+}
+
+.control:active {
+  transform: scale(0.95);
 }
 
 /* Address bar actions */
@@ -187,21 +270,14 @@
 /* Focus styles */
 .navButton:focus-visible,
 .actionButton:focus-visible,
-.controlButton:focus-visible {
+.controlButton:focus-visible,
+.bookmark:focus-visible,
+.control:focus-visible {
   outline: 2px solid var(--color-primary-500);
   outline-offset: 2px;
 }
 
 /* URL styling - highlight protocol, domain, etc. */
-.urlDisplay {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-}
-
 .urlProtocol {
   color: var(--color-neutral-400);
   flex-shrink: 0;
@@ -231,7 +307,8 @@
   }
   
   .navButton,
-  .controlButton {
+  .controlButton,
+  .control {
     width: 28px;
     height: 28px;
   }
@@ -239,13 +316,15 @@
   .addressContainer {
     height: 28px;
     padding: 0 var(--space-2);
+    min-width: 150px;
   }
   
-  .browserControls {
+  .browserControls,
+  .controls {
     margin-left: var(--space-1);
   }
   
-  .urlInput,
+  .input,
   .urlDisplay {
     font-size: var(--text-xs);
   }

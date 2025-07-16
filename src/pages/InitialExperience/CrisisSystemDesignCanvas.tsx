@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider } from '@xyflow/react';
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, useNodes } from '@xyflow/react';
 import type { Connection } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AlertTriangle, Server, Database, Users, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
@@ -15,6 +15,7 @@ import {
   selectEdges
 } from '../../features/design/designSlice';
 import { Requirements } from '../../components/molecules';
+import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine';
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './CrisisSystemDesignCanvas.module.css';
 import type { ComponentData } from '../../components/molecules/ComponentCard/ComponentCard.types';
@@ -151,9 +152,29 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
     }
   ];
 
+  const reactFlowNodes = useNodes();
+  
   const onConnect = useCallback((params: Connection) => {
-    dispatch(addEdge(params));
-  }, [dispatch]);
+    // Get all selected nodes when connection is made
+    const selectedNodes = reactFlowNodes.filter(node => node.selected);
+    
+    // If multiple nodes are selected, create edges from all selected nodes to the target
+    if (selectedNodes.length > 1 && params.target) {
+      selectedNodes.forEach(node => {
+        // Don't create self-connections
+        if (node.id !== params.target) {
+          dispatch(addEdge({
+            ...params,
+            source: node.id,
+            sourceHandle: null // Use default handle
+          }));
+        }
+      });
+    } else {
+      // Single connection (default behavior)
+      dispatch(addEdge(params));
+    }
+  }, [dispatch, reactFlowNodes]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -241,6 +262,8 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
             onDrop={onDrop}
             onDragOver={onDragOver}
             nodeTypes={nodeTypes}
+            connectionLineComponent={MultiConnectionLine}
+            multiSelectionKeyCode={["Meta", "Control"]}
             fitView
             colorMode={theme}
           >

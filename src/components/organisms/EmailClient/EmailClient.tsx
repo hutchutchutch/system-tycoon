@@ -25,6 +25,9 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   selectedEmailDetail,
   onBackToList,
   onOpenSystemDesign,
+  tabs = [],
+  selectedTab = 'primary',
+  onTabSelect,
 }) => {
   const [viewMode, setViewMode] = useState<'comfortable' | 'compact'>('comfortable');
 
@@ -97,43 +100,24 @@ export const EmailClient: React.FC<EmailClientProps> = ({
             />
           </div>
 
-          <div className={styles.actions}>
-            <Button
-              variant="ghost"
-              size="small"
-              icon={<Archive size={16} />}
-              disabled={selectedEmails.length === 0}
-            >
-              Archive
-            </Button>
-            <Button
-              variant="ghost"
-              size="small"
-              icon={<Trash size={16} />}
-              disabled={selectedEmails.length === 0}
-            >
-              Delete
-            </Button>
-          </div>
-
-          <div className={styles.viewControls}>
-            <button
-              className={clsx(styles.viewToggle, {
-                [styles['viewToggle--active']]: viewMode === 'comfortable'
-              })}
-              onClick={() => setViewMode('comfortable')}
-            >
-              Comfortable
-            </button>
-            <button
-              className={clsx(styles.viewToggle, {
-                [styles['viewToggle--active']]: viewMode === 'compact'
-              })}
-              onClick={() => setViewMode('compact')}
-            >
-              Compact
-            </button>
-          </div>
+          {tabs.length > 0 && (
+            <div className={styles.tabs}>
+              {tabs.map(tab => (
+                <button
+                  key={tab.id}
+                  className={clsx(styles.tab, {
+                    [styles['tab--active']]: selectedTab === tab.id
+                  })}
+                  onClick={() => onTabSelect?.(tab.id)}
+                >
+                  {tab.name}
+                  {tab.count !== undefined && tab.count > 0 && (
+                    <span className={styles.tabCount}>{tab.count}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className={styles.list}>
@@ -155,36 +139,41 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                 <strong>Date:</strong> {selectedEmailDetail.timestamp.toLocaleString()}
               </div>
               
-              {selectedEmailDetail.id === 'crisis-1' ? (
-                <div className={styles.emailDetailContent}>
-                  <p>I know this is out of nowhere, but I desperately need help.</p>
-                  
-                  <p>My daughter Emma and 12 other kids in our neighborhood got sick last week with identical symptoms - rash, fatigue, joint pain. Doctors are baffled. But we're finding more cases when people search online.</p>
-                  
-                  <p>I built a simple website on my home computer where families can report symptoms and locations. We're starting to see patterns - it might be environmental. Maybe the old factory site they're building the new playground on?</p>
-                  
-                  <p><strong>But my laptop keeps crashing!</strong> 200+ families are trying to access it. Some can't submit their reports. If we can't collect this data, we can't prove anything to the city.</p>
-                  
-                  <p>I know you don't have a CS background, but you've always been smart and pick things up fast. Could you look at this?</p>
-                  
-                  <p>I found this tool: <a 
-                    href="#" 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onOpenSystemDesign?.();
-                    }}
-                    className={styles.emailLink}
-                  >systembuilder.tech/emergency/alexsite</a></p>
-                  
-                  <p className={styles.emailUrgent}>Please. Emma's getting worse. We need this data to save these kids.</p>
-                  
-                  <p>- Alex</p>
-                </div>
-              ) : (
-                <div className={styles.emailDetailContent}>
+              <div className={styles.emailDetailContent}>
+                {selectedEmailDetail.content ? (
+                  selectedEmailDetail.id === 'crisis-1' ? (
+                    // Special handling for crisis email to include the system design link
+                    <div>
+                      {selectedEmailDetail.content.split('\n').map((paragraph, index) => {
+                        if (paragraph.includes('systembuilder.tech/emergency/alexsite')) {
+                          return (
+                            <p key={index}>
+                              I found this tool: <a 
+                                href="#" 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  onOpenSystemDesign?.();
+                                }}
+                                className={styles.emailLink}
+                              >systembuilder.tech/emergency/alexsite</a>
+                            </p>
+                          );
+                        }
+                        return paragraph.trim() ? <p key={index}>{paragraph}</p> : <br key={index} />;
+                      })}
+                    </div>
+                  ) : (
+                    // Regular content rendering for other emails
+                    <div>
+                      {selectedEmailDetail.content.split('\n').map((paragraph, index) => 
+                        paragraph.trim() ? <p key={index}>{paragraph}</p> : <br key={index} />
+                      )}
+                    </div>
+                  )
+                ) : (
                   <p>{selectedEmailDetail.preview}</p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ) : filteredEmails.length === 0 ? (
             <div className={styles.empty}>

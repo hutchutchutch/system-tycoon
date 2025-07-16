@@ -23,7 +23,7 @@
 .initial-experience__blank-browser {
   width: 100%;  /* Changed from 100vw */
   height: 100%;
-  background: white;
+  background: var(--color-white);
   border-radius: 0;
   box-shadow: none;
   overflow: hidden;
@@ -31,17 +31,27 @@
   flex-direction: column;
 }
 
+/* Dark mode support for blank browser */
+[data-theme="dark"] .initial-experience__blank-browser {
+  background: var(--color-neutral-50);
+}
+
 /* Browser Window Component */
 .browser-window {
   width: 100%;  /* KEY FIX: Changed from 100vw to prevent viewport positioning */
   height: 100%;
-  background: white;
+  background: var(--color-white);
   border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow-xl);
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+/* Dark mode support for browser window */
+[data-theme="dark"] .browser-window {
+  background: var(--color-neutral-50);
 }
 
 .browser-window--fullscreen {
@@ -76,19 +86,29 @@
 .browser-content {
   flex: 1;
   overflow: auto;
-  background: white;
+  background: var(--color-white);
+}
+
+/* Dark mode support for browser content */
+[data-theme="dark"] .browser-content {
+  background: var(--color-neutral-50);
 }
 
 /* Email Client Wrapper */
 .email-client-wrapper {
   width: 100%;
   height: 100%;
-  background: white;
+  background: var(--color-white);
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
+}
+
+/* Dark mode support for email client wrapper */
+[data-theme="dark"] .email-client-wrapper {
+  background: var(--color-neutral-50);
 }
 
 .email-client-loading {

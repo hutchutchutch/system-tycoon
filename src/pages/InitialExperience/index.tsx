@@ -1,43 +1,82 @@
 import React, { useState, useCallback } from 'react';
-import { Mail, User, HelpCircle, Newspaper, ArrowLeft, ArrowRight, RotateCcw, X } from 'lucide-react';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
+import { ProfileWrapper } from './ProfileWrapper';
+import { HelpWrapper } from './HelpWrapper';
+import { NewsWrapper } from './NewsWrapper';
+import { HomeWrapper } from './HomeWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
 import styles from './InitialExperience.module.css';
 
 const InitialExperienceContent: React.FC = () => {
-  const [showBrowser, setShowBrowser] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>('');
-  const [tabs, setTabs] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('home');
+  const [tabs, setTabs] = useState<any[]>([{
+    id: 'home',
+    title: 'Home',
+    url: 'https://localhost:5179',
+    component: HomeWrapper,
+    closable: false, // Home tab cannot be closed
+  }]);
   const [missionComplete, setMissionComplete] = useState(false);
 
+  // Generic function to open a new tab
+  const openNewTab = useCallback((tabConfig: any) => {
+    // Check if tab already exists
+    const existingTab = tabs.find(tab => tab.id === tabConfig.id);
+    if (existingTab) {
+      // If tab exists, just switch to it
+      setActiveTab(tabConfig.id);
+    } else {
+      // Create new tab
+      setTabs(prev => [...prev, tabConfig]);
+      setActiveTab(tabConfig.id);
+    }
+  }, [tabs]);
+
+  const handleProfileIconClick = useCallback(() => {
+    console.log('Profile clicked!');
+    openNewTab({
+      id: 'profile',
+      title: 'User Profile',
+      url: 'https://profile.localhost/dashboard',
+      component: ProfileWrapper,
+      closable: true,
+    });
+  }, [openNewTab]);
+
+  const handleHelpIconClick = useCallback(() => {
+    console.log('Help clicked!');
+    openNewTab({
+      id: 'help',
+      title: 'Help Center',
+      url: 'https://help.localhost/docs',
+      component: HelpWrapper,
+      closable: true,
+    });
+  }, [openNewTab]);
+
+  const handleNewsIconClick = useCallback(() => {
+    console.log('News clicked!');
+    openNewTab({
+      id: 'news',
+      title: 'Tech News',
+      url: 'https://news.localhost/latest',
+      component: NewsWrapper,
+      closable: true,
+    });
+  }, [openNewTab]);
+
   const handleEmailIconClick = useCallback(() => {
-    console.log('Email clicked! showBrowser changing from', showBrowser, 'to true');
-    setShowBrowser(true);
-    setActiveTab('email');
-    setTabs([{
+    console.log('Email clicked!');
+    openNewTab({
       id: 'email',
       title: 'ProMail - Inbox',
       url: 'https://promail.com/inbox',
       component: EmailClientWrapper,
-    }]);
-  }, [showBrowser]);
-
-  const handleProfileIconClick = useCallback(() => {
-    console.log('Profile clicked!');
-    // TODO: Implement profile functionality
-  }, []);
-
-  const handleHelpIconClick = useCallback(() => {
-    console.log('Help clicked!');
-    // TODO: Implement help functionality
-  }, []);
-
-  const handleNewsIconClick = useCallback(() => {
-    console.log('News clicked!');
-    // TODO: Implement news functionality
-  }, []);
+      closable: true,
+    });
+  }, [openNewTab]);
 
   const handleOpenSystemDesignTab = useCallback(() => {
     const newTab = {
@@ -45,6 +84,7 @@ const InitialExperienceContent: React.FC = () => {
       title: 'System Builder - Emergency: Alex\'s Site',
       url: 'https://systembuilder.tech/emergency/alexsite',
       component: SystemDesignCanvasWrapper,
+      closable: true,
     };
     
     setTabs(prev => [...prev, newTab]);
@@ -66,108 +106,25 @@ const InitialExperienceContent: React.FC = () => {
   }, []);
 
   const handleTabClose = useCallback((tabId: string) => {
+    const tabToClose = tabs.find(tab => tab.id === tabId);
+    
+    // Prevent closing the home tab
+    if (!tabToClose?.closable) {
+      return;
+    }
+
     setTabs(prev => prev.filter(tab => tab.id !== tabId));
+    
+    // If we're closing the active tab, switch to home tab
     if (activeTab === tabId) {
-      const remainingTabs = tabs.filter(tab => tab.id !== tabId);
-      if (remainingTabs.length > 0) {
-        setActiveTab(remainingTabs[0].id);
-      } else {
-        setShowBrowser(false);
-        setActiveTab('');
-      }
+      setActiveTab('home');
     }
   }, [activeTab, tabs]);
 
-  if (!showBrowser) {
-    return (
-      <div className={`${styles.initialExperience} ${styles['initialExperience--blank']}`}>
-        <div className={styles.blankBrowser}>
-          <div className={styles.browserChrome}>
-            <div className={styles.tabBar}>
-              <div className={`${styles.tab} ${styles['tab--active']}`}>
-                <span>New Tab</span>
-              </div>
-              <div className={styles.windowControls}>
-                <button className={styles['windowControl--close']} aria-label="Close" />
-                <button className={styles['windowControl--minimize']} aria-label="Minimize" />
-                <button className={styles['windowControl--maximize']} aria-label="Maximize" />
-              </div>
-            </div>
-            
-            <div className={styles.addressBar}>
-              <div className={styles.navButtons}>
-                <button className={styles.navButton} disabled aria-label="Go back">
-                  <ArrowLeft size={16} />
-                </button>
-                <button className={styles.navButton} disabled aria-label="Go forward">
-                  <ArrowRight size={16} />
-                </button>
-                <button className={styles.navButton} aria-label="Refresh">
-                  <RotateCcw size={16} />
-                </button>
-              </div>
-              <input 
-                type="text" 
-                className={styles.addressBarInput}
-                value="" 
-                placeholder="Search or enter address" 
-                readOnly 
-              />
-            </div>
-          </div>
-          
-          <div className={styles.content}>
-            <div className={styles.iconGrid}>
-              <button 
-                className={styles.appIcon}
-                onClick={handleProfileIconClick}
-                aria-label="Open profile"
-              >
-                <div className={styles.iconWrapper}>
-                  <User size={24} />
-                </div>
-                <span className={styles.iconLabel}>Profile</span>
-              </button>
-              
-              <button 
-                className={styles.appIcon}
-                onClick={handleHelpIconClick}
-                aria-label="Open help"
-              >
-                <div className={styles.iconWrapper}>
-                  <HelpCircle size={24} />
-                </div>
-                <span className={styles.iconLabel}>Help</span>
-              </button>
-              
-              <button 
-                className={styles.appIcon}
-                onClick={handleNewsIconClick}
-                aria-label="Open news"
-              >
-                <div className={styles.iconWrapper}>
-                  <Newspaper size={24} />
-                </div>
-                <span className={styles.iconLabel}>News</span>
-              </button>
-              
-              <button 
-                className={`${styles.appIcon} ${styles['appIcon--primary']}`}
-                onClick={handleEmailIconClick}
-                aria-label="Open email"
-              >
-                <div className={styles.iconWrapper}>
-                  <Mail size={24} />
-                </div>
-                <span className={styles.iconLabel}>Email</span>
-                <div className={styles.notificationDot} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Add onNewTab handler to allow adding new tabs from browser controls
+  const handleNewTab = useCallback(() => {
+    setActiveTab('home');
+  }, []);
 
   return (
     <div className={`${styles.initialExperience} ${styles['initialExperience--browser']}`}>
@@ -175,11 +132,18 @@ const InitialExperienceContent: React.FC = () => {
         activeTab={activeTab}
         tabs={tabs.map(tab => ({
           ...tab,
+          // Pass click handlers to the HomeWrapper
+          onProfileClick: tab.id === 'home' ? handleProfileIconClick : undefined,
+          onHelpClick: tab.id === 'home' ? handleHelpIconClick : undefined,
+          onNewsClick: tab.id === 'home' ? handleNewsIconClick : undefined,
+          onEmailClick: tab.id === 'home' ? handleEmailIconClick : undefined,
+          // Pass handlers for system design and mission completion
           onOpenSystemDesign: tab.id === 'email' ? handleOpenSystemDesignTab : undefined,
           onMissionComplete: tab.id === 'system-design' ? handleMissionComplete : undefined,
         }))}
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
+        onNewTab={handleNewTab}
       />
     </div>
   );

@@ -77,6 +77,11 @@
   min-height: 0;
 }
 
+/* Dark mode support for browser content */
+[data-theme="dark"] .browser-window__content {
+  background: var(--color-neutral-50);
+}
+
 /* EmailClient Organism */
 .email-client {
   display: flex;

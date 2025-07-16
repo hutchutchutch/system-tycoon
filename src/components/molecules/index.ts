@@ -51,3 +51,4 @@ export { AnimatedCounter } from './AnimatedCounter';
 export { SkillTree } from './SkillTree';
 export { StepCard } from './StepCard';
 export { Requirements } from './Requirements';
+export { MultiConnectionLine } from './MultiConnectionLine';

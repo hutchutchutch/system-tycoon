@@ -6,6 +6,7 @@ export interface BrowserTab {
   url: string;
   component: React.ComponentType<any>;
   hasNotification?: boolean;
+  closable?: boolean; // Whether the tab can be closed (defaults to true)
   // Allow additional props to be passed to the component
   [key: string]: any;
 }

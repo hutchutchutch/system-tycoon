@@ -51,6 +51,8 @@
   background: var(--color-neutral-100);
   border-bottom: 1px solid var(--color-neutral-200);
   padding: var(--space-3);
+  width: 100%; /* Ensure full width */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 [data-theme="dark"] .browserChrome {
@@ -130,6 +132,7 @@
 
 .addressBarInput {
   flex: 1;
+  min-width: 200px; /* Ensure minimum width for readability */
   background: var(--color-white);
   border: 1px solid var(--color-neutral-300);
   border-radius: var(--radius-xl);
@@ -138,6 +141,10 @@
   color: var(--color-neutral-700);
   outline: none;
   transition: all var(--duration-fast) var(--ease-out);
+  font-family: var(--font-mono); /* Use monospace for URLs */
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .addressBarInput {
@@ -149,6 +156,8 @@
 .addressBarInput:focus {
   border-color: var(--color-primary-500);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  text-overflow: clip; /* Show full text when focused */
+  cursor: text;
 }
 
 .addressBarInput::placeholder {

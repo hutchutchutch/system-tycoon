@@ -7,6 +7,12 @@ export interface EmailFolder {
   icon: string;
 }
 
+export interface EmailTab {
+  id: string;
+  name: string;
+  count?: number;
+}
+
 export interface EmailClientProps {
   emails: EmailData[];
   folders: EmailFolder[];
@@ -24,4 +30,8 @@ export interface EmailClientProps {
   selectedEmailDetail?: EmailData;
   onBackToList?: () => void;
   onOpenSystemDesign?: () => void;
+  // Tab-related props
+  tabs?: EmailTab[];
+  selectedTab?: string;
+  onTabSelect?: (tabId: string) => void;
 } 

@@ -1,98 +1,96 @@
 import React, { useState, useEffect } from 'react';
 import { EmailClient } from '../../components/organisms/EmailClient';
-import type { EmailFolder } from '../../components/organisms/EmailClient/EmailClient.types';
-import type { EmailData } from '../../components/molecules/EmailCard/EmailCard.types';
+import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
+import type { EmailData as EmailCardData } from '../../components/molecules/EmailCard/EmailCard.types';
+import { fetchEmails, updateEmailStatus, type EmailData } from '../../services/emailService';
 // CSS now handled by design system at src/styles/design-system/layout/browser-windows.css
 
 interface EmailClientWrapperProps {
   onOpenSystemDesign?: () => void;
 }
 
+// Convert service EmailData to component EmailCardData
+const convertToEmailCardData = (email: EmailData): EmailCardData => ({
+  id: email.id,
+  sender: {
+    name: email.sender_name,
+    email: email.sender_email,
+    avatar: email.sender_avatar,
+  },
+  subject: email.subject,
+  preview: email.preview,
+  content: email.content,
+  timestamp: new Date(email.timestamp),
+  status: email.status,
+  priority: email.priority === 'urgent' ? 'high' : email.priority,
+  hasAttachments: email.has_attachments,
+  tags: email.tags,
+  category: email.category,
+});
+
 export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSystemDesign }) => {
   const [loading, setLoading] = useState(true);
-  const [emails, setEmails] = useState<EmailData[]>([]);
+  const [emails, setEmails] = useState<EmailCardData[]>([]);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [showEmailDetail, setShowEmailDetail] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('primary');
 
   useEffect(() => {
-    // Simulate loading delay
-    const timer = setTimeout(() => {
-      // Set initial emails for the health crisis mission
-      setEmails([
-        {
-          id: 'crisis-1',
-          sender: {
-            name: 'Alex Chen',
-            email: 'alexchen.neighbor@gmail.com',
-            avatar: '',
-          },
-          subject: 'URGENT - Need your help NOW',
-          preview: 'I know this is out of nowhere, but I desperately need help. My daughter Emma and 12 other kids...',
-          timestamp: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-          status: 'unread',
-          priority: 'high',
-          hasAttachments: false,
-          tags: ['urgent', 'crisis'],
-        },
-        {
-          id: '2',
-          sender: {
-            name: 'Mom',
-            email: 'mom@family.com',
-            avatar: '',
-          },
-          subject: 'Are you okay?',
-          preview: 'Haven\'t heard from you in a while. Just checking in...',
-          timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-          status: 'read',
-          priority: 'normal',
-          hasAttachments: false,
-          tags: ['personal'],
-        },
-        {
-          id: '3',
-          sender: {
-            name: 'LinkedIn',
-            email: 'notifications@linkedin.com',
-            avatar: '',
-          },
-          subject: 'Your profile was viewed 3 times',
-          preview: 'See who\'s been looking at your profile this week...',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // 1 day ago
-          status: 'read',
-          priority: 'low',
-          hasAttachments: false,
-          tags: ['social'],
-        },
-      ]);
-      setLoading(false);
-    }, 2000); // 2 second loading time
+    const loadEmails = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch emails from Supabase (with fallback to hardcoded data)
+        const emailData = await fetchEmails();
+        const convertedEmails = emailData.map(convertToEmailCardData);
+        
+        setEmails(convertedEmails);
+      } catch (error) {
+        console.error('Error loading emails:', error);
+        // Fallback to empty array on error
+        setEmails([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    return () => clearTimeout(timer);
+    loadEmails();
   }, []);
 
   const folders: EmailFolder[] = [
-    { id: 'inbox', name: 'Inbox', count: 3, icon: 'inbox' },
+    { id: 'inbox', name: 'Inbox', count: 5, icon: 'inbox' },
     { id: 'sent', name: 'Sent', count: 0, icon: 'send' },
     { id: 'drafts', name: 'Drafts', count: 0, icon: 'file-text' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
 
-  const handleEmailSelect = (emailId: string) => {
+  const tabs: EmailTab[] = [
+    { id: 'primary', name: 'Primary', count: emails.filter(e => e.category === 'primary').length },
+    { id: 'projects', name: 'Projects', count: emails.filter(e => e.category === 'projects').length },
+    { id: 'news', name: 'News', count: emails.filter(e => e.category === 'news').length },
+    { id: 'promotions', name: 'Promotions', count: emails.filter(e => e.category === 'promotions').length },
+  ];
+
+  const handleEmailSelect = async (emailId: string) => {
     setSelectedEmailId(emailId);
     setShowEmailDetail(true);
     
-    // Mark as read
-    setEmails(emails => emails.map(email => 
-      email.id === emailId ? { ...email, status: 'read' } : email
-    ));
+    // Mark as read in database and local state
+    const success = await updateEmailStatus(emailId, 'read');
+    if (success) {
+      setEmails(emails => emails.map(email => 
+        email.id === emailId ? { ...email, status: 'read' } : email
+      ));
+    }
 
-    // If Alex's crisis email is clicked, we'll show the detail view
-    if (emailId === 'crisis-1') {
-      // Email detail will show the link to system builder
+    // Special handling for crisis email (check for system design link in content)
+    const selectedEmail = emails.find(e => e.id === emailId);
+    if (selectedEmail?.content?.includes('/?crisis=true')) {
+      // This email contains a link to the system design canvas
+      console.log('Crisis email selected - system design link available');
     }
   };
 
@@ -120,6 +118,10 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     console.log('Reply to email:', emailId);
   };
 
+  const handleTabSelect = (tabId: string) => {
+    setSelectedTab(tabId);
+  };
+
   const selectedEmail = selectedEmailId ? emails.find(e => e.id === selectedEmailId) : null;
 
   if (loading) {
@@ -141,7 +143,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   return (
     <div className="email-client-wrapper">
       <EmailClient
-        emails={emails}
+        emails={emails.filter(email => email.category === selectedTab)}
         folders={folders}
         selectedEmails={selectedEmails}
         selectedFolder={selectedFolder}
@@ -156,6 +158,9 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         selectedEmailDetail={selectedEmail || undefined}
         onBackToList={handleBackToList}
         onOpenSystemDesign={onOpenSystemDesign}
+        tabs={tabs}
+        selectedTab={selectedTab}
+        onTabSelect={handleTabSelect}
       />
     </div>
   );
