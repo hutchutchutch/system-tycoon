@@ -1,72 +1,138 @@
-/* Mission Showcase Section Styles */
-.missionShowcase {
-  padding-top: var(--spacing-4xl);
-  padding-bottom: var(--spacing-4xl);
-  background-color: var(--color-background-secondary);
+.section {
+  padding: var(--space-20) 0;
+  background: var(--color-surface-primary);
+  position: relative;
 }
 
 .container {
-  max-width: var(--container-lg);
+  max-width: 80rem;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--space-6);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-12);
+}
+
+.badge {
+  margin-bottom: var(--space-4);
 }
 
 .title {
-  font-size: var(--font-size-4xl);
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: var(--font-weight-bold);
-  text-align: center;
-  margin-bottom: var(--spacing-2xl);
   color: var(--color-text-primary);
-  line-height: var(--line-height-tight);
+  margin-bottom: var(--space-4);
+  line-height: 1.2;
 }
 
-.filters {
+.subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+.filterBar {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-xs);
-  margin-bottom: var(--spacing-2xl);
+  gap: var(--space-3);
+  margin-bottom: var(--space-10);
   flex-wrap: wrap;
 }
 
-.grid {
+.filterButton {
+  position: relative;
+  min-width: auto;
+  padding: var(--space-2) var(--space-4);
+  transition: all 0.2s ease;
+}
+
+.filterButton:hover {
+  transform: translateY(-2px);
+}
+
+.urgentCount {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--color-error);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.missionGrid {
   display: grid;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-3xl);
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: var(--space-8);
+  margin-bottom: var(--space-16);
 }
 
-.viewAllContainer {
+.footer {
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-6);
 }
 
-/* Responsive Design */
-@media (min-width: 768px) {
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
+.liveUpdate {
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  animation: fadeInOut 3s ease-in-out infinite;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
   }
 }
 
+/* Responsive */
 @media (max-width: 768px) {
-  .missionShowcase {
-    padding-top: var(--spacing-3xl);
-    padding-bottom: var(--spacing-3xl);
+  .section {
+    padding: var(--space-12) 0;
   }
   
   .title {
-    font-size: var(--font-size-3xl);
+    font-size: 2rem;
   }
   
-  .grid {
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-2xl);
+  .subtitle {
+    font-size: var(--font-size-base);
+  }
+  
+  .filterBar {
+    gap: var(--space-2);
+  }
+  
+  .filterButton {
+    font-size: var(--font-size-sm);
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .missionGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
   }
 }
-
-@media (max-width: 480px) {
-  .title {
-    font-size: var(--font-size-2xl);
-  }
-  
-  .filters {
-    gap: var(--spacing-xs);
-  }
-} 

@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { ArrowRightIcon } from "@radix-ui/react-icons";
-
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
 
@@ -13,10 +12,14 @@ const BentoGrid = ({
 }) => {
   return (
     <div
-      className={cn(
-        "grid w-full auto-rows-[22rem] grid-cols-3 gap-4",
-        className,
-      )}
+      className={cn("bento-grid", className)}
+      style={{
+        display: 'grid',
+        width: '100%',
+        gridTemplateRows: 'repeat(3, 22rem)',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: 'var(--space-4)',
+      }}
     >
       {children}
     </div>
@@ -42,37 +45,147 @@ const BentoCard = ({
 }) => (
   <div
     key={name}
-    className={cn(
-      "group relative col-span-3 flex flex-col justify-between overflow-hidden rounded-xl",
-      // light styles
-      "bg-white [box-shadow:0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)]",
-      // dark styles
-      "transform-gpu dark:bg-black dark:[border:1px_solid_rgba(255,255,255,.1)] dark:[box-shadow:0_-20px_80px_-20px_#ffffff1f_inset]",
-      className,
-    )}
+    className={cn("bento-card", className)}
+    style={{
+      position: 'relative',
+      gridColumn: 'span 3',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'space-between',
+      overflow: 'hidden',
+      borderRadius: 'var(--radius-xl)',
+      background: 'var(--card-background)',
+      border: 'var(--card-border)',
+      boxShadow: 'var(--card-shadow)',
+      cursor: 'pointer',
+      transition: 'var(--transition-normal)',
+    }}
+    onMouseEnter={(e) => {
+      e.currentTarget.style.transform = 'translateY(-4px)';
+      e.currentTarget.style.boxShadow = 'var(--shadow-xl)';
+    }}
+    onMouseLeave={(e) => {
+      e.currentTarget.style.transform = 'translateY(0)';
+      e.currentTarget.style.boxShadow = 'var(--card-shadow)';
+    }}
   >
     <div>{background}</div>
-    <div className="pointer-events-none z-10 flex transform-gpu flex-col gap-1 p-6 transition-all duration-300 group-hover:-translate-y-10">
-      <Icon className="h-12 w-12 origin-left transform-gpu text-neutral-700 transition-all duration-300 ease-in-out group-hover:scale-75" />
-      <h3 className="text-xl font-semibold text-neutral-700 dark:text-neutral-300">
+    
+    <div 
+      style={{
+        pointerEvents: 'none',
+        zIndex: 10,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-1)',
+        padding: 'var(--space-6)',
+        transition: 'var(--transition-normal)',
+      }}
+      className="content-section"
+    >
+      <Icon 
+        style={{
+          height: '3rem',
+          width: '3rem',
+          color: 'var(--color-text-secondary)',
+          transition: 'var(--transition-normal)',
+        }}
+      />
+      
+      <h3 
+        style={{
+          fontSize: 'var(--text-xl)',
+          fontWeight: 'var(--font-weight-semibold)',
+          color: 'var(--color-text-primary)',
+          margin: 0,
+        }}
+      >
         {name}
       </h3>
-      <p className="max-w-lg text-neutral-400">{description}</p>
+      
+      <p 
+        style={{
+          maxWidth: '28rem',
+          color: 'var(--color-text-tertiary)',
+          fontSize: 'var(--text-base)',
+          lineHeight: 'var(--leading-relaxed)',
+          margin: 0,
+        }}
+      >
+        {description}
+      </p>
     </div>
 
     <div
-      className={cn(
-        "pointer-events-none absolute bottom-0 flex w-full translate-y-10 transform-gpu flex-row items-center p-4 opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100",
-      )}
+      style={{
+        pointerEvents: 'none',
+        position: 'absolute',
+        bottom: 0,
+        display: 'flex',
+        width: '100%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 'var(--space-4)',
+        transform: 'translateY(2.5rem)',
+        opacity: 0,
+        transition: 'var(--transition-normal)',
+      }}
+      className="cta-section"
     >
-      <Button variant="ghost" asChild size="sm" className="pointer-events-auto">
-        <a href={href}>
+      <Button 
+        variant="ghost" 
+        size="sm" 
+        style={{
+          pointerEvents: 'auto',
+          color: 'var(--color-text-primary)',
+          background: 'var(--color-surface-tertiary)',
+          border: '1px solid var(--color-border-primary)',
+        }}
+      >
+        <a 
+          href={href} 
+          style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            textDecoration: 'none',
+            color: 'inherit',
+          }}
+        >
           {cta}
-          <ArrowRightIcon className="ml-2 h-4 w-4" />
+          <ArrowRightIcon style={{ marginLeft: 'var(--space-2)', height: '1rem', width: '1rem' }} />
         </a>
       </Button>
     </div>
-    <div className="pointer-events-none absolute inset-0 transform-gpu transition-all duration-300 group-hover:bg-black/[.03] group-hover:dark:bg-neutral-800/10" />
+    
+    <div 
+      style={{
+        pointerEvents: 'none',
+        position: 'absolute',
+        inset: 0,
+        transition: 'var(--transition-normal)',
+        background: 'transparent',
+      }}
+      className="overlay"
+    />
+
+    <style>{`
+      .bento-card:hover .content-section {
+        transform: translateY(-2.5rem);
+      }
+      
+      .bento-card:hover .cta-section {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      
+      .bento-card:hover .overlay {
+        background: rgba(0, 0, 0, 0.03);
+      }
+      
+      .dark .bento-card:hover .overlay {
+        background: rgba(255, 255, 255, 0.02);
+      }
+    `}</style>
   </div>
 );
 

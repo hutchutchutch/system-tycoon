@@ -5,6 +5,9 @@ import {
   TrendingUp,
   Bell,
   Server,
+  Users,
+  Globe,
+  Database,
 } from "lucide-react";
 
 import { BentoCard, BentoGrid } from "./bento-grid";
@@ -13,79 +16,142 @@ const newsFeatures = [
   {
     Icon: AlertCircle,
     name: "Hospital System Failures Surge Nationwide",
-    description: "Critical infrastructure outages affecting patient data systems across major medical centers. Emergency protocols activated as IT teams scramble.",
-    href: "#",
-    cta: "Read full story",
+    description: "Critical infrastructure outages affecting patient data systems across 47 major medical centers. Emergency protocols activated as IT teams scramble to restore services. Patient safety systems remain offline in multiple facilities.",
+    href: "#crisis-alert",
+    cta: "Emergency Update",
+    category: "Emergency",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 via-orange-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(245, 158, 11, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:row-start-1 lg:row-end-4 lg:col-start-1 lg:col-end-2",
   },
   {
     Icon: Shield,
     name: "Medical Device Network Under Cyber Attack",
-    description: "Hackers target connected medical devices in coordinated attack, raising concerns about patient safety.",
-    href: "#",
-    cta: "Security update",
+    description: "Coordinated ransomware attack targets connected medical devices in 12 states. FDA issues emergency guidance as hospitals disconnect critical equipment.",
+    href: "#security-breach",
+    cta: "Security Alert",
+    category: "Security",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
   },
   {
     Icon: Bell,
-    name: "Emergency Services Communication Breakdown",
-    description: "911 dispatch systems experiencing widespread technical failures across metropolitan areas.",
-    href: "#",
-    cta: "View impact",
+    name: "911 Communication Systems Down",
+    description: "Emergency dispatch centers across the Northeast report complete communication failures. Backup systems struggling to handle call volume.",
+    href: "#emergency-alert",
+    cta: "Critical Update",
+    category: "Emergency",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-yellow-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
   },
   {
-    Icon: Activity,
-    name: "Health Data Breach Affects Millions",
-    description: "Major insurance provider confirms unauthorized access to patient records and financial information.",
-    href: "#",
-    cta: "Check exposure",
+    Icon: Database,
+    name: "Health Data Breach Affects 2.3M Patients",
+    description: "Major insurance provider confirms unauthorized access to patient records, SSNs, and payment information. Credit monitoring offered to affected customers.",
+    href: "#data-breach",
+    cta: "Check Exposure",
+    category: "Security",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
   },
   {
-    Icon: TrendingUp,
-    name: "Tech Hiring Surge in Healthcare IT",
-    description: "Hospitals increase recruitment for system architects and security specialists amid crisis.",
-    href: "#",
-    cta: "View opportunities",
+    Icon: Users,
+    name: "Healthcare IT Hiring Surge",
+    description: "Hospitals increase recruitment by 340% for system architects, cybersecurity specialists, and DevOps engineers amid ongoing crisis.",
+    href: "#job-opportunities",
+    cta: "View Jobs",
+    category: "Careers",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-blue-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-2",
   },
   {
-    Icon: Server,
-    name: "Cloud Migration Disasters Continue",
-    description: "Multiple healthcare providers report critical failures during cloud infrastructure transitions.",
-    href: "#",
-    cta: "Learn more",
+    Icon: Globe,
+    name: "Global Health Systems at Risk",
+    description: "WHO reports similar attacks in 23 countries as healthcare infrastructure becomes primary target. International cybersecurity task force assembled to coordinate response efforts.",
+    href: "#global-impact",
+    cta: "Global Report",
+    category: "Global",
     background: (
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-pink-500/10 to-transparent" />
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 50%, transparent 100%)' 
+      }} />
     ),
     className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-4",
   },
 ];
 
-function BentoNewsDemo() {
+interface BentoNewsDemoProps {
+  selectedCategories?: string[];
+}
+
+function BentoNewsDemo({ selectedCategories = [] }: BentoNewsDemoProps) {
+  const filteredFeatures = selectedCategories.length === 0 
+    ? newsFeatures 
+    : newsFeatures.filter(feature => selectedCategories.includes(feature.category));
+
   return (
-    <div className="relative w-full">
-      <BentoGrid className="lg:grid-rows-3">
-        {newsFeatures.map((feature) => (
+    <div style={{ position: 'relative', width: '100%' }}>
+      <BentoGrid className="responsive-news-grid">
+        {filteredFeatures.map((feature) => (
           <BentoCard key={feature.name} {...feature} />
         ))}
       </BentoGrid>
+      
+      <style>{`
+        .responsive-news-grid {
+          grid-template-rows: repeat(3, 22rem);
+          grid-template-columns: repeat(3, 1fr);
+        }
+        
+        @media (max-width: 1023px) {
+          .responsive-news-grid {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: repeat(6, 20rem) !important;
+          }
+          
+          .responsive-news-grid .bento-card {
+            grid-column: span 1 !important;
+            grid-row: span 1 !important;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .responsive-news-grid {
+            grid-template-rows: repeat(6, 16rem) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

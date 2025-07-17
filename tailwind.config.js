@@ -38,6 +38,7 @@ export default {
           DEFAULT: '#6B7280',
           foreground: '#9CA3AF',
         },
+        'muted-foreground': '#9CA3AF',
         accent: {
           DEFAULT: '#252525',
           foreground: '#FFFFFF',
@@ -83,6 +84,7 @@ export default {
       },
       animation: {
         spotlight: "spotlight 2s ease .75s 1 forwards",
+        blob: "blob 7s infinite",
       },
       keyframes: {
         spotlight: {
@@ -93,6 +95,20 @@ export default {
           "100%": {
             opacity: 1,
             transform: "translate(-50%,-40%) scale(1)",
+          },
+        },
+        blob: {
+          "0%": {
+            transform: "translate(0px, 0px) scale(1)",
+          },
+          "33%": {
+            transform: "translate(30px, -50px) scale(1.1)",
+          },
+          "66%": {
+            transform: "translate(-20px, 20px) scale(0.9)",
+          },
+          "100%": {
+            transform: "translate(0px, 0px) scale(1)",
           },
         },
       },

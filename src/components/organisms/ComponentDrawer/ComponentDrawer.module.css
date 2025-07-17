@@ -143,4 +143,214 @@
 
 .categoryItems {
   animation: slideDown 0.2s ease-out;
+}
+
+/* Component wrapper for expansion */
+.componentWrapper {
+  margin-bottom: 0.5rem;
+}
+
+/* Detailed View Sections */
+.detailedView {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  animation: slideDown 0.3s ease-out;
+}
+
+.detailSection {
+  margin-bottom: 1.5rem;
+}
+
+.detailSection:last-child {
+  margin-bottom: 0;
+}
+
+.sectionTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sectionDescription {
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.conceptList,
+.useCaseList {
+  margin-bottom: 1rem;
+}
+
+.conceptList h5,
+.useCaseList h5 {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.conceptList ul,
+.useCaseList ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.conceptList li,
+.useCaseList li {
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+  font-size: var(--font-size-sm);
+}
+
+/* Vendor Categories */
+.vendorCategory {
+  margin-bottom: 1.5rem;
+}
+
+.vendorCategoryTitle {
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0 0 0.75rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.offeringGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Offering Cards */
+.offering {
+  padding: 0.75rem;
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: move;
+  transition: all 0.2s ease;
+}
+
+.offering--locked {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--color-gray-50);
+}
+
+.offering--unlocked {
+  opacity: 1;
+  background: var(--color-background-elevated);
+}
+
+.offering:hover:not(.offering--locked) {
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.offeringHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.offeringInfo {
+  flex: 1;
+}
+
+.offeringName {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 0.25rem 0;
+}
+
+.offeringVendor {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.offeringDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0 0 0.5rem 0;
+}
+
+.offeringSpecs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.offeringFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.offeringPricing {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.unlockHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+  font-style: italic;
+}
+
+.lockIcon {
+  color: var(--color-text-tertiary);
+}
+
+/* Guidance Section */
+.guidanceContent {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.guidanceContent strong {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.alternatives {
+  margin: 1rem 0;
+}
+
+.alternativeList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.nextSteps {
+  margin-top: 1rem;
+}
+
+.nextSteps ul {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: 0.5rem 0 0 0;
+}
+
+.nextSteps li {
+  margin-bottom: 0.25rem;
 } 

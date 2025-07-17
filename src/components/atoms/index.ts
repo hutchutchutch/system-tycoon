@@ -31,6 +31,13 @@ export type { NotificationDotProps, NotificationVariant } from './NotificationDo
 
 export { EmailSearchBar } from './EmailSearchBar';
 
+// Modal and notification components
+export { Modal } from './Modal';
+export type { ModalProps } from './Modal';
+
+export { Toast } from './Toast';
+export type { ToastProps } from './Toast';
+
 // React Flow handles (for system design) (TODO: Implement)
 // export { Handle } from './Handle';
 // export type { HandleProps } from './Handle';

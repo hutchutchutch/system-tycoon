@@ -34,14 +34,19 @@ export { GameHUD } from './GameHUD';
 export { MetricsDashboard } from './MetricsDashboard';
 
 // Landing page organisms
-export { LandingHero } from './LandingHero';
-export { CrisisAlert } from './CrisisAlert';
-export { HowItWorks } from './HowItWorks';
-export { MissionShowcase } from './MissionShowcase';
-export { ImpactDashboard } from './ImpactDashboard';
-export { LearningPaths } from './LearningPaths';
-export { Partners } from './Partners';
-export { CollaborationFeature } from './CollaborationFeature';
-export { Certification } from './Certification';
-export { Pricing } from './Pricing';
-export { FooterCTA } from './FooterCTA';
+export { default as LandingHero } from './LandingHero/LandingHero';
+export { default as CrisisAlert } from './CrisisAlert/CrisisAlert';
+export { default as HowItWorks } from './HowItWorks/HowItWorks';
+export { default as MissionShowcase } from './MissionShowcase/MissionShowcase';
+export { default as FooterCTA } from './FooterCTA/FooterCTA';
+export { MentorSelectionModal } from './MentorSelectionModal';
+export type { MentorSelectionModalProps } from './MentorSelectionModal';
+export { EmailComposer } from './EmailComposer';
+export type { EmailComposerProps } from './EmailComposer';
+// TODO: Implement remaining landing page components
+// export { ImpactDashboard } from './ImpactDashboard';
+// export { LearningPaths } from './LearningPaths';
+// export { Partners } from './Partners';
+// export { CollaborationFeature } from './CollaborationFeature';
+// export { Certification } from './Certification';
+// export { Pricing } from './Pricing';

@@ -2,7 +2,7 @@
 
 // Email system components
 export { EmailCard } from './EmailCard';
-export type { EmailCardProps, EmailData } from './EmailCard';
+export type { EmailCardProps } from './EmailCard';
 
 // Contact and client management
 export { ContactAvatar } from './ContactAvatar';
@@ -60,3 +60,7 @@ export { EmailToolbar } from './EmailToolbar';
 export { Requirements } from './Requirements';
 export { MultiConnectionLine } from './MultiConnectionLine';
 export { MessageRecommendations } from './MessageRecommendations';
+
+// Onboarding components
+export { MentorSelectionCard } from './MentorSelectionCard';
+export type { MentorSelectionCardProps } from './MentorSelectionCard';

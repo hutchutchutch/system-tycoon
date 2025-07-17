@@ -1,166 +1,220 @@
 import React from 'react';
-import { Newspaper, TrendingUp, Clock, Star } from 'lucide-react';
+import { Database, Cloud, Shield, Briefcase, TrendingUp, Code } from 'lucide-react';
+import { BentoCard, BentoGrid } from '../../components/ui/bento-grid';
+
+const techNewsFeatures = [
+  {
+    Icon: Database,
+    name: "New Database Scaling Patterns Released",
+    description: "Industry leaders share innovative approaches to horizontal database scaling with microservices architecture. New patterns include auto-sharding, read replicas, and connection pooling strategies that can handle millions of concurrent users.",
+    href: "#database-scaling",
+    cta: "Learn Patterns",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
+  },
+  {
+    Icon: Cloud,
+    name: "Cloud Architecture Best Practices 2024",
+    description: "Updated guidelines for building resilient cloud-native applications with focus on observability and cost optimization.",
+    href: "#cloud-practices",
+    cta: "Read Guide",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 197, 253, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
+  },
+  {
+    Icon: Briefcase,
+    name: "System Design Interview Trends",
+    description: "What top tech companies are looking for in system design interviews this year. Focus on scalability, reliability, and real-world constraints.",
+    href: "#interview-trends",
+    cta: "Prep Guide",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
+  },
+  {
+    Icon: Shield,
+    name: "Kubernetes Security Updates",
+    description: "Critical security patches and best practices for container orchestration. New RBAC policies and network security measures.",
+    href: "#k8s-security",
+    cta: "Security Guide",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
+  },
+  {
+    Icon: TrendingUp,
+    name: "Tech Trends Shaping 2024",
+    description: "AI-powered development tools, edge computing adoption, and the rise of WebAssembly in production environments are transforming how we build software.",
+    href: "#tech-trends",
+    cta: "Explore Trends",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(251, 113, 133, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-2",
+  },
+  {
+    Icon: Code,
+    name: "Developer Productivity Revolution",
+    description: "New tools and methodologies increasing developer efficiency by 300%. AI pair programming, automated testing, and intelligent code review systems are becoming mainstream.",
+    href: "#dev-productivity",
+    cta: "Boost Productivity",
+    background: (
+      <div style={{ 
+        position: 'absolute', 
+        inset: 0, 
+        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(129, 140, 248, 0.1) 50%, transparent 100%)' 
+      }} />
+    ),
+    className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-4",
+  },
+];
 
 export const NewsWrapper: React.FC = () => {
-  const newsItems = [
-    {
-      title: "New Database Scaling Patterns Released",
-      summary: "Industry leaders share innovative approaches to horizontal scaling with microservices.",
-      category: "Database",
-      time: "2 hours ago",
-      trending: true
-    },
-    {
-      title: "Cloud Architecture Best Practices 2024",
-      summary: "Updated guidelines for building resilient cloud-native applications.",
-      category: "Cloud",
-      time: "4 hours ago",
-      trending: false
-    },
-    {
-      title: "System Design Interview Trends",
-      summary: "What top tech companies are looking for in system design interviews this year.",
-      category: "Career",
-      time: "6 hours ago",
-      trending: true
-    },
-    {
-      title: "Kubernetes Security Updates",
-      summary: "Critical security patches and best practices for container orchestration.",
-      category: "Security",
-      time: "8 hours ago",
-      trending: false
-    }
-  ];
-
   return (
-    <div style={{ 
-      padding: '2rem',
-      height: '100%', 
-      background: 'var(--color-neutral-50)',
-      fontFamily: 'var(--font-sans)'
-    }}>
-      <div style={{
-        maxWidth: '1000px',
-        margin: '0 auto',
-        background: 'var(--color-white)',
-        borderRadius: 'var(--radius-lg)',
-        padding: '2rem',
-        boxShadow: 'var(--shadow-lg)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '2rem' }}>
-          <div style={{
-            width: '50px',
-            height: '50px',
-            borderRadius: '50%',
-            background: 'var(--color-orange-500)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '1rem'
-          }}>
-            <Newspaper size={24} color="white" />
+    <div 
+      style={{
+        width: '100%',
+        height: '100%',
+        background: 'var(--color-surface-primary)',
+        overflow: 'auto',
+        fontFamily: 'var(--font-primary)'
+      }}
+    >
+      <div 
+        style={{
+          maxWidth: 'var(--layout-content-max-width)',
+          margin: '0 auto',
+          padding: 'var(--space-6)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 'var(--space-6)',
+          minHeight: '100%'
+        }}
+      >
+        {/* Header */}
+        <div 
+          style={{
+            textAlign: 'center',
+            marginBottom: 'var(--space-8)'
+          }}
+        >
+          <div
+            style={{
+              background: 'linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-tertiary) 100%)',
+              color: 'var(--color-text-primary)',
+              padding: 'var(--space-2) var(--space-4)',
+              borderRadius: 'var(--radius-full)',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 'var(--font-weight-bold)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 'var(--space-1)',
+              marginBottom: 'var(--space-4)',
+              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.4)'
+            }}
+          >
+            📈 TRENDING
           </div>
-          <div>
-            <h1 style={{ margin: 0, fontSize: '1.75rem', fontWeight: '600' }}>Tech News</h1>
-            <p style={{ margin: '0.25rem 0 0 0', color: 'var(--color-neutral-600)' }}>
-              Latest updates in system design and engineering
-            </p>
-          </div>
+          
+          <h1 
+            style={{
+              fontSize: 'var(--text-4xl)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: 'var(--color-text-primary)',
+              margin: '0 0 var(--space-2) 0',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            Tech News
+          </h1>
+          
+          <p 
+            style={{
+              fontSize: 'var(--text-lg)',
+              color: 'var(--color-text-tertiary)',
+              margin: 0
+            }}
+          >
+            Latest updates in system design and engineering
+          </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-          {['All', 'Database', 'Cloud', 'Security', 'Career'].map((category) => (
-            <button
-              key={category}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: 'var(--radius-md)',
-                border: category === 'All' ? 'none' : '1px solid var(--color-neutral-300)',
-                background: category === 'All' ? 'var(--color-primary-500)' : 'var(--color-white)',
-                color: category === 'All' ? 'white' : 'var(--color-neutral-700)',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              {category}
-            </button>
-          ))}
+        {/* News Grid */}
+        <div style={{ flex: 1 }}>
+          <BentoGrid className="tech-news-grid">
+            {techNewsFeatures.map((feature) => (
+              <BentoCard key={feature.name} {...feature} />
+            ))}
+          </BentoGrid>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {newsItems.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                padding: '1.5rem',
-                border: '1px solid var(--color-neutral-200)',
-                borderRadius: 'var(--radius-lg)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                position: 'relative'
-              }}
-            >
-              {item.trending && (
-                <div style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  right: '1rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.25rem',
-                  color: 'var(--color-orange-500)',
-                  fontSize: '0.75rem',
-                  fontWeight: '500'
-                }}>
-                  <TrendingUp size={12} />
-                  Trending
-                </div>
-              )}
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-                <span style={{
-                  padding: '0.25rem 0.75rem',
-                  background: 'var(--color-primary-100)',
-                  color: 'var(--color-primary-700)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '0.75rem',
-                  fontWeight: '500'
-                }}>
-                  {item.category}
-                </span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--color-neutral-500)', fontSize: '0.75rem' }}>
-                  <Clock size={12} />
-                  {item.time}
-                </div>
-              </div>
-              
-              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.125rem', fontWeight: '600', color: 'var(--color-neutral-900)' }}>
-                {item.title}
-              </h3>
-              <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-neutral-600)', lineHeight: '1.5' }}>
-                {item.summary}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div style={{
-          marginTop: '2rem',
-          textAlign: 'center',
-          padding: '1rem',
-          border: '1px dashed var(--color-neutral-300)',
-          borderRadius: 'var(--radius-lg)',
-          color: 'var(--color-neutral-500)'
-        }}>
-          <Star size={20} style={{ marginBottom: '0.5rem' }} />
-          <p style={{ margin: 0, fontSize: '0.875rem' }}>
-            Subscribe to get the latest system design news delivered to your inbox
+        {/* Footer */}
+        <div 
+          style={{
+            textAlign: 'center',
+            marginTop: 'var(--space-12)',
+            padding: 'var(--space-4)',
+            borderTop: '1px solid var(--color-border-primary)',
+            color: 'var(--color-text-tertiary)',
+            fontSize: 'var(--text-sm)'
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            Subscribe for weekly tech insights • Last updated: {new Date().toLocaleTimeString()}
           </p>
         </div>
       </div>
+
+      <style>{`
+        .tech-news-grid {
+          grid-template-rows: repeat(3, 22rem);
+          grid-template-columns: repeat(3, 1fr);
+        }
+        
+        @media (max-width: 1023px) {
+          .tech-news-grid {
+            grid-template-columns: 1fr !important;
+            grid-template-rows: repeat(6, 20rem) !important;
+          }
+          
+          .tech-news-grid .bento-card {
+            grid-column: span 1 !important;
+            grid-row: span 1 !important;
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .tech-news-grid {
+            grid-template-rows: repeat(6, 16rem) !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }; 

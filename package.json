@@ -30,6 +30,7 @@
     "motion": "^12.23.6",
     "phaser": "^3.90.0",
     "react": "^19.1.0",
+    "react-aria-components": "^1.10.1",
     "react-dom": "^19.1.0",
     "react-fast-marquee": "^1.6.5",
     "react-redux": "^9.2.0",

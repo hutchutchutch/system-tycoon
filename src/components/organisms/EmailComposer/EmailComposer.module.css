@@ -1,0 +1,369 @@
+/* Email Composer Styles */
+.emailComposer {
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+  max-height: 800px;
+  background: var(--color-surface);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.headerLeft {
+  flex: 1;
+}
+
+.title {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.recipient {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.recipientLabel {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  min-width: 24px;
+}
+
+.recipientInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+}
+
+.recipientAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.recipientDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.recipientName {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.recipientTitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+}
+
+.urgencyBadge {
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--border-radius-sm);
+  color: white;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+}
+
+.recommendations {
+  padding: var(--spacing-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-background-subtle);
+}
+
+.recommendationHeader h3 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.recommendationHeader p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin: 0 0 var(--spacing-4) 0;
+}
+
+.recommendationContent {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-6);
+  margin-bottom: var(--spacing-6);
+}
+
+.mentorInsight {
+  display: flex;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background: var(--color-surface);
+  border-radius: var(--border-radius-md);
+  border-left: 4px solid var(--color-primary);
+}
+
+.mentorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.mentorQuote {
+  flex: 1;
+}
+
+.mentorQuote p {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  margin: 0 0 var(--spacing-2) 0;
+  line-height: 1.5;
+}
+
+.mentorQuote cite {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-style: normal;
+  font-weight: var(--font-weight-medium);
+}
+
+.templatePreview h4 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-md);
+  margin: 0 0 var(--spacing-3) 0;
+}
+
+.recommendations ul {
+  margin: 0;
+  padding-left: var(--spacing-4);
+  list-style: none;
+}
+
+.recommendations li {
+  position: relative;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-2);
+  padding-left: var(--spacing-4);
+}
+
+.recommendations li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-success);
+  font-weight: var(--font-weight-bold);
+}
+
+.templateActions {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+.emailForm {
+  flex: 1;
+  padding: var(--spacing-6);
+  overflow-y: auto;
+}
+
+.field {
+  margin-bottom: var(--spacing-5);
+}
+
+.label {
+  display: block;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin-bottom: var(--spacing-2);
+}
+
+.subjectInput {
+  width: 100%;
+  font-size: var(--font-size-md);
+}
+
+.bodyInput {
+  width: 100%;
+  min-height: 200px;
+  padding: var(--spacing-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-base);
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.bodyInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.bodyInput:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.typingIndicator {
+  position: absolute;
+  bottom: var(--spacing-3);
+  left: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.typingDots {
+  display: flex;
+  gap: 2px;
+}
+
+.typingDots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  animation: typingDot 1.5s infinite ease-in-out;
+}
+
+.typingDots span:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.typingDots span:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typingDots span:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typingDot {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.contextInfo {
+  margin-top: var(--spacing-6);
+  padding-top: var(--spacing-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.contextSection {
+  margin-bottom: var(--spacing-4);
+}
+
+.contextSection h4 {
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.contextSection p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.skillsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-2);
+}
+
+.skillTag {
+  padding: var(--spacing-1) var(--spacing-2);
+  background: var(--color-background-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-6);
+  border-top: 1px solid var(--color-border);
+  background: var(--color-background);
+}
+
+.footerLeft {
+  flex: 1;
+}
+
+.impactReminder {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}
+
+.footerRight {
+  display: flex;
+  gap: var(--spacing-3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .emailComposer {
+    height: 100vh;
+    max-height: none;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+  
+  .recommendationContent {
+    grid-template-columns: 1fr;
+  }
+  
+  .templateActions {
+    flex-direction: column;
+  }
+  
+  .footer {
+    flex-direction: column;
+    gap: var(--spacing-4);
+  }
+  
+  .footerLeft {
+    text-align: center;
+  }
+}

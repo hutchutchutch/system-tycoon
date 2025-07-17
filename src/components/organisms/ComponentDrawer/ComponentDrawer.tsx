@@ -3,17 +3,30 @@ import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Input } from '../../atoms/Input';
 import { ComponentCard } from '../../molecules/ComponentCard';
-import type { ComponentDrawerProps } from './ComponentDrawer.types';
-import type { ComponentData } from '../../molecules/ComponentCard/ComponentCard.types';
+import { Badge } from '../../atoms/Badge';
+import { Button } from '../../atoms/Button';
+import type { 
+  ComponentDrawerProps, 
+  DrawerComponent, 
+  ComponentOffering,
+  DetailedComponentView 
+} from './ComponentDrawer.types';
 import styles from './ComponentDrawer.module.css';
 
 export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
   components,
   categories,
   searchQuery,
+  selectedComponent,
+  expandedComponent,
+  userProgress = { completedMissions: [], unlockedConcepts: [], level: 1 },
   onSearchChange,
-  onComponentDragStart,
-  onComponentDragEnd,
+  onComponentSelect,
+  onComponentExpand,
+  onOfferingDragStart,
+  onOfferingDragEnd,
+  getDetailedView,
+  checkSelectionRules,
   className,
 }) => {
   // Local state for category expansion
@@ -28,7 +41,7 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
     const query = searchQuery.toLowerCase();
     return components.filter(component => 
       component.name.toLowerCase().includes(query) ||
-      component.description.toLowerCase().includes(query) ||
+      component.shortDescription.toLowerCase().includes(query) ||
       component.category.toLowerCase().includes(query)
     );
   }, [components, searchQuery]);
@@ -40,7 +53,7 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
         component => component.category === category.id
       );
       return acc;
-    }, {} as Record<string, ComponentData[]>);
+    }, {} as Record<string, DrawerComponent[]>);
   }, [categories, filteredComponents]);
 
   const toggleCategory = useCallback((categoryId: string) => {
@@ -55,13 +68,175 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
     });
   }, []);
 
-  const handleComponentDragStart = useCallback((event: React.DragEvent<HTMLDivElement>, component: ComponentData) => {
-    onComponentDragStart?.(component);
-  }, [onComponentDragStart]);
+  const handleComponentClick = useCallback((component: DrawerComponent) => {
+    if (expandedComponent === component.id) {
+      // Collapse if already expanded
+      onComponentExpand?.(component);
+    } else {
+      // Expand the component
+      onComponentExpand?.(component);
+      onComponentSelect?.(component);
+    }
+  }, [expandedComponent, onComponentExpand, onComponentSelect]);
 
-  const handleComponentDragEnd = useCallback(() => {
-    onComponentDragEnd?.();
-  }, [onComponentDragEnd]);
+  const handleOfferingDragStart = useCallback((
+    event: React.DragEvent<HTMLDivElement>, 
+    offering: ComponentOffering,
+    component: DrawerComponent
+  ) => {
+    // Check if offering can be selected
+    const selectionResult = checkSelectionRules?.(offering);
+    
+    if (selectionResult && !selectionResult.allowed) {
+      event.preventDefault();
+      return;
+    }
+
+    event.dataTransfer.setData('application/reactflow', component.category);
+    event.dataTransfer.setData('application/offering', JSON.stringify(offering));
+    event.dataTransfer.setData('application/component', JSON.stringify(component));
+    event.dataTransfer.effectAllowed = 'move';
+    
+    onOfferingDragStart?.(offering, component);
+  }, [checkSelectionRules, onOfferingDragStart]);
+
+  const renderOffering = (
+    offering: ComponentOffering, 
+    component: DrawerComponent,
+    vendorCategory: string
+  ) => {
+    const selectionResult = checkSelectionRules?.(offering);
+    const isLocked = selectionResult ? !selectionResult.allowed : !offering.initially_selectable;
+    const isUnlocked = !isLocked || userProgress.completedMissions.includes(offering.unlockConditions?.mission || '');
+
+    return (
+      <div
+        key={offering.id}
+        className={clsx(
+          styles.offering,
+          isLocked && styles['offering--locked'],
+          isUnlocked && styles['offering--unlocked']
+        )}
+        draggable={!isLocked}
+        onDragStart={(e) => handleOfferingDragStart(e, offering, component)}
+        onDragEnd={onOfferingDragEnd}
+      >
+        <div className={styles.offeringHeader}>
+          <div className={styles.offeringInfo}>
+            <h5 className={styles.offeringName}>{offering.name}</h5>
+            <span className={styles.offeringVendor}>{offering.vendor}</span>
+          </div>
+          {isLocked && (
+            <Icon name="lock" size="sm" className={styles.lockIcon} />
+          )}
+        </div>
+        
+        <p className={styles.offeringDescription}>{offering.description}</p>
+        
+        <div className={styles.offeringSpecs}>
+          {Object.entries(offering.specs).slice(0, 3).map(([key, value]) => value && (
+            <Badge key={key} variant="outline" size="sm">
+              {key}: {value}
+            </Badge>
+          ))}
+        </div>
+        
+        <div className={styles.offeringFooter}>
+          <span className={styles.offeringPricing}>{offering.pricing}</span>
+          {isLocked && selectionResult?.message && (
+            <span className={styles.unlockHint}>{selectionResult.message}</span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const renderDetailedView = (component: DrawerComponent) => {
+    const detailedView = getDetailedView?.(component.id);
+    if (!detailedView) return null;
+
+    return (
+      <div className={styles.detailedView}>
+        <div className={styles.detailSection}>
+          <h4 className={styles.sectionTitle}>Overview</h4>
+          <p className={styles.sectionDescription}>{detailedView.sections.overview.description}</p>
+          
+          <div className={styles.conceptList}>
+            <h5>Key Concepts:</h5>
+            <ul>
+              {detailedView.sections.overview.concepts.map(concept => (
+                <li key={concept}>{concept}</li>
+              ))}
+            </ul>
+          </div>
+          
+          <div className={styles.useCaseList}>
+            <h5>Common Use Cases:</h5>
+            <ul>
+              {detailedView.sections.overview.useCases.map(useCase => (
+                <li key={useCase}>{useCase}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className={styles.detailSection}>
+          <h4 className={styles.sectionTitle}>Available Implementations</h4>
+          
+          {Object.entries(detailedView.sections.implementations).map(([category, offerings]) => (
+            offerings.length > 0 && (
+              <div key={category} className={styles.vendorCategory}>
+                <h5 className={styles.vendorCategoryTitle}>
+                  {category === 'cloud' && '☁️ Cloud Providers'}
+                  {category === 'selfHosted' && '🏠 Self-Hosted'}
+                  {category === 'enthusiast' && '🔧 DIY / Enthusiast'}
+                </h5>
+                <div className={styles.offeringGrid}>
+                  {offerings.map(offering => renderOffering(offering, component, category))}
+                </div>
+              </div>
+            )
+          ))}
+        </div>
+
+        <div className={styles.detailSection}>
+          <h4 className={styles.sectionTitle}>Guidance</h4>
+          <div className={styles.guidanceContent}>
+            <p><strong>When to use:</strong> {detailedView.sections.guidance.whenToUse}</p>
+            
+            {detailedView.sections.guidance.alternatives.length > 0 && (
+              <div className={styles.alternatives}>
+                <strong>Consider alternatives:</strong>
+                <div className={styles.alternativeList}>
+                  {detailedView.sections.guidance.alternatives.map(alt => (
+                    <Button
+                      key={alt.id}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleComponentClick(alt)}
+                    >
+                      {alt.name}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {detailedView.sections.guidance.nextSteps.length > 0 && (
+              <div className={styles.nextSteps}>
+                <strong>Next steps:</strong>
+                <ul>
+                  {detailedView.sections.guidance.nextSteps.map(step => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className={clsx(styles.drawer, className)}>
@@ -117,13 +292,15 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
                     </p>
                   ) : (
                     categoryComponents.map(component => (
-                      <ComponentCard
-                        key={component.id}
-                        data={component}
-                        variant="drawer"
-                        onDragStart={handleComponentDragStart}
-                        onDragEnd={handleComponentDragEnd}
-                      />
+                      <div key={component.id} className={styles.componentWrapper}>
+                        <ComponentCard
+                          drawerComponent={component}
+                          variant="drawer"
+                          isExpanded={expandedComponent === component.id}
+                          onClick={() => handleComponentClick(component)}
+                        />
+                        {expandedComponent === component.id && renderDetailedView(component)}
+                      </div>
                     ))
                   )}
                 </div>
