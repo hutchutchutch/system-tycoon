@@ -53,31 +53,44 @@ const designSlice = createSlice({
     },
     
     // Node Management
-    addNode: (state, action: PayloadAction<{ component: ComponentData; position: { x: number; y: number } }>) => {
+    addNode: (state, action: PayloadAction<{ component: any; position: { x: number; y: number } }>) => {
       const { component, position } = action.payload;
       
-      // Create node object without Immer wrapper issues
+      // Generate unique node ID
       const nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Handle different component data structures
+      const normalizedComponent = {
+        id: component.id || component.component_id,
+        name: component.name || component.service_name,
+        type: component.type || component.category,
+        category: component.category || component.vendor_category,
+        cost: component.cost || component.base_cost || 50,
+        capacity: component.capacity || 1000,
+        description: component.description || component.short_description,
+        icon: component.icon || component.icon_name || 'server'
+      };
+      
       const newNode = {
         id: nodeId,
         type: 'custom' as const,
         position: { ...position },
         data: {
-          id: component.id,
-          name: component.name,
-          type: component.type,
-          category: component.category,
-          cost: component.cost,
-          capacity: component.capacity,
-          description: component.description,
-          label: component.name,
-          icon: component.type,
+          id: normalizedComponent.id,
+          name: normalizedComponent.name,
+          type: normalizedComponent.type,
+          category: normalizedComponent.category,
+          cost: normalizedComponent.cost,
+          capacity: normalizedComponent.capacity,
+          description: normalizedComponent.description,
+          label: normalizedComponent.name,
+          icon: normalizedComponent.icon,
         },
       };
       
       // Push to nodes array (Immer will handle the immutability)
       (state.nodes as any).push(newNode);
-      state.totalCost += component.cost;
+      state.totalCost += normalizedComponent.cost;
       
       // Clear dragged component
       state.draggedComponent = null;

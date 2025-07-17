@@ -1,4 +1,4 @@
-/* System Tycoon - Global Styles */
+/* Service as a Software - Global Styles */
 /* Main entry point for global styles */
 
 /* 1. Foundation Layer - Base tokens and reset */
@@ -81,4 +81,19 @@ body {
     background: white;
     color: black;
   }
+}
+
+/* Neumorphic Button Styles */
+.neumorphic-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 300ms;
+  background: linear-gradient(to bottom right, rgba(155, 135, 245, 0.2), transparent);
+  border-radius: 9999px;
+}
+  
+.neumorphic-button:hover::after {
+  opacity: 1;
 } 

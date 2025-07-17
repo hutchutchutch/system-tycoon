@@ -1,5 +1,5 @@
 import React from 'react';
-import LandingHero from '../components/organisms/LandingHero/LandingHero';
+import Globe3D from '../components/ui/hero';
 import CrisisAlert from '../components/organisms/CrisisAlert/CrisisAlert';
 import HowItWorks from '../components/organisms/HowItWorks/HowItWorks';
 import MissionShowcase from '../components/organisms/MissionShowcase/MissionShowcase';
@@ -13,7 +13,7 @@ export const LandingPage: React.FC = () => {
       <CrisisAlert />
       
       {/* Hero Section */}
-      <LandingHero />
+      <Globe3D />
       
       {/* How It Works Section */}
       <HowItWorks />

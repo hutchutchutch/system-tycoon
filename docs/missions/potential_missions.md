@@ -1,4 +1,4 @@
-# 20 Community-Driven Mission Themes for System Tycoon
+# 20 Community-Driven Mission Themes for Service as a Software
 
 ## 1. **The Neighborhood Fridge Network**
 **Initial Need**: Maria, a single mom, starts a "Little Free Pantry" outside her apartment and creates a simple Instagram account to coordinate donations.

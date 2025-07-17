@@ -10,7 +10,7 @@ const LandingHero: React.FC = () => {
   const navigate = useNavigate();
 
   const handleStartBuilding = () => {
-    navigate('/auth/signin');
+    navigate('/auth');
   };
 
   const fadeInUp = {

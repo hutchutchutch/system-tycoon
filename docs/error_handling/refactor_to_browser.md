@@ -5105,7 +5105,7 @@ interface MenuTemplateProps {
  */
 export const MenuTemplate: React.FC<MenuTemplateProps> = ({ 
   children,
-  title = 'System Tycoon' 
+  title = 'Service as a Software' 
 }) => {
   // Redux state selectors
   const menuState = useAppSelector((state) => state.ui.menuState);

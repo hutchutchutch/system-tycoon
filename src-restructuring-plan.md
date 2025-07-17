@@ -1,4 +1,4 @@
-# System Tycoon Component Restructuring Plan
+# Service as a Software Component Restructuring Plan
 
 ## Executive Summary
 The current component structure follows a feature-based organization instead of the documented Atomic Design methodology. This plan outlines the migration to achieve 100% compliance with the design system documentation.

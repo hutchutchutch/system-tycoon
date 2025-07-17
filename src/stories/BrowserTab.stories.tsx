@@ -28,7 +28,7 @@ type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {
   args: {
-    title: 'Email - System Tycoon',
+    title: 'Email - Service as a Software',
     url: 'https://mail.systemtycoon.com/inbox',
     active: false,
   },
@@ -36,7 +36,7 @@ export const Default: Story = {
 
 export const Active: Story = {
   args: {
-    title: 'Dashboard - System Tycoon',
+    title: 'Dashboard - Service as a Software',
     url: 'https://dashboard.systemtycoon.com',
     active: true,
     favicon: '/api.png',

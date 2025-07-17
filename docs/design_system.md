@@ -1,7 +1,7 @@
-# System Tycoon - Tech Consultant Simulator Design System
+# Service as a Software - Tech Consultant Simulator Design System
 
 ## 1. Introduction
-This document provides comprehensive documentation for all components in System Tycoon - Tech Consultant Simulator, organized according to the Atomic Design methodology. The simulator creates a realistic browser-based experience where players navigate the journey from financial desperation to successful tech consulting through authentic digital tools.
+This document provides comprehensive documentation for all components in Service as a Software - Tech Consultant Simulator, organized according to the Atomic Design methodology. The simulator creates a realistic browser-based experience where players navigate the journey from financial desperation to successful tech consulting through authentic digital tools.
 
 ### Design Principles
 - **Modern Minimalism**: Clean, card-based interface with subtle shadows and professional aesthetics

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document details the Redux state management implementation for component selection and collaboration mode tracking in the System Tycoon application. The implementation follows Redux best practices and provides a predictable state management solution for managing component-specific scenarios, mentor selection, and collaboration features.
+This document details the Redux state management implementation for component selection and collaboration mode tracking in the Service as a Software application. The implementation follows Redux best practices and provides a predictable state management solution for managing component-specific scenarios, mentor selection, and collaboration features.
 
 **Recent Updates:**
 - Theme Management with Dark Mode Toggle

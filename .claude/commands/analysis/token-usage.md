@@ -1,6 +1,6 @@
 # Modern Design System - Token Usage Guide
 
-Comprehensive guide for using the updated modern design tokens in System Tycoon.
+Comprehensive guide for using the updated modern design tokens in Service as a Software.
 
 ## Design Philosophy
 

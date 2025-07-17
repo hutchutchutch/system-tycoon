@@ -52,8 +52,8 @@ export const SCORE_WEIGHTS = {
 export const ROUTES = {
   HOME: '/',
   AUTH: '/auth',
-  SIGN_IN: '/auth/signin',
-  SIGN_UP: '/auth/signup',
+  SIGN_IN: '/auth',
+  SIGN_UP: '/auth',
   GAME: '/game',
   MEETING: '/meeting/:scenarioId',
   MENTOR_SELECT: '/mentor/:scenarioId',

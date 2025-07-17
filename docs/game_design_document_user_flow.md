@@ -1,4 +1,4 @@
-# System Tycoon - User Flow & Interaction Design
+# Service as a Software - User Flow & Interaction Design
 ## Game Design Document (User Experience Focus)
 
 **Version:** 3.0  
@@ -24,7 +24,7 @@
 
 ## 1. Executive Summary
 
-System Tycoon transforms players into tech consultants who discover their calling through a news aggregator showcasing local heroes facing technical crises. The game emphasizes discovery over desperation, empowerment over survival, and community impact over personal gain.
+Service as a Software transforms players into tech consultants who discover their calling through a news aggregator showcasing local heroes facing technical crises. The game emphasizes discovery over desperation, empowerment over survival, and community impact over personal gain.
 
 ### Core Experience Loop
 1. **Browse** news stories about heroes in crisis

@@ -1,5 +1,12 @@
 // Molecules - Simple component groups with UI state
 
+// Authentication components
+export { AuthForm } from './AuthForm';
+export type { AuthFormProps } from './AuthForm';
+
+export { AvatarGroup } from './AvatarGroup';
+export type { AvatarGroupProps } from './AvatarGroup';
+
 // Email system components
 export { EmailCard } from './EmailCard';
 export type { EmailCardProps } from './EmailCard';

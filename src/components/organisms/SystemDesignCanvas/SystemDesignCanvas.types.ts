@@ -24,5 +24,7 @@ export interface SystemDesignCanvasProps {
   projectId: string;
   requirements: Requirement[];
   budget: Budget;
-  onValidate: (system: SystemDesign) => ValidationResult;
+  onValidate?: (isValid: boolean) => void;
+  sessionId?: string;
+  isCollaborative?: boolean;
 }

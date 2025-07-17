@@ -1,7 +1,46 @@
-import React from 'react';
-import { BentoNewsDemo } from '../../components/ui/bento-news-demo';
+import React, { useState, useEffect } from 'react';
+import { BentoGrid } from '../../components/molecules/BentoGrid';
+import { newsService } from '../../services/newsService';
+import type { NewsArticle } from '../../types/news.types';
 
 export const NewsDemo: React.FC = () => {
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        setLoading(true);
+        const data = await newsService.fetchArticles({ limit: 8 });
+        setArticles(data);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  const handleContact = async (article: NewsArticle) => {
+    try {
+      await newsService.incrementContactCount(article.id);
+      console.log('Contact initiated for:', article.headline);
+      // You can add more contact handling logic here
+    } catch (error) {
+      console.error('Error tracking contact:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse">Loading news...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Gradient background */}
@@ -15,46 +54,31 @@ export const NewsDemo: React.FC = () => {
             <div className="inline-flex items-center gap-2 mb-4">
               <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
               <span className="text-sm font-medium text-red-500 uppercase tracking-wider">
-                Live Updates
+                Breaking News
               </span>
             </div>
-            <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Tech Crisis News Feed
+            
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+              Community News Hub
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-              Breaking stories from the healthcare technology sector. 
-              Critical system failures require immediate attention.
+            
+            <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+              Real stories from communities that need technical solutions. Each story represents an opportunity to make a difference.
             </p>
           </div>
 
           {/* News Grid */}
-          <BentoNewsDemo />
-
-          {/* Stats Bar */}
-          <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-              <div className="text-2xl font-bold text-red-500">247</div>
-              <div className="text-sm text-gray-400">Systems Affected</div>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-              <div className="text-2xl font-bold text-amber-500">14</div>
-              <div className="text-sm text-gray-400">States Impacted</div>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-              <div className="text-2xl font-bold text-green-500">89</div>
-              <div className="text-sm text-gray-400">Teams Responding</div>
-            </div>
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-4 border border-white/10">
-              <div className="text-2xl font-bold text-blue-500">Live</div>
-              <div className="text-sm text-gray-400">Status Updates</div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="mt-12 text-center text-sm text-gray-500">
-            <p>Last updated: {new Date().toLocaleString()}</p>
-            <p className="mt-2">Press SPACE to refresh • ESC to close</p>
-          </div>
+          <BentoGrid
+            articles={articles}
+            onContact={handleContact}
+          >
+            {/* Fallback content when no articles */}
+            {articles.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-400">No articles available</p>
+              </div>
+            )}
+          </BentoGrid>
         </div>
       </div>
     </div>

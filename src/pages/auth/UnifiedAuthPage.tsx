@@ -124,7 +124,7 @@ export const UnifiedAuthPage: React.FC = () => {
         
         {/* Title */}
         <h2 className="text-3xl font-bold text-white mb-2 text-center">
-          System Tycoon
+          Service as a Software
         </h2>
         <p className="text-gray-300 text-sm mb-6 text-center">
           {authMode === 'signin' ? 'Welcome back, architect!' : 'Start your system design journey'}

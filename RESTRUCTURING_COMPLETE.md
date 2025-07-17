@@ -1,7 +1,7 @@
 # Atomic Design System Restructuring - COMPLETE
 
 ## Summary
-Successfully restructured the System Tycoon repository to follow the atomic design system as specified in `design_system.md` and added comprehensive Redux state management documentation per `redux_state_management.md`.
+Successfully restructured the Service as a Software repository to follow the atomic design system as specified in `design_system.md` and added comprehensive Redux state management documentation per `redux_state_management.md`.
 
 ## What Was Accomplished
 

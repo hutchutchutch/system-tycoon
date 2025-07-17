@@ -103,6 +103,7 @@ export const sampleNewsHeroes: NewsHero[] = [
     organization: 'Wildlife Research Institute',
     avatar: '🐘',
     location: 'Nairobi, Kenya',
+    category: 'environment',
     urgency: 'high',
     headline: 'Biologist Tracks Endangered Species on Notebook Paper',
     preview: 'Monitoring 50 elephant families with handwritten notes - conservation efforts at risk.',
@@ -168,3 +169,108 @@ export const sampleNewsHeroes: NewsHero[] = [
     }
   }
 ];
+
+export interface NewsArticle {
+  id: string;
+  mission_id: string;
+  headline: string;
+  subheadline?: string;
+  preview_text: string;
+  full_text: string;
+  hero_image_url?: string;
+  thumbnail_url?: string;
+  image_alt_text?: string;
+  author_name: string;
+  author_avatar_url?: string;
+  publication_name: string;
+  urgency_level: 'critical' | 'high' | 'medium' | 'low';
+  impact_stats: Record<string, any>;
+  location?: string;
+  category_slug: string;
+  tags: string[];
+  grid_size: 'small' | 'medium' | 'large' | 'featured';
+  sort_weight: number;
+  article_status: 'draft' | 'active' | 'in_progress' | 'success' | 'partial_success' | 'expired';
+  success_headline?: string;
+  success_text?: string;
+  success_stats?: Record<string, any>;
+  success_published_at?: string;
+  view_count: number;
+  contact_count: number;
+  completion_count: number;
+  meta_description?: string;
+  social_image_url?: string;
+  published_at: string;
+  updated_at: string;
+  expires_at?: string;
+  created_at: string;
+}
+
+export interface NewsHeroContact {
+  name: string;
+  title: string;
+  organization: string;
+  avatar: string;
+  email?: string;
+  technicalProblem: string;
+  skillsNeeded: string[];
+  businessConstraints: {
+    budget: string;
+    timeline: string;
+  };
+  impact: {
+    people: number;
+    metric: string;
+  };
+}
+
+// Convert NewsArticle to format needed for EmailComposer
+export function newsArticleToHero(article: NewsArticle): NewsHero {
+  // Extract key info from article for EmailComposer
+  const impactPeople = article.impact_stats.families_affected || 
+                      article.impact_stats.students_benefited || 
+                      article.impact_stats.children_sick || 
+                      article.impact_stats.households_affected || 
+                      article.impact_stats.businesses_participating || 
+                      100;
+  
+  const impactMetric = article.category_slug === 'healthcare' ? 'people at risk' :
+                      article.category_slug === 'education' ? 'students affected' :
+                      article.category_slug === 'environment' ? 'households impacted' :
+                      article.category_slug === 'small-business' ? 'businesses affected' :
+                      'people impacted';
+
+  // Map category_slug to NewsHero category
+  const categoryMap: Record<string, NewsHero['category']> = {
+    'healthcare': 'healthcare',
+    'environment': 'environment', 
+    'education': 'education',
+    'small-business': 'education', // Map to closest match
+    'community': 'mental-health' // Map to closest match
+  };
+
+  return {
+    id: article.id,
+    name: article.author_name,
+    title: 'Community Leader',
+    organization: article.location || 'Local Community',
+    avatar: article.author_avatar_url || '👤',
+    location: article.location || '',
+    category: categoryMap[article.category_slug] || 'healthcare',
+    urgency: article.urgency_level,
+    headline: article.headline,
+    preview: article.preview_text,
+    fullDescription: article.full_text,
+    impact: {
+      people: impactPeople,
+      metric: impactMetric
+    },
+    technicalProblem: article.subheadline || 'Technical system challenges requiring expert assistance',
+    skillsNeeded: article.tags.filter(tag => !['urgent', 'critical', 'community'].includes(tag)),
+    businessConstraints: {
+      budget: article.impact_stats.budget_available || '$5,000',
+      timeline: `${article.impact_stats.days_until_vote || 30} days`,
+      compliance: []
+    }
+  };
+}

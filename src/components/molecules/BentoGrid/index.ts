@@ -1,2 +1,2 @@
-export { BentoGrid, BentoCard } from './BentoGrid';
-export type { BentoGridProps, BentoCardProps } from './BentoGrid.types'; 
+export { BentoGrid, BentoCard, BentoCardSmall, BentoCardMedium, BentoCardLarge } from './BentoGrid';
+export type { BentoGridProps, BentoCardProps, BentoCardSmallProps, BentoCardMediumProps, BentoCardLargeProps } from './BentoGrid.types'; 

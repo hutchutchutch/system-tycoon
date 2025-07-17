@@ -1,7 +1,5 @@
 import React, { useCallback } from 'react';
-import { clsx } from 'clsx';
 import type { InputProps } from './Input.types';
-import styles from './Input.module.css';
 
 export const Input: React.FC<InputProps> = ({
   type = 'text',
@@ -15,7 +13,7 @@ export const Input: React.FC<InputProps> = ({
   rightIcon,
   size = 'medium',
   fullWidth = false,
-  className,
+  className = '',
   'aria-label': ariaLabel,
   ...props
 }) => {
@@ -23,13 +21,87 @@ export const Input: React.FC<InputProps> = ({
     onChange(e.target.value);
   }, [onChange]);
 
-  // Map size prop values to CSS module classes
-  const sizeClass = size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'md';
+  const sizeStyles = {
+    small: {
+      padding: 'var(--spacing-xs) var(--spacing-sm)',
+      fontSize: 'var(--text-sm)',
+      height: '32px',
+    },
+    medium: {
+      padding: 'var(--spacing-sm) var(--spacing-md)',
+      fontSize: 'var(--text-base)',
+      height: '40px',
+    },
+    large: {
+      padding: 'var(--spacing-md) var(--spacing-lg)',
+      fontSize: 'var(--text-lg)',
+      height: '48px',
+    },
+  };
+
+  const baseInputStyles = {
+    width: fullWidth ? '100%' : 'auto',
+    border: error ? '1px solid var(--color-accent-error)' : '1px solid var(--color-border-primary)',
+    borderRadius: 'var(--radius-md)',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    color: 'var(--color-text-primary)',
+    fontFamily: 'inherit',
+    outline: 'none',
+    transition: 'all var(--transition-fast)',
+    backdropFilter: 'blur(8px)',
+    ...sizeStyles[size],
+  };
+
+  const focusStyles = `
+    &:focus {
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    }
+    &::placeholder {
+      color: var(--color-text-placeholder);
+    }
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  `;
+
+  const wrapperStyles = {
+    position: 'relative' as const,
+    display: 'inline-flex',
+    alignItems: 'center',
+    width: fullWidth ? '100%' : 'auto',
+  };
+
+  const iconStyles = {
+    position: 'absolute' as const,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    pointerEvents: 'none' as const,
+    color: 'var(--color-text-tertiary)',
+    zIndex: 1,
+  };
+
+  const leftIconStyles = {
+    ...iconStyles,
+    left: 'var(--spacing-sm)',
+  };
+
+  const rightIconStyles = {
+    ...iconStyles,
+    right: 'var(--spacing-sm)',
+  };
+
+  const inputWithIconsStyles = {
+    ...baseInputStyles,
+    paddingLeft: leftIcon ? 'calc(var(--spacing-xl) + var(--spacing-sm))' : baseInputStyles.padding,
+    paddingRight: rightIcon ? 'calc(var(--spacing-xl) + var(--spacing-sm))' : baseInputStyles.padding,
+  };
 
   return (
-    <div className={clsx(styles['input-wrapper'], { 'w-full': fullWidth })}>
+    <div style={wrapperStyles} className={className}>
       {leftIcon && (
-        <span className={clsx(styles['input-wrapper__icon'], styles['input-wrapper__icon--left'])} aria-hidden="true">
+        <span style={leftIconStyles} aria-hidden="true">
           {leftIcon}
         </span>
       )}
@@ -39,35 +111,30 @@ export const Input: React.FC<InputProps> = ({
         onChange={handleChange}
         placeholder={placeholder}
         disabled={disabled}
-        className={clsx(
-          styles.input,
-          styles[`input--${sizeClass}`],
-          {
-            [styles['input--error']]: error,
-            [styles['input--with-icon-left']]: leftIcon,
-            [styles['input--with-icon-right']]: rightIcon,
-          },
-          className
-        )}
         aria-label={ariaLabel}
-        aria-invalid={error}
-        aria-describedby={errorMessage ? `error-${value}` : undefined}
+        style={inputWithIconsStyles}
         {...props}
       />
       {rightIcon && (
-        <span className={clsx(styles['input-wrapper__icon'], styles['input-wrapper__icon--right'])} aria-hidden="true">
+        <span style={rightIconStyles} aria-hidden="true">
           {rightIcon}
         </span>
       )}
-      {errorMessage && (
-        <span 
-          id={`error-${value}`}
-          className={styles['input-group__error']}
-          role="alert"
+      {error && errorMessage && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            marginTop: 'var(--spacing-xs)',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--color-accent-error)',
+          }}
         >
           {errorMessage}
-        </span>
+        </div>
       )}
+      <style>{focusStyles}</style>
     </div>
   );
 };

@@ -1,0 +1,92 @@
+/* ComponentNode Styles */
+
+.componentNode {
+  background: var(--color-white);
+  border: 2px solid var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  min-width: 120px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  position: relative;
+}
+
+.componentNode:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-neutral-400);
+}
+
+.componentNode.selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.componentNode.collaboratorSelected {
+  border-color: var(--color-success-500);
+}
+
+.nodeContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-800);
+  text-align: center;
+}
+
+.cost {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.handle {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary-500);
+  border: 2px solid var(--color-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.handle:hover {
+  transform: scale(1.2);
+}
+
+.selectionIndicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 12px;
+  height: 12px;
+  background: var(--color-success-500);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-white);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+} 

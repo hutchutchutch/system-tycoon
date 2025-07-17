@@ -1,0 +1,39 @@
+/* CollaboratorCursor Styles */
+
+.collaboratorCursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: var(--z-50);
+}
+
+.cursorSvg {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.nameBadge {
+  position: absolute;
+  top: 24px;
+  left: 16px;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-white);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  white-space: nowrap;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.avatar {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
+}
+
+.name {
+  line-height: 1;
+} 

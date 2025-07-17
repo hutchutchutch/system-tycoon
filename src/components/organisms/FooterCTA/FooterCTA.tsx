@@ -34,7 +34,7 @@ const FooterCTA: React.FC = () => {
   };
 
   const handleStartMission = () => {
-    navigate('/auth/signin');
+    navigate('/auth');
   };
 
   return (

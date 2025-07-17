@@ -17,7 +17,7 @@ BrowserWindow (Organism)
   │   │   │   │   │   │   │   └── spinner (loading)
   │   │   │   │   │   │   │
   │   │   │   │   │   │   ├── browserTab__title
-  │   │   │   │   │   │   │   └── "Email - System Tycoon"
+  │   │   │   │   │   │   │   └── "Email - Service as a Software"
   │   │   │   │   │   │   │
   │   │   │   │   │   │   ├── browserTab__modified (●)
   │   │   │   │   │   │   │   └── [shows for unsaved drafts]
@@ -90,17 +90,17 @@ BrowserWindow (Organism)
   Email Tab States:
   Email Tab (Active with notifications):
   ┌─────────────────────────────────┐
-  │ 📧 Email - System Tycoon (3) 🔴 ✕ │
+  │ 📧 Email - Service as a Software (3) 🔴 ✕ │
   └─────────────────────────────────┘
 
   Email Tab (Loading):
   ┌─────────────────────────────────┐
-  │ ⚡ Email - System Tycoon      ✕ │
+  │ ⚡ Email - Service as a Software      ✕ │
   └─────────────────────────────────┘
 
   Email Tab (With unsaved draft):
   ┌─────────────────────────────────┐
-  │ 📧 Email - System Tycoon   ● 🔴 ✕ │
+  │ 📧 Email - Service as a Software   ● 🔴 ✕ │
   └─────────────────────────────────┘
 
 
@@ -152,7 +152,7 @@ Based on my analysis of the Browser Tab component structure and how it
   Level 4: BrowserTab (Atom) - For Email Inbox
 
   Objects included:
-  - title: "Email - System Tycoon" (displayed text)
+  - title: "Email - Service as a Software" (displayed text)
   - url: "https://mail.systemtycoon.com/inbox" (email URL)
   - active: boolean (whether this tab is selected)
   - favicon: string (email icon, e.g., "/mail.png")

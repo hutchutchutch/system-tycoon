@@ -1,8 +1,8 @@
-# System Tycoon - Game to Browser Migration Guide
+# Service as a Software - Game to Browser Migration Guide
 
 ## Overview
 
-This guide outlines the migration from the game-based "System Design Tycoon" to the browser-based "System Tycoon - Tech Consultant Simulator".
+This guide outlines the migration from the game-based "System Design Tycoon" to the browser-based "Service as a Software - Tech Consultant Simulator".
 
 ## Key Conceptual Changes
 

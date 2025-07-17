@@ -1,220 +1,207 @@
-import React from 'react';
-import { Database, Cloud, Shield, Briefcase, TrendingUp, Code } from 'lucide-react';
-import { BentoCard, BentoGrid } from '../../components/ui/bento-grid';
+import React, { useState, useCallback, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { BentoGrid } from '../../components/molecules/BentoGrid';
+import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
+import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
+import { newsService } from '../../services/newsService';
+import type { NewsArticle } from '../../types/news.types';
+import type { Mentor } from '../../types/mentor.types';
 
-const techNewsFeatures = [
-  {
-    Icon: Database,
-    name: "New Database Scaling Patterns Released",
-    description: "Industry leaders share innovative approaches to horizontal database scaling with microservices architecture. New patterns include auto-sharding, read replicas, and connection pooling strategies that can handle millions of concurrent users.",
-    href: "#database-scaling",
-    cta: "Learn Patterns",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:row-start-1 lg:row-end-3 lg:col-start-1 lg:col-end-2",
-  },
-  {
-    Icon: Cloud,
-    name: "Cloud Architecture Best Practices 2024",
-    description: "Updated guidelines for building resilient cloud-native applications with focus on observability and cost optimization.",
-    href: "#cloud-practices",
-    cta: "Read Guide",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 197, 253, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2",
-  },
-  {
-    Icon: Briefcase,
-    name: "System Design Interview Trends",
-    description: "What top tech companies are looking for in system design interviews this year. Focus on scalability, reliability, and real-world constraints.",
-    href: "#interview-trends",
-    cta: "Prep Guide",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-2 lg:row-end-3",
-  },
-  {
-    Icon: Shield,
-    name: "Kubernetes Security Updates",
-    description: "Critical security patches and best practices for container orchestration. New RBAC policies and network security measures.",
-    href: "#k8s-security",
-    cta: "Security Guide",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(251, 191, 36, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:col-start-2 lg:col-end-3 lg:row-start-3 lg:row-end-4",
-  },
-  {
-    Icon: TrendingUp,
-    name: "Tech Trends Shaping 2024",
-    description: "AI-powered development tools, edge computing adoption, and the rise of WebAssembly in production environments are transforming how we build software.",
-    href: "#tech-trends",
-    cta: "Explore Trends",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(251, 113, 133, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:col-start-3 lg:col-end-4 lg:row-start-1 lg:row-end-2",
-  },
-  {
-    Icon: Code,
-    name: "Developer Productivity Revolution",
-    description: "New tools and methodologies increasing developer efficiency by 300%. AI pair programming, automated testing, and intelligent code review systems are becoming mainstream.",
-    href: "#dev-productivity",
-    cta: "Boost Productivity",
-    background: (
-      <div style={{ 
-        position: 'absolute', 
-        inset: 0, 
-        background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(129, 140, 248, 0.1) 50%, transparent 100%)' 
-      }} />
-    ),
-    className: "lg:col-start-3 lg:col-end-4 lg:row-start-2 lg:row-end-4",
-  },
-];
+interface NewsWrapperProps {
+  hero?: {
+    headline: string;
+    subheadline: string;
+    tags: string[];
+  };
+  mentor?: Mentor;
+}
 
-export const NewsWrapper: React.FC = () => {
+export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
+  const [emailToOpen, setEmailToOpen] = useState<NewsArticle | null>(null);
+  const [articles, setArticles] = useState<NewsArticle[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch articles and categories on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [articlesData, categoriesData] = await Promise.all([
+          newsService.fetchArticles({ limit: 6 }),
+          newsService.getCategories()
+        ]);
+        
+        setArticles(articlesData);
+        setCategories(categoriesData);
+      } catch (error) {
+        console.error('Error fetching news data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Filter articles when categories change
+  useEffect(() => {
+    if (selectedCategories.length === 0) {
+      // Show all articles if no categories selected
+      newsService.fetchArticles({ limit: 6 }).then(setArticles);
+    } else {
+      // Filter by selected categories
+      newsService.fetchArticles({ 
+        limit: 6, 
+        categories: selectedCategories 
+      }).then(setArticles);
+    }
+  }, [selectedCategories]);
+
+  const handleContact = useCallback(async (article: NewsArticle) => {
+    try {
+      await newsService.incrementContactCount(article.id);
+      setEmailToOpen(article);
+    } catch (error) {
+      console.error('Error tracking contact:', error);
+      setEmailToOpen(article);
+    }
+  }, []);
+
+  const handleTagClick = useCallback((categorySlug: string) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(categorySlug)) {
+        return prev.filter(cat => cat !== categorySlug);
+      } else {
+        return [...prev, categorySlug];
+      }
+    });
+  }, []);
+
+  const formatCategoryName = (slug: string) => {
+    return slug.split('-').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-pulse">Loading news...</div>
+      </div>
+    );
+  }
+
   return (
-    <div 
-      style={{
-        width: '100%',
-        height: '100%',
-        background: 'var(--color-surface-primary)',
-        overflow: 'auto',
-        fontFamily: 'var(--font-primary)'
-      }}
-    >
-      <div 
-        style={{
-          maxWidth: 'var(--layout-content-max-width)',
-          margin: '0 auto',
-          padding: 'var(--space-6)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-6)',
-          minHeight: '100%'
-        }}
-      >
-        {/* Header */}
-        <div 
-          style={{
-            textAlign: 'center',
-            marginBottom: 'var(--space-8)'
-          }}
-        >
-          <div
-            style={{
-              background: 'linear-gradient(135deg, var(--color-accent-primary) 0%, var(--color-accent-tertiary) 100%)',
-              color: 'var(--color-text-primary)',
-              padding: 'var(--space-2) var(--space-4)',
-              borderRadius: 'var(--radius-full)',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 'var(--font-weight-bold)',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 'var(--space-1)',
-              marginBottom: 'var(--space-4)',
-              boxShadow: '0 8px 32px rgba(59, 130, 246, 0.4)'
-            }}
-          >
-            📈 TRENDING
+    <>
+      <div className="min-h-screen bg-black text-white">
+        {/* Gradient background */}
+        <div className="fixed inset-0 bg-gradient-to-br from-neutral-900 via-black to-neutral-900" />
+        
+        {/* Content */}
+        <div className="relative z-10">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            {/* Header */}
+            {hero && (
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center gap-2 mb-4">
+                  <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-sm font-medium text-red-500 uppercase tracking-wider">
+                    Breaking News
+                  </span>
+                </div>
+                
+                <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  {hero.headline}
+                </h1>
+                
+                <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                  {hero.subheadline}
+                </p>
+              </div>
+            )}
+
+            {/* Category Tags */}
+            {categories.length > 0 && (
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">Filter by Category:</h3>
+                <TagGroup 
+                  selectionMode="multiple"
+                  selectedKeys={new Set(selectedCategories)}
+                  onSelectionChange={(keys) => {
+                    setSelectedCategories(Array.from(keys) as string[]);
+                  }}
+                >
+                  <TagList>
+                    {categories.map((categorySlug) => (
+                      <Tag 
+                        key={categorySlug}
+                        id={categorySlug}
+                        className="cursor-pointer hover:scale-105 transition-transform"
+                      >
+                        {formatCategoryName(categorySlug)}
+                      </Tag>
+                    ))}
+                  </TagList>
+                </TagGroup>
+              </div>
+            )}
+
+            {/* News Grid with real data */}
+            <BentoGrid 
+              articles={articles}
+              onContact={handleContact}
+            >
+              {/* Fallback content when no articles */}
+              {articles.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-gray-400">No articles available</p>
+                </div>
+              )}
+            </BentoGrid>
           </div>
-          
-          <h1 
-            style={{
-              fontSize: 'var(--text-4xl)',
-              fontWeight: 'var(--font-weight-bold)',
-              color: 'var(--color-text-primary)',
-              margin: '0 0 var(--space-2) 0',
-              letterSpacing: '-0.02em'
-            }}
-          >
-            Tech News
-          </h1>
-          
-          <p 
-            style={{
-              fontSize: 'var(--text-lg)',
-              color: 'var(--color-text-tertiary)',
-              margin: 0
-            }}
-          >
-            Latest updates in system design and engineering
-          </p>
-        </div>
-
-        {/* News Grid */}
-        <div style={{ flex: 1 }}>
-          <BentoGrid className="tech-news-grid">
-            {techNewsFeatures.map((feature) => (
-              <BentoCard key={feature.name} {...feature} />
-            ))}
-          </BentoGrid>
-        </div>
-
-        {/* Footer */}
-        <div 
-          style={{
-            textAlign: 'center',
-            marginTop: 'var(--space-12)',
-            padding: 'var(--space-4)',
-            borderTop: '1px solid var(--color-border-primary)',
-            color: 'var(--color-text-tertiary)',
-            fontSize: 'var(--text-sm)'
-          }}
-        >
-          <p style={{ margin: 0 }}>
-            Subscribe for weekly tech insights • Last updated: {new Date().toLocaleTimeString()}
-          </p>
         </div>
       </div>
 
-      <style>{`
-        .tech-news-grid {
-          grid-template-rows: repeat(3, 22rem);
-          grid-template-columns: repeat(3, 1fr);
-        }
-        
-        @media (max-width: 1023px) {
-          .tech-news-grid {
-            grid-template-columns: 1fr !important;
-            grid-template-rows: repeat(6, 20rem) !important;
-          }
-          
-          .tech-news-grid .bento-card {
-            grid-column: span 1 !important;
-            grid-row: span 1 !important;
-          }
-        }
-        
-        @media (max-width: 768px) {
-          .tech-news-grid {
-            grid-template-rows: repeat(6, 16rem) !important;
-          }
-        }
-      `}</style>
-    </div>
+      {/* Email Composer Modal - Simplified for now */}
+      {emailToOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setEmailToOpen(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-white rounded-lg p-6 max-w-2xl w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold mb-4 text-black">Contact About: {emailToOpen.headline}</h3>
+            <p className="text-gray-700 mb-6">{emailToOpen.preview_text}</p>
+            <div className="flex gap-4">
+              <button 
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
+                onClick={() => {
+                  console.log('Contact initiated for article:', emailToOpen.id);
+                  setEmailToOpen(null);
+                }}
+              >
+                Send Message
+              </button>
+              <button 
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                onClick={() => setEmailToOpen(null)}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </>
   );
 }; 

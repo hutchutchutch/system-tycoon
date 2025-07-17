@@ -6,8 +6,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
-import { SignInPage } from './pages/auth/SignInPage';
-import { SignUpPage } from './pages/auth/SignUpPage';
+import { UnifiedAuthPage } from './pages/auth/UnifiedAuthPage';
 import { InitialExperience } from './pages/InitialExperience';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
@@ -30,15 +29,15 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <Navigate to="/auth/signin" replace />,
+            element: <UnifiedAuthPage />,
           },
           {
             path: 'signin',
-            element: <SignInPage />,
+            element: <Navigate to="/auth" replace />,
           },
           {
             path: 'signup',
-            element: <SignUpPage />,
+            element: <Navigate to="/auth" replace />,
           },
           {
             path: 'callback',

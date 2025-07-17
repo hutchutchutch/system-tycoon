@@ -18,6 +18,70 @@
   color: var(--color-neutral-800);
 }
 
+/* Loading State */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--color-neutral-50);
+}
+
+.loadingSpinner {
+  padding: var(--space-8);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-neutral-200);
+  font-size: var(--text-lg);
+  color: var(--color-neutral-700);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.loadingSpinner::before {
+  content: '';
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-neutral-300);
+  border-top: 2px solid var(--color-primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.errorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  height: 100%;
+  background: var(--color-neutral-50);
+  color: var(--color-red-600);
+  padding: var(--space-8);
+  text-align: center;
+}
+
+[data-theme="dark"] .loadingContainer,
+[data-theme="dark"] .errorContainer {
+  background: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .loadingSpinner {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+  color: var(--color-neutral-800);
+}
+
 /* React Flow Viewport - Main Canvas (Full Width Now) */
 .canvasContainer {
   width: 100%;
@@ -61,7 +125,104 @@
   border-color: var(--color-neutral-300);
 }
 
-/* Floating Component Drawer Card - Left Side */
+/* Custom Node Styles - Enhanced for Better Visibility */
+.customNode {
+  min-width: 120px;
+  min-height: 80px;
+  background: var(--color-white);
+  border: 2px solid var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-fast) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.customNode:hover {
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.customNode.selected {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-500-rgb), 0.1), var(--shadow-lg);
+  background: var(--color-primary-50);
+}
+
+[data-theme="dark"] .customNode {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-400);
+  color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .customNode.selected {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-400);
+}
+
+.nodeHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  text-align: center;
+}
+
+.nodeTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-800);
+  margin: 0;
+  line-height: 1.2;
+}
+
+[data-theme="dark"] .nodeTitle {
+  color: var(--color-neutral-700);
+}
+
+.nodeDescription {
+  font-size: var(--text-xs);
+  color: var(--color-neutral-600);
+  margin: 0;
+  text-align: center;
+  line-height: 1.3;
+  max-width: 140px;
+}
+
+[data-theme="dark"] .nodeDescription {
+  color: var(--color-neutral-500);
+}
+
+/* Handle Enhancements */
+.customNode .react-flow__handle {
+  width: 12px;
+  height: 12px;
+  background: var(--color-primary-500);
+  border: 2px solid var(--color-white);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.customNode .react-flow__handle:hover {
+  transform: scale(1.2);
+  background: var(--color-primary-600);
+}
+
+.customNode .react-flow__handle.connecting {
+  background: var(--color-secondary-500);
+  transform: scale(1.3);
+}
+
+.customNode .react-flow__handle.valid {
+  background: var(--color-success-500);
+}
+
+/* Floating Component Drawer Card - Top Side */
 .componentDrawerCard {
   position: absolute;
   top: var(--space-6);
@@ -101,21 +262,14 @@
 }
 
 [data-theme="dark"] .drawerHeader {
-  border-color: var(--color-neutral-300);
+  border-bottom-color: var(--color-neutral-300);
 }
 
 .drawerTitle {
   font-size: var(--text-lg);
-  font-weight: var(--font-semibold);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-neutral-900);
   margin: 0;
-  opacity: 1;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.componentDrawerCard--collapsed .drawerTitle {
-  opacity: 0;
-  pointer-events: none;
 }
 
 [data-theme="dark"] .drawerTitle {
@@ -123,12 +277,12 @@
 }
 
 .drawerToggle {
-  background: transparent;
+  background: none;
   border: none;
-  padding: var(--space-2);
-  border-radius: var(--radius-md);
   color: var(--color-neutral-600);
   cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-md);
   transition: all var(--duration-fast) var(--ease-out);
   display: flex;
   align-items: center;
@@ -137,7 +291,7 @@
 
 .drawerToggle:hover {
   background: var(--color-neutral-100);
-  color: var(--color-neutral-900);
+  color: var(--color-neutral-800);
 }
 
 [data-theme="dark"] .drawerToggle {
@@ -146,84 +300,64 @@
 
 [data-theme="dark"] .drawerToggle:hover {
   background: var(--color-neutral-200);
-  color: var(--color-neutral-800);
+  color: var(--color-neutral-700);
 }
 
 .drawerContent {
-  flex: 1;
   padding: var(--space-4);
+  flex: 1;
   overflow-y: auto;
-  opacity: 1;
-  transition: opacity var(--duration-fast) var(--ease-out);
-  min-height: 0; /* Important for flexbox scrolling */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .componentDrawerCard--collapsed .drawerContent {
-  opacity: 0;
-  pointer-events: none;
+  display: none;
 }
 
 .drawerHint {
-  color: var(--color-neutral-600);
   font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
-  line-height: var(--leading-relaxed);
+  color: var(--color-neutral-600);
+  margin: 0 0 var(--space-4) 0;
+  padding: var(--space-3);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-primary-500);
 }
 
 [data-theme="dark"] .drawerHint {
   color: var(--color-neutral-500);
+  background: var(--color-neutral-200);
 }
 
-/* Floating Requirements Card - Right Side */
-.requirementsCard {
-  position: absolute;
-  top: var(--space-6);
-  right: var(--space-6);
-  width: 340px;
-  background: var(--color-white);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2xl);
-  border: 1px solid var(--color-neutral-200);
-  z-index: var(--z-20);
-  backdrop-filter: blur(8px);
-  transition: all var(--duration-fast) var(--ease-out);
-  max-height: calc(100vh - 12rem);
-  overflow: hidden;
-}
-
-[data-theme="dark"] .requirementsCard {
-  background: rgba(var(--color-neutral-100-rgb), 0.95);
-  border-color: var(--color-neutral-300);
-  box-shadow: var(--shadow-2xl);
-}
-
-/* Component Cards */
+/* Component Cards in Drawer */
 .componentCard {
-  background: var(--color-white);
-  border: 2px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  margin-bottom: var(--space-3);
-  cursor: grab;
-  transition: all var(--duration-fast) var(--ease-out);
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  cursor: grab;
+  transition: all var(--duration-fast) var(--ease-out);
+  user-select: none;
 }
 
 .componentCard:hover {
-  border-color: var(--color-primary-300);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+  border-color: var(--color-primary-400);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .componentCard:active {
   cursor: grabbing;
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 [data-theme="dark"] .componentCard {
-  background: var(--color-neutral-100);
+  background: var(--color-neutral-200);
   border-color: var(--color-neutral-300);
 }
 
@@ -232,14 +366,12 @@
 }
 
 .componentIcon {
-  width: 24px;
-  height: 24px;
   color: var(--color-primary-600);
   flex-shrink: 0;
 }
 
 [data-theme="dark"] .componentIcon {
-  color: var(--color-primary-400);
+  color: var(--color-primary-500);
 }
 
 .componentInfo {
@@ -248,10 +380,11 @@
 }
 
 .componentName {
-  font-weight: var(--font-semibold);
-  color: var(--color-neutral-900);
   font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-900);
   margin: 0 0 var(--space-1) 0;
+  line-height: 1.2;
 }
 
 [data-theme="dark"] .componentName {
@@ -262,105 +395,25 @@
   font-size: var(--text-xs);
   color: var(--color-neutral-600);
   margin: 0;
-  line-height: var(--leading-tight);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 [data-theme="dark"] .componentDescription {
   color: var(--color-neutral-500);
 }
 
-/* Custom Node Styles */
-.customNode {
-  background: var(--color-white);
-  border: 2px solid var(--color-neutral-300);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  min-width: 180px;
-  box-shadow: var(--shadow-md);
-  transition: all var(--duration-fast) var(--ease-out);
-  font-family: var(--font-sans);
-}
-
-.customNode:hover {
-  box-shadow: var(--shadow-lg);
-}
-
-.customNode.selected {
-  border-color: var(--color-primary-500);
-  box-shadow: var(--shadow-xl);
-}
-
-[data-theme="dark"] .customNode {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-400);
-  color: var(--color-neutral-800);
-}
-
-[data-theme="dark"] .customNode.selected {
-  border-color: var(--color-primary-400);
-}
-
-.nodeHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-}
-
-.nodeIcon {
-  width: 20px;
-  height: 20px;
-  color: var(--color-primary-600);
-}
-
-[data-theme="dark"] .nodeIcon {
-  color: var(--color-primary-400);
-}
-
-.nodeTitle {
-  font-weight: var(--font-semibold);
-  color: var(--color-neutral-900);
-  font-size: var(--text-sm);
-  margin: 0;
-}
-
-[data-theme="dark"] .nodeTitle {
-  color: var(--color-neutral-800);
-}
-
-.nodeDescription {
-  color: var(--color-neutral-600);
-  font-size: var(--text-xs);
-  margin: 0;
-  line-height: var(--leading-relaxed);
-}
-
-[data-theme="dark"] .nodeDescription {
-  color: var(--color-neutral-500);
-}
-
-/* Handle Styles */
-.customNode .react-flow__handle {
-  width: 12px;
-  height: 12px;
-  background: var(--color-primary-500);
-  border: 2px solid var(--color-white);
-  border-radius: 50%;
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.customNode .react-flow__handle:hover {
-  background: var(--color-primary-600);
-  transform: scale(1.1);
-}
-
-[data-theme="dark"] .customNode .react-flow__handle {
-  background: var(--color-primary-400);
-  border-color: var(--color-neutral-100);
-}
-
-[data-theme="dark"] .customNode .react-flow__handle:hover {
-  background: var(--color-primary-300);
+/* Floating Requirements Card - Right Side */
+.requirementsCard {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  width: 300px;
+  max-height: calc(100vh - 120px);
+  z-index: var(--z-20);
 }
 
 /* Success Message */
@@ -369,88 +422,105 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--color-success-50);
-  border: 2px solid var(--color-success-200);
+  background: var(--color-white);
+  border: 1px solid var(--color-success-200);
   border-radius: var(--radius-xl);
-  padding: var(--space-8);
-  text-align: center;
-  z-index: var(--z-50);
+  padding: var(--space-6);
   box-shadow: var(--shadow-2xl);
+  z-index: var(--z-50);
+  text-align: center;
+  min-width: 320px;
   backdrop-filter: blur(8px);
 }
 
 [data-theme="dark"] .successMessage {
-  background: var(--color-success-900);
-  border-color: var(--color-success-600);
+  background: var(--color-neutral-100);
+  border-color: var(--color-success-300);
 }
 
 .successTitle {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-bold);
-  color: var(--color-success-600);
-  margin: 0 0 var(--space-2) 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success-700);
+  margin: 0 0 var(--space-3) 0;
 }
 
 [data-theme="dark"] .successTitle {
-  color: var(--color-success-400);
+  color: var(--color-success-600);
 }
 
 .successDescription {
-  color: var(--color-success-700);
+  font-size: var(--text-base);
+  color: var(--color-neutral-700);
   margin: 0;
-  line-height: var(--leading-relaxed);
+  line-height: 1.5;
 }
 
 [data-theme="dark"] .successDescription {
-  color: var(--color-success-300);
+  color: var(--color-neutral-600);
 }
 
 /* Responsive Design */
 @media (max-width: 1024px) {
   .componentDrawerCard {
-    width: 300px;
-    height: 560px;
-    left: var(--space-4);
+    width: 280px;
+    height: 400px;
   }
   
   .requirementsCard {
-    width: 300px;
-    top: var(--space-4);
-    right: var(--space-4);
+    width: 260px;
   }
 }
 
 @media (max-width: 768px) {
   .componentDrawerCard {
-    width: 280px;
-    height: 500px;
-    top: var(--space-3);
-    left: var(--space-3);
+    position: static;
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
   }
   
   .requirementsCard {
-    width: 280px;
-    top: var(--space-3);
-    right: var(--space-3);
+    position: static;
+    width: 100%;
+    max-height: none;
   }
   
-  .componentDrawerCard--collapsed {
-    height: 60px;
-    min-height: 60px;
+  .crisisCanvas {
+    flex-direction: column;
+  }
+  
+  .canvasContainer {
+    height: 60vh;
   }
 }
 
-/* Focus and accessibility */
-.componentItem:focus {
-  outline: 2px solid var(--color-primary-500);
-  outline-offset: 2px;
+/* React Flow Connection Line Styling */
+.react-flow__connectionline {
+  stroke: var(--color-primary-500);
+  stroke-width: 2px;
+  stroke-dasharray: 5,5;
 }
 
-.tutorialClose:focus {
-  outline: 2px solid var(--color-white);
-  outline-offset: 2px;
+/* Edge Styling */
+.react-flow__edge {
+  stroke: var(--color-neutral-400);
+  stroke-width: 2px;
+}
+
+.react-flow__edge.selected {
+  stroke: var(--color-primary-500);
+  stroke-width: 3px;
+}
+
+.react-flow__edge:hover {
+  stroke: var(--color-primary-600);
+  stroke-width: 3px;
 } 

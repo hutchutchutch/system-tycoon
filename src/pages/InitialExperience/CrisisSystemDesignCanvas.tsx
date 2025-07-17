@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, useNodes } from '@xyflow/react';
-import type { Connection } from '@xyflow/react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ReactFlow, Background, Controls, MiniMap, useReactFlow, ReactFlowProvider, useNodes, Handle, Position } from '@xyflow/react';
+import type { Connection, Node, Edge, NodeProps } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { AlertTriangle, Server, Database, Users, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, Server, Database, Users, Clock, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Zap, Box, HardDrive, Globe, Shield, BarChart3 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { completeStep, updateMetrics } from '../../features/mission/missionSlice';
 import { 
@@ -17,85 +17,94 @@ import {
 import { Requirements } from '../../components/molecules';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine';
 import { useTheme } from '../../contexts/ThemeContext';
+import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import styles from './CrisisSystemDesignCanvas.module.css';
-import type { ComponentData } from '../../components/molecules/ComponentCard/ComponentCard.types';
 
+// Types
 interface CustomNodeData extends Record<string, unknown> {
   label: string;
-  icon: string; // Changed from React.ComponentType to string
+  icon: string;
   description?: string;
+  category?: string;
+  color?: string;
 }
 
-// Custom Node Component
-const CustomNode: React.FC<any> = ({ data, selected }) => {
-  const nodeData = data as CustomNodeData;
-  
-  // Map icon string to actual icon component
-  const getIconComponent = (iconType: string) => {
-    switch (iconType) {
-      case 'users':
-        return <Users size={20} />;
-      case 'server':
-        return <Server size={20} />;
-      case 'database':
-        return <Database size={20} />;
-      default:
-        return <Server size={20} />;
-    }
+// Icon mapping utility
+const getIconComponent = (iconType: string, size: number = 20) => {
+  const iconMap = {
+    users: Users,
+    server: Server,
+    database: Database,
+    zap: Zap,
+    box: Box,
+    'hard-drive': HardDrive,
+    globe: Globe,
+    shield: Shield,
+    'bar-chart-3': BarChart3,
   };
   
-  return (
-    <div className={`${styles.customNode} ${selected ? styles.selected : ''}`}>
-      <div className={styles.nodeHeader}>
-        {getIconComponent(nodeData.icon)}
-        <h4 className={styles.nodeTitle}>{nodeData.label}</h4>
-      </div>
-      {nodeData.description && (
-        <p className={styles.nodeDescription}>{nodeData.description}</p>
-      )}
-    </div>
-  );
+  const IconComponent = iconMap[iconType as keyof typeof iconMap] || Server;
+  return <IconComponent size={size} />;
 };
 
-// Node types for React Flow
+// Custom Node Component with proper handles
+const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data, selected }) => {
+  return (
+    <div className={`${styles.customNode} ${selected ? styles.selected : ''}`}>
+      {/* Input handle (top) */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id="input"
+        style={{
+          background: '#555',
+          width: 10,
+          height: 10,
+          border: '2px solid #fff',
+        }}
+      />
+      
+      <div className={styles.nodeHeader}>
+        {getIconComponent(data.icon)}
+        <h4 className={styles.nodeTitle}>{data.label}</h4>
+      </div>
+      
+      {data.description && (
+        <p className={styles.nodeDescription}>{data.description}</p>
+      )}
+      
+      {/* Output handle (bottom) */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id="output"
+        style={{
+          background: '#555',
+          width: 10,
+          height: 10,
+          border: '2px solid #fff',
+        }}
+      />
+    </div>
+  );
+});
+
+CustomNode.displayName = 'CustomNode';
+
+// Memoized node types (critical for React Flow performance)
 const nodeTypes = {
   custom: CustomNode,
 };
 
-const components: ComponentData[] = [
-  {
-    id: 'families',
-    name: 'Families',
-    type: 'server',
-    category: 'compute',
-    cost: 0,
-    capacity: 200,
-    description: 'Affected families trying to report',
-    icon: 'users'
-  },
-  {
-    id: 'web_server',
-    name: 'Web Server',
-    type: 'server',
-    category: 'compute',
-    cost: 50,
-    capacity: 1000,
-    description: 'Handles user requests and serves web pages',
-    icon: 'server'
-  },
-  {
-    id: 'database',
-    name: 'Database',
-    type: 'database',
-    category: 'storage',
-    cost: 100,
-    capacity: 5000,
-    description: 'Stores and manages application data',
-    icon: 'database'
-  }
-];
+interface CrisisSystemDesignCanvasProps {
+  missionSlug?: string;
+  emailId?: string;
+}
 
-const CrisisSystemDesignCanvasInner: React.FC = () => {
+const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = ({ 
+  missionSlug = 'health-tracker-crisis',
+  emailId 
+}) => {
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
@@ -107,6 +116,10 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
   
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeMission, setActiveMission] = useState<MissionData | null>(null);
+  const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
     familiesHelped: 0,
@@ -115,42 +128,82 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
     systemHealth: 'critical' as 'critical' | 'warning' | 'healthy'
   });
 
+  // Load mission data using the mission service
+  useEffect(() => {
+    const loadMissionData = async () => {
+      try {
+        setLoading(true);
+        
+        let mission: MissionData | null = null;
+        
+        // If we have an emailId, load mission from email context
+        if (emailId) {
+          mission = await missionService.getMissionFromEmail(emailId);
+        }
+        
+        // Fallback to loading by slug
+        if (!mission) {
+          mission = await missionService.loadMissionBySlug(missionSlug);
+        }
+        
+        if (mission) {
+          setActiveMission(mission);
+        } else {
+          throw new Error('Failed to load mission data');
+        }
+        
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to load mission data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadMissionData();
+  }, [missionSlug, emailId]);
+
+  // Update requirements when nodes/edges change
+  useEffect(() => {
+    if (activeMission) {
+      const validatedRequirements = missionService.validateRequirements(nodes, edges);
+      setRequirements(validatedRequirements);
+    }
+  }, [nodes, edges, activeMission]);
+
   // Initialize with the families node if not already present
   useEffect(() => {
-    if (nodes.length === 0) {
-      const familiesComponent = components.find(c => c.id === 'families');
-      if (familiesComponent) {
-        dispatch(addNode({
-          component: familiesComponent,
-          position: { x: 250, y: 50 }
-        }));
-      }
+    if (nodes.length === 0 && !loading && activeMission) {
+      dispatch(addNode({
+        component: {
+          id: 'families',
+          name: 'Families',
+          type: 'families',
+          category: 'stakeholder',
+          cost: 0,
+          capacity: 200,
+          description: 'Affected families trying to report',
+          icon: 'users'
+        },
+        position: { x: 250, y: 50 }
+      }));
     }
-  }, [nodes.length, dispatch]);
+  }, [nodes.length, dispatch, loading, activeMission]);
 
-  const requirements = [
-    {
-      id: 'separate_server',
-      description: 'Separate web server from database',
-      completed: nodes.length >= 2 && nodes.some(n => n.id.includes('web_server')) && nodes.some(n => n.id.includes('database'))
-    },
-    {
-      id: 'connect_server_db',
-      description: 'Connect web server to database',
-      completed: edges.some((e) => 
-        (e.source.includes('web_server') && e.target.includes('database')) ||
-        (e.source.includes('database') && e.target.includes('web_server'))
-      )
-    },
-    {
-      id: 'connect_families',
-      description: 'Connect families to web server',
-      completed: edges.some((e) => 
-        (e.source.includes('families') && e.target.includes('web_server')) ||
-        (e.source.includes('web_server') && e.target.includes('families'))
-      )
-    }
-  ];
+  // Transform mission components for the component drawer
+  const availableComponents = useMemo(() => {
+    if (!activeMission) return [];
+    
+    return activeMission.components.map(comp => ({
+      id: comp.id,
+      name: comp.name,
+      type: comp.category,
+      category: comp.category,
+      cost: 50, // Default cost, could be from component_offerings
+      capacity: 1000,
+      description: comp.short_description,
+      icon: comp.icon_name
+    }));
+  }, [activeMission]);
 
   const reactFlowNodes = useNodes();
   
@@ -166,13 +219,18 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
           dispatch(addEdge({
             ...params,
             source: node.id,
-            sourceHandle: null // Use default handle
+            sourceHandle: 'output',
+            targetHandle: 'input'
           }));
         }
       });
     } else {
       // Single connection (default behavior)
-      dispatch(addEdge(params));
+      dispatch(addEdge({
+        ...params,
+        sourceHandle: params.sourceHandle || 'output',
+        targetHandle: params.targetHandle || 'input'
+      }));
     }
   }, [dispatch, reactFlowNodes]);
 
@@ -190,13 +248,13 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
     
     if (!componentData && !componentType) return;
 
-    let component: ComponentData;
+    let component: any;
     
     if (componentData) {
       component = JSON.parse(componentData);
     } else if (componentType) {
       // Fallback to finding component by type
-      const foundComponent = components.find(c => c.type === componentType);
+      const foundComponent = availableComponents.find(c => c.type === componentType);
       if (!foundComponent) return;
       component = foundComponent;
     } else {
@@ -209,9 +267,9 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
     });
 
     dispatch(addNode({ component, position }));
-  }, [screenToFlowPosition, dispatch]);
+  }, [screenToFlowPosition, dispatch, availableComponents]);
 
-  const onDragStart = (event: React.DragEvent, component: ComponentData) => {
+  const onDragStart = (event: React.DragEvent, component: any) => {
     dispatch(setDraggedComponent(component));
     event.dataTransfer.setData('application/reactflow', component.type);
     event.dataTransfer.setData('application/component', JSON.stringify(component));
@@ -248,6 +306,27 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
     setIsDrawerCollapsed(!isDrawerCollapsed);
   };
 
+  if (loading) {
+    return (
+      <div className={styles.crisisCanvas}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.loadingSpinner}>Loading mission data...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !activeMission) {
+    return (
+      <div className={styles.crisisCanvas}>
+        <div className={styles.errorContainer}>
+          <AlertTriangle size={24} />
+          <p>Failed to load mission: {error || 'Mission not found'}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.crisisCanvas}>
       {/* React Flow Canvas - Full Width */}
@@ -266,6 +345,9 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
             multiSelectionKeyCode={["Meta", "Control"]}
             fitView
             colorMode={theme}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+            minZoom={0.2}
+            maxZoom={2}
           >
             <Background gap={20} size={1} />
             <Controls />
@@ -288,19 +370,17 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
           
           <div className={styles.drawerContent}>
             <p className={styles.drawerHint}>
-              Drag components to the canvas to fix Alex's system!
+              Drag components to the canvas to fix {activeMission.title}!
             </p>
             
-            {components.map((component) => (
+            {availableComponents.map((component) => (
               <div
                 key={component.id}
                 className={styles.componentCard}
                 draggable
                 onDragStart={(e) => onDragStart(e, component)}
               >
-                {component.icon === 'users' && <Users className={styles.componentIcon} />}
-                {component.icon === 'server' && <Server className={styles.componentIcon} />}
-                {component.icon === 'database' && <Database className={styles.componentIcon} />}
+                {getIconComponent(component.icon, 24)}
                 <div className={styles.componentInfo}>
                   <h4 className={styles.componentName}>{component.name}</h4>
                   <p className={styles.componentDescription}>{component.description}</p>
@@ -326,7 +406,7 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
               Crisis Resolved!
             </h3>
             <p className={styles.successDescription}>
-              Alex's system is now stable and helping families in need!
+              {activeMission.title} is now stable and helping families in need!
             </p>
           </div>
         )}
@@ -336,8 +416,8 @@ const CrisisSystemDesignCanvasInner: React.FC = () => {
 };
 
 // Export wrapped with ReactFlowProvider
-export const CrisisSystemDesignCanvas: React.FC = () => (
+export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> = (props) => (
   <ReactFlowProvider>
-    <CrisisSystemDesignCanvasInner />
+    <CrisisSystemDesignCanvasInner {...props} />
   </ReactFlowProvider>
 );

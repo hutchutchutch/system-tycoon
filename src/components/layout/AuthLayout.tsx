@@ -1,22 +1,17 @@
 import React from 'react';
-import { Outlet, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { clsx } from 'clsx';
+import { Outlet, Navigate, useNavigate } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/redux';
 import { Button } from '../atoms/Button';
 import styles from './AuthLayout.module.css';
 
 export const AuthLayout: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
   // If already authenticated, redirect to career map
   if (isAuthenticated) {
     return <Navigate to="/game" replace />;
   }
-
-  const isSignIn = location.pathname === '/auth/signin';
-  const isSignUp = location.pathname === '/auth/signup';
 
   return (
     <div className={styles.layout}>
@@ -27,7 +22,7 @@ export const AuthLayout: React.FC = () => {
             className={styles.logo}
             onClick={() => navigate('/')}
           >
-            System Tycoon
+            Service as a Software
           </button>
           <div className={styles.navActions}>
             <Button
@@ -43,35 +38,7 @@ export const AuthLayout: React.FC = () => {
 
       {/* Main Auth Container */}
       <div className={styles.container}>
-        <div className={styles.content}>
-          {/* Auth Form Container */}
-          <div className={styles.formContainer}>
-            {/* Tab Navigation */}
-            <div className={styles.tabs}>
-              <button
-                className={clsx(styles.tab, {
-                  [styles.tabActive]: isSignIn
-                })}
-                onClick={() => navigate('/auth/signin')}
-              >
-                Sign In
-              </button>
-              <button
-                className={clsx(styles.tab, {
-                  [styles.tabActive]: isSignUp
-                })}
-                onClick={() => navigate('/auth/signup')}
-              >
-                Sign Up
-              </button>
-            </div>
-
-            {/* Form Content */}
-            <div className={styles.formContent}>
-              <Outlet />
-            </div>
-          </div>
-        </div>
+        <Outlet />
       </div>
     </div>
   );

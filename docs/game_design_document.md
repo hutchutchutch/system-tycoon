@@ -1,4 +1,4 @@
-# System Tycoon - Tech Consultant Simulator
+# Service as a Software - Tech Consultant Simulator
 ## Game Design Document
 
 **Version:** 3.0  
@@ -27,7 +27,7 @@
 ## 1. Executive Summary
 
 ### Concept
-System Tycoon transforms players into tech consultants who discover their calling through a news aggregator showcasing local heroes facing technical crises. Players browse a Pinterest-style grid of urgent situations, choosing which community members to help while building their way to a thriving tech consultancy. The game uses a browser-based interface metaphor where players manage their business through realistic tools: a news feed, email with modal composition, video calls, and a system design canvas.
+Service as a Software transforms players into tech consultants who discover their calling through a news aggregator showcasing local heroes facing technical crises. Players browse a Pinterest-style grid of urgent situations, choosing which community members to help while building their way to a thriving tech consultancy. The game uses a browser-based interface metaphor where players manage their business through realistic tools: a news feed, email with modal composition, video calls, and a system design canvas.
 
 ### Core Experience
 - **Discovery Journey**: Browse news stories of real people in crisis, choose who to help
