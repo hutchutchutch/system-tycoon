@@ -7,20 +7,62 @@ import { ProfileWrapper } from './ProfileWrapper';
 import { HelpWrapper } from './HelpWrapper';
 import { NewsWrapper } from './NewsWrapper';
 import { HomeWrapper } from './HomeWrapper';
+import { TodaysNewsWrapper } from './TodaysNewsWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
 import styles from './InitialExperience.module.css';
 
 const InitialExperienceContent: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [activeTab, setActiveTab] = useState<string>('todays-news');
   const [tabs, setTabs] = useState<any[]>([{
-    id: 'home',
-    title: 'Home',
-    url: 'https://localhost:5179',
-    component: HomeWrapper,
-    closable: false, // Home tab cannot be closed
+    id: 'todays-news',
+    title: "Today's News",
+    url: 'https://news.local/today',
+    component: TodaysNewsWrapper,
+    closable: false, // Initial news tab cannot be closed
   }]);
   const [missionComplete, setMissionComplete] = useState(false);
+  const [emailNotificationShown, setEmailNotificationShown] = useState(false);
+  const [bookmarks, setBookmarks] = useState([
+    {
+      id: 'email',
+      title: 'Email',
+      url: 'https://promail.com/inbox',
+      icon: 'mail',
+      hasNotification: false,
+      onClick: () => handleEmailBookmarkClick()
+    }
+  ]);
+
+  // Email notification after 3 seconds on news page
+  useEffect(() => {
+    if (activeTab === 'todays-news' && !emailNotificationShown) {
+      const timer = setTimeout(() => {
+        // Play notification sound
+        try {
+          const audio = new Audio('/notification.mp3');
+          audio.volume = 0.3;
+          audio.play().catch(() => {
+            // Fallback - browser might block autoplay
+            console.log('Notification sound blocked by browser');
+          });
+        } catch (error) {
+          console.log('Could not play notification sound');
+        }
+
+        // Update email bookmark to show notification
+        setBookmarks(prev => prev.map(bookmark => 
+          bookmark.id === 'email' 
+            ? { ...bookmark, hasNotification: true }
+            : bookmark
+        ));
+        
+        setEmailNotificationShown(true);
+      }, 3000); // 3 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, emailNotificationShown]);
 
   // Check for crisis parameter and automatically open system design canvas
   useEffect(() => {
@@ -53,6 +95,25 @@ const InitialExperienceContent: React.FC = () => {
       setActiveTab(tabConfig.id);
     }
   }, [tabs]);
+
+  const handleEmailBookmarkClick = useCallback(() => {
+    console.log('Email bookmark clicked!');
+    
+    // Remove notification when clicking email
+    setBookmarks(prev => prev.map(bookmark => 
+      bookmark.id === 'email' 
+        ? { ...bookmark, hasNotification: false }
+        : bookmark
+    ));
+
+    openNewTab({
+      id: 'email',
+      title: 'ProMail - Inbox',
+      url: 'https://promail.com/inbox',
+      component: EmailClientWrapper,
+      closable: true,
+    });
+  }, [openNewTab]);
 
   const handleProfileIconClick = useCallback(() => {
     console.log('Profile clicked!');
@@ -99,27 +160,16 @@ const InitialExperienceContent: React.FC = () => {
   }, [openNewTab]);
 
   const handleOpenSystemDesignTab = useCallback(() => {
-    // Open the system design canvas in a new browser tab with crisis parameter
-    const newWindow = window.open('/game?crisis=true', '_blank', 'noopener,noreferrer');
+    const newTab = {
+      id: 'system-design',
+      title: 'System Builder - Emergency: Health Crisis',
+      url: 'https://systembuilder.tech/emergency/healthcrisis',
+      component: SystemDesignCanvasWrapper,
+      closable: true,
+    };
     
-    // Focus the new window if it opened successfully
-    if (newWindow) {
-      newWindow.focus();
-    }
-    
-    // Fallback: If popup blocked, create tab within the current browser window
-    if (!newWindow || newWindow.closed) {
-      const newTab = {
-        id: 'system-design',
-        title: 'System Builder - Emergency: Health Crisis',
-        url: 'https://systembuilder.tech/emergency/healthcrisis',
-        component: SystemDesignCanvasWrapper,
-        closable: true,
-      };
-      
-      setTabs(prev => [...prev, newTab]);
-      setActiveTab('system-design');
-    }
+    setTabs(prev => [...prev, newTab]);
+    setActiveTab('system-design');
   }, []);
 
   const handleMissionComplete = useCallback(() => {
@@ -139,22 +189,22 @@ const InitialExperienceContent: React.FC = () => {
   const handleTabClose = useCallback((tabId: string) => {
     const tabToClose = tabs.find(tab => tab.id === tabId);
     
-    // Prevent closing the home tab
+    // Prevent closing the news tab
     if (!tabToClose?.closable) {
       return;
     }
 
     setTabs(prev => prev.filter(tab => tab.id !== tabId));
     
-    // If we're closing the active tab, switch to home tab
+    // If we're closing the active tab, switch to news tab
     if (activeTab === tabId) {
-      setActiveTab('home');
+      setActiveTab('todays-news');
     }
   }, [activeTab, tabs]);
 
   // Add onNewTab handler to allow adding new tabs from browser controls
   const handleNewTab = useCallback(() => {
-    setActiveTab('home');
+    setActiveTab('todays-news');
   }, []);
 
   return (
@@ -163,7 +213,7 @@ const InitialExperienceContent: React.FC = () => {
         activeTab={activeTab}
         tabs={tabs.map(tab => ({
           ...tab,
-          // Pass click handlers to the HomeWrapper
+          // Pass click handlers to the HomeWrapper (if it becomes active)
           onProfileClick: tab.id === 'home' ? handleProfileIconClick : undefined,
           onHelpClick: tab.id === 'home' ? handleHelpIconClick : undefined,
           onNewsClick: tab.id === 'home' ? handleNewsIconClick : undefined,
@@ -172,6 +222,7 @@ const InitialExperienceContent: React.FC = () => {
           onOpenSystemDesign: tab.id === 'email' ? handleOpenSystemDesignTab : undefined,
           onMissionComplete: tab.id === 'system-design' ? handleMissionComplete : undefined,
         }))}
+        bookmarks={bookmarks}
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         onNewTab={handleNewTab}

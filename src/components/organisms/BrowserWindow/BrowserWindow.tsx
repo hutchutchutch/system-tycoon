@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { clsx } from 'clsx';
-import { Plus } from 'lucide-react';
-import { BrowserTab } from '../../atoms/BrowserTab';
+import { BrowserHeader } from '../../molecules/BrowserHeader';
 import { BrowserAddressBar } from '../../molecules/BrowserAddressBar';
 import styles from './BrowserWindow.module.css';
 import type { BrowserWindowProps } from './BrowserWindow.types';
@@ -12,6 +11,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
   onTabChange,
   onTabClose,
   onNewTab,
+  bookmarks = [],
   className,
   children,
 }) => {
@@ -20,37 +20,48 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
     [tabs, activeTab]
   );
 
+  const activeTabIndex = useMemo(() => 
+    tabs.findIndex(tab => tab.id === activeTab),
+    [tabs, activeTab]
+  );
+
   const ActiveComponent = activeTabData?.component;
+
+  const handleTabSelect = (index: number) => {
+    const selectedTab = tabs[index];
+    if (selectedTab) {
+      onTabChange(selectedTab.id);
+    }
+  };
+
+  const handleTabClose = (index: number) => {
+    const tabToClose = tabs[index];
+    if (tabToClose) {
+      onTabClose(tabToClose.id);
+    }
+  };
+
+  // Convert tabs to BrowserHeader format
+  const browserTabs = tabs.map(tab => ({
+    title: tab.title,
+    url: tab.url,
+    active: tab.id === activeTab,
+    hasNotification: tab.hasNotification,
+    closable: tab.closable !== false,
+  }));
 
   return (
     <div className={clsx(styles.browserWindow, className)}>
       <div className={styles.chrome}>
-        <div className={styles.tabBar}>
-          <div className={styles.tabs}>
-            {tabs.map(tab => (
-              <BrowserTab
-                key={tab.id}
-                title={tab.title}
-                url={tab.url}
-                active={tab.id === activeTab}
-                hasNotification={tab.hasNotification}
-                onClick={() => onTabChange(tab.id)}
-                onClose={tab.closable !== false ? () => onTabClose(tab.id) : undefined}
-                showClose={tab.closable !== false}
-              />
-            ))}
-            
-            {onNewTab && (
-              <button
-                className={styles.newTabButton}
-                onClick={onNewTab}
-                aria-label="New tab"
-              >
-                <Plus size={14} />
-              </button>
-            )}
-          </div>
-        </div>
+        <BrowserHeader
+          tabs={browserTabs}
+          activeTabIndex={activeTabIndex}
+          onTabSelect={handleTabSelect}
+          onTabClose={handleTabClose}
+          onNewTab={onNewTab}
+          bookmarks={bookmarks}
+          showWindowControls={true}
+        />
 
         <div className={styles.controls}>
           <div className={styles.addressBarContainer}>
@@ -60,12 +71,6 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
                 secure={activeTabData.url.startsWith('https://')}
               />
             )}
-          </div>
-
-          <div className={styles.windowControls}>
-            <button className={styles['windowControl--close']} aria-label="Close" />
-            <button className={styles['windowControl--minimize']} aria-label="Minimize" />
-            <button className={styles['windowControl--maximize']} aria-label="Maximize" />
           </div>
         </div>
       </div>

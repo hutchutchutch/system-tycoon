@@ -2,6 +2,7 @@ import React from 'react';
 import { clsx } from 'clsx';
 import { BrowserTab } from '../../atoms/BrowserTab';
 import { Icon } from '../../atoms/Icon';
+import type { IconName } from '../../atoms/Icon';
 import styles from './BrowserHeader.module.css';
 import type { BrowserHeaderProps } from './BrowserHeader.types';
 
@@ -11,6 +12,7 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
   onTabSelect,
   onTabClose,
   onNewTab,
+  bookmarks = [],
   showWindowControls = true,
   onMinimize,
   onMaximize,
@@ -28,6 +30,10 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
 
   const handleNewTab = () => {
     onNewTab?.();
+  };
+
+  const handleBookmarkClick = (bookmark: any) => {
+    bookmark.onClick?.();
   };
 
   return (
@@ -84,6 +90,29 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
           </button>
         )}
       </div>
+
+      {/* Bookmarks bar */}
+      {bookmarks.length > 0 && (
+        <div className={styles.bookmarks}>
+          {bookmarks.map((bookmark) => (
+            <button
+              key={bookmark.id}
+              className={clsx(
+                styles.bookmark,
+                bookmark.hasNotification && styles['bookmark--notification']
+              )}
+              onClick={() => handleBookmarkClick(bookmark)}
+              title={bookmark.title}
+            >
+              {bookmark.icon && <Icon name={bookmark.icon as IconName} size="sm" />}
+              <span className={styles.bookmarkTitle}>{bookmark.title}</span>
+              {bookmark.hasNotification && (
+                <div className={styles.notificationDot} />
+              )}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Right side window controls (Windows/Linux style) */}
       {showWindowControls && (

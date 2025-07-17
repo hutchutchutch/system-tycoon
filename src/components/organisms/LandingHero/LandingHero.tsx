@@ -1,8 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { clsx } from 'clsx';
-import { Button } from '../../atoms/Button';
-import { AnimatedBackground } from './components/AnimatedBackground';
+import { motion } from 'framer-motion';
+import { BeamsBackground } from '../../ui/beams-background';
 import styles from './LandingHero.module.css';
 
 const LandingHero: React.FC = () => {
@@ -12,41 +11,54 @@ const LandingHero: React.FC = () => {
     navigate('/auth/signin');
   };
 
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        duration: 0.8, 
+        ease: [0.23, 0.86, 0.39, 0.96] 
+      }
+    }
+  };
+
   return (
-    <section className={styles.hero}>
-      <AnimatedBackground />
+    <section className={styles.heroSection}>
+      {/* Animated gradient background */}
+      <BeamsBackground intensity="subtle" />
       
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <h1 className={styles.title}>
-            Worldly Problems
-            <br />
-            <span className={styles.subtitle}>
+      <motion.div 
+        className={styles.contentWrapper}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className={styles.container}>
+          {/* Main heading */}
+          <motion.h1 
+            className={styles.title}
+            variants={fadeInUp}
+          >
+            <span className={styles.titleMain}>Worldly Problems</span>
+            <span className={styles.titleSub}>
               Software Solutions
             </span>
-          </h1>
+          </motion.h1>
           
-          <p className={styles.description}>
-            Navigate the journey from financial desperation to tech consulting success. 
-            Build systems, manage clients, and grow your consulting empire.
-          </p>
-          
-          <div className={styles.actions}>
-            <Button 
-              variant="primary" 
-              size="large"
-              className={styles.cta}
+          {/* CTA button */}
+          <motion.div 
+            className={styles.ctaSection}
+            variants={fadeInUp}
+          >
+            <button 
+              className={styles.ctaButton}
               onClick={handleStartBuilding}
             >
-              🚀 Start Building Your Empire
-            </Button>
-            
-            <p className={styles.hint}>
-              Experience realistic consulting workflows
-            </p>
-          </div>
+              Join Mission
+            </button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

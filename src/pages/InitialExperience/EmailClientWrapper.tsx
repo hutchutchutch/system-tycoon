@@ -3,7 +3,6 @@ import { Reply } from 'lucide-react';
 import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
 import { EmailCard } from '../../components/molecules/EmailCard';
 import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
-import type { EmailData as EmailCardData } from '../../components/molecules/EmailCard/EmailCard.types';
 import { fetchEmails, updateEmailStatus, type EmailData } from '../../services/emailService';
 import { supabase } from '../../services/supabase';
 import type { GroupChatMessage, MentorInfo } from '../../components/organisms/EmailClient/EmailClient.types';
@@ -14,27 +13,29 @@ interface EmailClientWrapperProps {
 }
 
 // Convert service EmailData to component EmailCardData
-const convertToEmailCardData = (email: EmailData): EmailCardData => ({
-  id: email.id,
-  sender: {
-    name: email.sender_name,
-    email: email.sender_email,
-    avatar: email.sender_avatar,
-  },
-  subject: email.subject,
-  preview: email.preview,
-  content: email.content,
-  timestamp: new Date(email.timestamp),
-  status: email.status,
-  priority: email.priority === 'urgent' ? 'high' : email.priority,
-  hasAttachments: email.has_attachments,
-  tags: email.tags,
-  category: email.category,
-});
+const convertToEmailCardData = (email: EmailData) => {
+  return {
+    id: email.id,
+    sender: {
+      name: email.sender_name,
+      email: email.sender_email,
+      avatar: email.sender_avatar,
+    },
+    subject: email.subject,
+    preview: email.preview,
+    content: email.content,
+    timestamp: new Date(email.timestamp),
+    status: email.status,
+    priority: email.priority === 'urgent' ? 'high' : email.priority,
+    hasAttachments: email.has_attachments,
+    tags: email.tags,
+    category: email.category,
+  };
+};
 
 export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSystemDesign }) => {
   const [loading, setLoading] = useState(true);
-  const [emails, setEmails] = useState<EmailCardData[]>([]);
+  const [emails, setEmails] = useState<any[]>([]);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchQuery, setSearchQuery] = useState('');
@@ -598,7 +599,39 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
               </div>
               
               <div className={styles.emailDetailContent}>
-                {selectedEmail.content}
+                {/* Render email content with markdown formatting */}
+                <div 
+                  dangerouslySetInnerHTML={{
+                    __html: selectedEmail.content
+                      .replace(/\n/g, '<br />')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                      .replace(/---/g, '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />')
+                  }}
+                />
+                
+                {/* Check if this is a mission email and show the system design button */}
+                {(selectedEmail.tags.includes('crisis') || 
+                  selectedEmail.tags.includes('system-design') || 
+                  selectedEmail.tags.includes('healthcare') ||
+                  selectedEmail.content?.toLowerCase().includes('system design') ||
+                  selectedEmail.content?.toLowerCase().includes('crisis') ||
+                  selectedEmail.subject?.toLowerCase().includes('urgent')) && (
+                  <div className={styles.missionActionSection}>
+                    <hr className={styles.divider} />
+                    <h3 className={styles.missionActionTitle}>🔧 System Design Required</h3>
+                    <p className={styles.missionActionDescription}>
+                      This mission requires you to design a system solution. Click below to open the System Design Canvas.
+                    </p>
+                    <button 
+                      className={styles.openSystemDesignButton}
+                      onClick={onOpenSystemDesign}
+                    >
+                      <span className={styles.buttonIcon}>🚀</span>
+                      Open System Design Canvas
+                    </button>
+                  </div>
+                )}
                 
                 {selectedEmail.content?.includes('/?crisis=true') && (
                   <div className={styles.systemDesignPrompt}>

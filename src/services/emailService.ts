@@ -170,10 +170,6 @@ We're facing a critical situation at Regional Health System. Our current patient
 
 This is a matter of patient safety. People's lives depend on getting this right.
 
-We need a system design that can handle our current crisis and scale for future growth. Please review the attached technical requirements and provide your architectural recommendation.
-
-**System Design Canvas:** [View Current System Architecture](/?crisis=true)
-
 Best regards,
 Dr. Sarah Chen
 CTO, Regional Health System`,

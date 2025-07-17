@@ -1,5 +1,14 @@
 import type { BrowserTabProps } from '../../atoms/BrowserTab';
 
+export interface Bookmark {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+  hasNotification?: boolean;
+  onClick?: () => void;
+}
+
 export interface BrowserHeaderProps {
   /** Array of browser tabs */
   tabs: BrowserTabProps[];
@@ -15,6 +24,9 @@ export interface BrowserHeaderProps {
   
   /** Handler for new tab creation */
   onNewTab?: () => void;
+  
+  /** Array of bookmarks */
+  bookmarks?: Bookmark[];
   
   /** Whether to show window controls (minimize, maximize, close) */
   showWindowControls?: boolean;

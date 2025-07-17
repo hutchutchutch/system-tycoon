@@ -684,6 +684,69 @@
   font-size: 15px;
 }
 
+/* Mission Action Section */
+.missionActionSection {
+  margin-top: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f2ff 100%);
+  border-radius: 12px;
+  border: 1px solid #cce0ff;
+  text-align: center;
+}
+
+.divider {
+  margin: 24px 0;
+  border: none;
+  border-top: 2px solid #e0e0e0;
+}
+
+.missionActionTitle {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-gray-900);
+  margin-bottom: 8px;
+}
+
+.missionActionDescription {
+  font-size: 14px;
+  color: var(--color-gray-600);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.openSystemDesignButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #007acc, #0056b3);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 122, 204, 0.3);
+  transition: all 0.2s ease;
+}
+
+.openSystemDesignButton:hover {
+  background: linear-gradient(135deg, #0056b3, #004494);
+  box-shadow: 0 6px 16px rgba(0, 122, 204, 0.4);
+  transform: translateY(-2px);
+}
+
+.openSystemDesignButton:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 122, 204, 0.3);
+}
+
+.buttonIcon {
+  font-size: 20px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .systemDesignPrompt {
   margin-top: 24px;
   padding: 16px;

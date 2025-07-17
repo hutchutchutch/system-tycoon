@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Bookmark } from '../../molecules/BrowserHeader/BrowserHeader.types';
 
 export interface BrowserTab {
   id: string;
@@ -17,6 +18,7 @@ export interface BrowserWindowProps {
   onTabChange: (tabId: string) => void;
   onTabClose: (tabId: string) => void;
   onNewTab?: () => void;
+  bookmarks?: Bookmark[];
   className?: string;
   children?: React.ReactNode;
 } 
