@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
+import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
+import { signInWithEmail, signUpWithEmail, clearError } from '../../../features/auth/authSlice';
 import type { AuthCardProps } from './AuthCard.types';
 
 interface FormFieldProps {
@@ -92,39 +94,122 @@ const AnimatedFormField: React.FC<FormFieldProps> = ({
 
 interface AuthCardNodeData extends Record<string, unknown> {
   error?: string;
-  onSignIn?: (email: string, password: string) => void;
-  onSignUp?: (email: string, password: string, username: string) => void;
+  onSuccess?: () => void; // Optional callback for when authentication succeeds
+  onAnimationStart?: () => void; // Callback to start edge animation
+  onDatabaseError?: () => void; // Callback for database-specific errors
+  onAuthServiceError?: () => void; // Callback for authentication service errors
 }
 
 // Auth Card Node for React Flow
 export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
   const nodeData = data as AuthCardNodeData;
+  const dispatch = useAppDispatch();
+  const { isLoading, error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
+  
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Clear any auth errors when component mounts or mode changes
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch, isSignUp]);
+
+  // Handle successful authentication
+  useEffect(() => {
+    if (isAuthenticated && nodeData?.onSuccess) {
+      nodeData.onSuccess();
+    }
+  }, [isAuthenticated, nodeData]);
+
+  // Trigger animation when loading starts
+  useEffect(() => {
+    if (isLoading && nodeData?.onAnimationStart) {
+      nodeData.onAnimationStart();
+    }
+  }, [isLoading, nodeData]);
+
+  // Handle authentication service errors
+  useEffect(() => {
+    if (authError && nodeData?.onAuthServiceError) {
+      // Check for authentication service-related error messages
+      const isAuthServiceError = authError.toLowerCase().includes('invalid login credentials') ||
+                                 authError.toLowerCase().includes('invalid credentials') ||
+                                 authError.toLowerCase().includes('authentication failed') ||
+                                 authError.toLowerCase().includes('login failed');
+      
+      if (isAuthServiceError) {
+        nodeData.onAuthServiceError();
+      }
+    }
+  }, [authError, nodeData]);
+
+  // Handle database-specific errors
+  useEffect(() => {
+    if (authError && nodeData?.onDatabaseError) {
+      // Check for database-related error messages
+      const isDatabaseError = authError.toLowerCase().includes('database error saving new user') ||
+                             authError.toLowerCase().includes('database error') ||
+                             authError.toLowerCase().includes('profile creation error') ||
+                             authError.toLowerCase().includes('failed to create profile');
+      
+      if (isDatabaseError) {
+        nodeData.onDatabaseError();
+      }
+    }
+  }, [authError, nodeData]);
+
+  // Validation functions
+  const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!email || !validateEmail(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!password || password.length < 6) {
+      errors.password = 'Password must be at least 6 characters';
+    }
+
+    if (isSignUp) {
+      if (!name || name.length < 2) {
+        errors.name = 'Username must be at least 2 characters';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    
+    if (!validateForm()) return;
 
     try {
       if (isSignUp) {
-        if (nodeData?.onSignUp && name.trim()) {
-          await nodeData.onSignUp(email, password, name);
-        }
+        // Dispatch sign up action
+        await dispatch(signUpWithEmail({
+          email: email.trim(),
+          password,
+          username: name.trim()
+        })).unwrap();
       } else {
-        if (nodeData?.onSignIn) {
-          await nodeData.onSignIn(email, password);
-        }
+        // Dispatch sign in action
+        await dispatch(signInWithEmail({
+          email: email.trim(),
+          password
+        })).unwrap();
       }
     } catch (error) {
       console.error('Authentication error:', error);
-    } finally {
-      setIsSubmitting(false);
+      // Error is handled by Redux slice
     }
   };
 
@@ -134,81 +219,132 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
     setPassword("");
     setName("");
     setShowPassword(false);
+    setValidationErrors({});
+    dispatch(clearError()); // Clear any existing errors
   };
+
+  // Clear validation errors when user types
+  useEffect(() => {
+    if (Object.keys(validationErrors).length > 0) {
+      setValidationErrors({});
+    }
+  }, [email, password, name]);
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
+  const displayError = authError || nodeData?.error;
+  const hasAnyError = displayError || hasValidationErrors;
 
   return (
     <div style={{
       position: 'relative',
       zIndex: 10,
-      width: '250px',
-      borderRadius: '8px',
+      width: '280px',
+      borderRadius: '12px',
       background: 'rgba(255, 255, 255, 0.05)',
       backdropFilter: 'blur(10px)',
-      border: '2px solid #3b82f6',
-      boxShadow: '0 0 20px rgba(59, 130, 246, 0.3)',
-      padding: '16px',
+      border: `2px solid ${hasAnyError ? '#ef4444' : '#3b82f6'}`,
+      boxShadow: `0 0 20px ${hasAnyError ? 'rgba(239, 68, 68, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`,
+      padding: '20px',
       color: 'white',
       transition: 'all 0.3s ease',
     }}>
       <Handle type="target" position={Position.Left} style={{ opacity: 0 }} />
       
-      <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '32px',
-          height: '32px',
+          width: '40px',
+          height: '40px',
           background: 'rgba(255, 255, 255, 0.1)',
           borderRadius: '50%',
-          marginBottom: '8px'
+          marginBottom: '12px'
         }}>
-          <User style={{ width: '18px', height: '18px', color: '#e5e7eb' }} />
+          <User style={{ width: '20px', height: '20px', color: '#e5e7eb' }} />
         </div>
         <h1 style={{
-          fontSize: '16px',
+          fontSize: '18px',
           fontWeight: 'bold',
           color: 'white',
-          marginBottom: '2px',
+          marginBottom: '4px',
           margin: 0
         }}>
           {isSignUp ? 'Create Account' : 'Welcome Back'}
         </h1>
-        <p style={{ color: '#9ca3af', margin: 0, fontSize: '12px' }}>
+        <p style={{ color: '#9ca3af', margin: 0, fontSize: '14px' }}>
           {isSignUp ? 'Sign up to get started' : 'Sign in to continue'}
         </p>
       </div>
 
+      {/* Error Display */}
+      {displayError && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '12px',
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          borderRadius: '8px',
+          marginBottom: '16px'
+        }}>
+          <AlertCircle size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+          <span style={{ fontSize: '12px', color: '#fca5a5' }}>{displayError}</span>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} style={{ marginBottom: '16px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                     {isSignUp && (
-             <AnimatedFormField
-               type="text"
-               placeholder="Username"
-               value={name}
-               onChange={(e) => setName(e.target.value)}
-               icon={<User size={18} />}
-             />
-           )}
+          {isSignUp && (
+            <div>
+              <AnimatedFormField
+                type="text"
+                placeholder="Username"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                icon={<User size={18} />}
+              />
+              {validationErrors.name && (
+                <span style={{ fontSize: '11px', color: '#fca5a5', marginTop: '4px', display: 'block' }}>
+                  {validationErrors.name}
+                </span>
+              )}
+            </div>
+          )}
 
-          <AnimatedFormField
-            type="email"
-            placeholder="Email address"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            icon={<Mail size={14} />}
-          />
+          <div>
+            <AnimatedFormField
+              type="email"
+              placeholder="Email address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              icon={<Mail size={16} />}
+            />
+            {validationErrors.email && (
+              <span style={{ fontSize: '11px', color: '#fca5a5', marginTop: '4px', display: 'block' }}>
+                {validationErrors.email}
+              </span>
+            )}
+          </div>
 
-          <AnimatedFormField
-            type={showPassword ? "text" : "password"}
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            icon={<Lock size={14} />}
-            showToggle
-            onToggle={() => setShowPassword(!showPassword)}
-            showPassword={showPassword}
-          />
+          <div>
+            <AnimatedFormField
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              icon={<Lock size={16} />}
+              showToggle
+              onToggle={() => setShowPassword(!showPassword)}
+              showPassword={showPassword}
+            />
+            {validationErrors.password && (
+              <span style={{ fontSize: '11px', color: '#fca5a5', marginTop: '4px', display: 'block' }}>
+                {validationErrors.password}
+              </span>
+            )}
+          </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -217,22 +353,22 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 style={{
-                  width: '10px',
-                  height: '10px',
+                  width: '12px',
+                  height: '12px',
                   accentColor: '#3b82f6',
                   backgroundColor: '#1f2937',
                   borderColor: '#4b5563',
                   borderRadius: '4px'
                 }}
               />
-              <span style={{ fontSize: '10px', color: '#9ca3af' }}>Remember me</span>
+              <span style={{ fontSize: '12px', color: '#9ca3af' }}>Remember me</span>
             </label>
             
             {!isSignUp && (
               <button
                 type="button"
                 style={{
-                  fontSize: '10px',
+                  fontSize: '12px',
                   color: '#3b82f6',
                   background: 'none',
                   border: 'none',
@@ -247,41 +383,40 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 
           <button
             type="submit"
-            disabled={isSubmitting}
+            disabled={isLoading}
             style={{
               width: '100%',
               position: 'relative',
-              background: '#3b82f6',
+              background: isLoading ? 'rgba(59, 130, 246, 0.6)' : '#3b82f6',
               color: 'white',
-              padding: '12px 16px',
+              padding: '14px 16px',
               borderRadius: '8px',
               fontWeight: '600',
-              fontSize: '16px',
+              fontSize: '14px',
               border: 'none',
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.5 : 1,
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               transition: 'all 0.3s ease-in-out',
               overflow: 'hidden'
             }}
             onMouseOver={(e) => {
-              if (!isSubmitting) {
+              if (!isLoading) {
                 e.currentTarget.style.background = 'rgba(59, 130, 246, 0.9)';
               }
             }}
             onMouseOut={(e) => {
-              if (!isSubmitting) {
+              if (!isLoading) {
                 e.currentTarget.style.background = '#3b82f6';
               }
             }}
           >
             <span style={{ 
-              opacity: isSubmitting ? 0 : 1,
+              opacity: isLoading ? 0 : 1,
               transition: 'opacity 0.2s'
             }}>
               {isSignUp ? 'Create Account' : 'Sign In'}
             </span>
             
-            {isSubmitting && (
+            {isLoading && (
               <div style={{
                 position: 'absolute',
                 inset: 0,
@@ -303,21 +438,21 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
         </div>
       </form>
 
-
-
-      <div style={{ marginTop: '16px', textAlign: 'center' }}>
-        <p style={{ fontSize: '14px', color: '#9ca3af', margin: 0 }}>
+      <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <p style={{ fontSize: '13px', color: '#9ca3af', margin: 0 }}>
           {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
           <button
             type="button"
             onClick={toggleMode}
+            disabled={isLoading}
             style={{
               color: '#3b82f6',
               background: 'none',
               border: 'none',
-              cursor: 'pointer',
+              cursor: isLoading ? 'not-allowed' : 'pointer',
               fontWeight: '600',
-              textDecoration: 'underline'
+              textDecoration: 'underline',
+              fontSize: '13px'
             }}
           >
             {isSignUp ? 'Sign in' : 'Sign up'}

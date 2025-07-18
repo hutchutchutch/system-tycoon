@@ -40,7 +40,7 @@ const UserNode: React.FC<NodeProps> = ({ data }) => {
 
 const AuthServiceNode: React.FC<NodeProps> = ({ data }) => {
   return (
-    <div className={`custom-node auth-service-node ${data.animated ? 'animated' : ''} ${data.success ? 'success' : ''}`}>
+    <div className={`custom-node auth-service-node ${data.animated ? 'animated' : ''} ${data.success ? 'success' : ''} ${data.error ? 'error' : ''}`}>
       <Handle type="target" position={Position.Left} />
       <div className="node-icon">
         <Server size={18} />
@@ -56,7 +56,7 @@ const AuthServiceNode: React.FC<NodeProps> = ({ data }) => {
 
 const DatabaseNode: React.FC<NodeProps> = ({ data }) => {
   return (
-    <div className={`custom-node database-node ${data.animated ? 'animated' : ''} ${data.success ? 'success' : ''}`}>
+    <div className={`custom-node database-node ${data.animated ? 'animated' : ''} ${data.success ? 'success' : ''} ${data.error ? 'error' : ''}`}>
       <Handle type="target" position={Position.Top} id="top" />
       <div className="node-icon">
         <Database size={18} />
@@ -147,7 +147,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
   onAuthSuccess
 }) => {
   const dispatch = useAppDispatch();
-  const { isLoading, error: authError } = useAppSelector((state) => state.auth);
+  const { isLoading, error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const handleSignIn = useCallback(async (email: string, password: string) => {
     const result = await dispatch(signInWithEmail({ email, password }));
@@ -166,12 +166,35 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
   const handleClearError = useCallback(() => {
     dispatch(clearError());
   }, [dispatch]);
+  
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [requirements, setRequirements] = useState(authRequirements);
   const [currentStep, setCurrentStep] = useState(0);
-  const [animationPhase, setAnimationPhase] = useState<'none' | 'left' | 'right' | 'success'>('none');
+  const [animationPhase, setAnimationPhase] = useState<'none' | 'left' | 'right' | 'success' | 'error'>('none');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [hasDatabaseError, setHasDatabaseError] = useState(false);
+  const [hasAuthServiceError, setHasAuthServiceError] = useState(false);
+
+  // Animation trigger callbacks
+  const handleAnimationStart = useCallback(() => {
+    setIsAnimating(true);
+    setAnimationPhase('left');
+    setHasDatabaseError(false); // Reset database error state
+    setHasAuthServiceError(false); // Reset auth service error state
+  }, []);
+
+  const handleDatabaseError = useCallback(() => {
+    setHasDatabaseError(true);
+    setAnimationPhase('error');
+    setIsAnimating(false);
+  }, []);
+
+  const handleAuthServiceError = useCallback(() => {
+    setHasAuthServiceError(true);
+    setAnimationPhase('error');
+    setIsAnimating(false);
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -299,6 +322,95 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
     }
   }, [animationPhase, onAuthSuccess]);
 
+  // Handle authentication service error state
+  useEffect(() => {
+    if (animationPhase === 'error' && hasAuthServiceError) {
+      // Highlight auth service node in red
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === '2' && node.type === 'authServiceNode') {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                error: true,
+                animated: false,
+                success: false,
+              },
+            };
+          }
+          return node;
+        })
+      );
+
+      // Make auth service edge red (AuthCard to Auth Service)
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id === 'e1-2') {
+            return {
+              ...edge,
+              animated: false,
+              style: {
+                ...edge.style,
+                stroke: '#ef4444',
+                strokeWidth: 3,
+              },
+            };
+          }
+          return edge;
+        })
+      );
+    }
+  }, [animationPhase, hasAuthServiceError]);
+
+  // Handle database error state
+  useEffect(() => {
+    if (animationPhase === 'error' && hasDatabaseError) {
+      // Highlight database node in red
+      setNodes((nds) =>
+        nds.map((node) => {
+          if (node.id === '3' && node.type === 'databaseNode') {
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                error: true,
+                animated: false,
+                success: false,
+              },
+            };
+          }
+          return node;
+        })
+      );
+
+      // Make database edge red
+      setEdges((eds) =>
+        eds.map((edge) => {
+          if (edge.id === 'e2-3') {
+            return {
+              ...edge,
+              animated: false,
+              style: {
+                ...edge.style,
+                stroke: '#ef4444',
+                strokeWidth: 3,
+              },
+            };
+          }
+          return edge;
+        })
+      );
+    }
+  }, [animationPhase, hasDatabaseError]);
+
+  // Handle successful authentication
+  useEffect(() => {
+    if (isAuthenticated && !hasDatabaseError && !hasAuthServiceError) {
+      setAnimationPhase('success');
+    }
+  }, [isAuthenticated, hasDatabaseError, hasAuthServiceError]);
+
   // Update auth card node with functions and error
   useEffect(() => {
     setNodes((nds) =>
@@ -309,19 +421,21 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
             data: {
               ...node.data,
               error: authError,
-              onSignIn: handleSignIn,
-              onSignUp: handleSignUp,
+              onSuccess: onAuthSuccess,
+              onAnimationStart: handleAnimationStart,
+              onDatabaseError: handleDatabaseError,
+              onAuthServiceError: handleAuthServiceError,
             },
           };
         }
         return node;
       })
     );
-  }, [authError, handleSignIn, handleSignUp]);
+  }, [authError, onAuthSuccess, handleAnimationStart, handleDatabaseError, handleAuthServiceError]);
 
   // Reset animation when not animating
   useEffect(() => {
-    if (!isAnimating) {
+    if (!isAnimating && !hasDatabaseError && !hasAuthServiceError) {
       setAnimationPhase('none');
       setCurrentStep(0);
       setRequirements(authRequirements);
@@ -332,13 +446,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
             ...node.data,
             animated: false,
             success: false,
-            ...(node.id === '1' && node.type === 'authCardNode' 
-              ? { 
-                  error: authError,
-                  onSignIn: handleSignIn,
-                  onSignUp: handleSignUp,
-                } 
-              : {}),
+            error: false, // Reset error state
           },
         }))
       );
@@ -354,7 +462,42 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         }))
       );
     }
-  }, [isAnimating, authError, handleSignIn, handleSignUp]);
+      }, [isAnimating, hasDatabaseError, hasAuthServiceError]);
+
+  // Reset error states when authentication error is cleared
+  useEffect(() => {
+    if (!authError && (hasDatabaseError || hasAuthServiceError)) {
+      setHasDatabaseError(false);
+      setHasAuthServiceError(false);
+      setAnimationPhase('none');
+      
+      // Reset all nodes to normal state
+      setNodes((nds) =>
+        nds.map((node) => ({
+          ...node,
+          data: {
+            ...node.data,
+            error: false,
+            animated: false,
+            success: false,
+          },
+        }))
+      );
+      
+      // Reset all edges to normal state
+      setEdges((eds) =>
+        eds.map((edge) => ({
+          ...edge,
+          animated: false,
+          style: {
+            ...edge.style,
+            stroke: '#64748b',
+            strokeWidth: 2,
+          },
+        }))
+      );
+    }
+  }, [authError, hasDatabaseError, hasAuthServiceError]);
 
   return (
     <div className="auth-flow-diagram" style={{ 

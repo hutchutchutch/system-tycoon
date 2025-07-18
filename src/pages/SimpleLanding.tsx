@@ -233,7 +233,7 @@ function FlowCanvasInner() {
       minZoom={0.5}
       maxZoom={2}
       style={{ 
-        backgroundColor: '#111827',
+        backgroundColor: '#000000',
         width: '100%',
         height: '100%'
       }}
@@ -280,7 +280,7 @@ function FlowCanvas() {
       style={{ 
         width: '100%', 
         height: '100%', 
-        backgroundColor: '#111827',
+        backgroundColor: '#000000',
         borderRadius: '8px',
         position: 'relative'
       }}

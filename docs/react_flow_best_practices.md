@@ -254,13 +254,226 @@ jsxfunction MultiHandleNode() {
     </div>
   );
 }
-Dynamic Handles
+
+Controlling Handle Visibility
+Complete Control Over Handle Visibility
+jsx// Example: Authentication Service Node with only left and bottom handles
+function AuthServiceNode() {
+  return (
+    <div className="auth-service-node">
+      {/* Target handle on the left - receives connections */}
+      <Handle 
+        type="target" 
+        position={Position.Left} 
+        // No id needed for single handle of this type
+        style={{ background: '#3b82f6' }}
+      />
+      
+      <div className="node-content">
+        <ServerIcon />
+        <h3>Authentication Service</h3>
+        <p>Validates credentials</p>
+      </div>
+      
+      {/* Source handle on the bottom - sends connections */}
+      <Handle 
+        type="source" 
+        position={Position.Bottom} 
+        id="bottom" // ID required when connecting to specific handles
+        style={{ background: '#3b82f6' }}
+      />
+      
+      {/* Note: No top or right handles - they simply don't exist */}
+    </div>
+  );
+}
+
+// Example: Database Node with only top handle
+function DatabaseNode() {
+  return (
+    <div className="database-node">
+      {/* Only top handle - receives connections from above */}
+      <Handle 
+        type="target" 
+        position={Position.Top} 
+        id="top"
+        style={{ background: '#f59e0b' }}
+      />
+      
+      <div className="node-content">
+        <DatabaseIcon />
+        <h3>Database</h3>
+        <p>User data storage</p>
+      </div>
+      
+      {/* No other handles - completely controlled visibility */}
+    </div>
+  );
+}
+
+Handle Positioning and Styling
+jsx// Precise handle positioning
+<Handle
+  type="source"
+  position={Position.Right}
+  id="output-1"
+  style={{
+    top: '25%',           // Position from top of node
+    background: '#10b981',
+    width: '12px',
+    height: '12px',
+    border: '2px solid white',
+    borderRadius: '50%'
+  }}
+/>
+
+// Hidden but functional handles
+<Handle
+  type="target"
+  position={Position.Left}
+  style={{
+    opacity: 0,          // Invisible but still functional
+    width: '20px',       // Larger hit area
+    height: '20px'
+  }}
+/>
+
+Connecting Edges to Specific Handles
+Edge Configuration with Handle IDs
+jsx// Edge connecting specific handles
+const edges = [
+  {
+    id: 'auth-to-db',
+    source: 'auth-service',     // Source node ID
+    target: 'database',         // Target node ID
+    sourceHandle: 'bottom',     // Connect from bottom handle of source
+    targetHandle: 'top',        // Connect to top handle of target
+    style: { stroke: '#64748b', strokeWidth: 2 }
+  }
+];
+
+// Multiple edges from different handles of the same node
+const edges = [
+  {
+    id: 'e1',
+    source: 'node1',
+    target: 'node2',
+    sourceHandle: 'output-1',   // From first output
+    targetHandle: 'input-1'
+  },
+  {
+    id: 'e2',
+    source: 'node1',
+    target: 'node3',
+    sourceHandle: 'output-2',   // From second output
+    targetHandle: 'input-1'
+  }
+];
+
+Handle ID Requirements
+jsx// ✅ Correct: IDs required for multiple handles of same type
+function MultiOutputNode() {
+  return (
+    <div>
+      <Handle type="source" position={Position.Right} id="primary" />
+      <Handle type="source" position={Position.Right} id="secondary" style={{ top: 30 }} />
+    </div>
+  );
+}
+
+// ✅ Correct: No ID needed for single handle of each type
+function SimpleNode() {
+  return (
+    <div>
+      <Handle type="target" position={Position.Left} />
+      <Handle type="source" position={Position.Right} />
+    </div>
+  );
+}
+
+// ❌ Incorrect: Missing IDs for multiple handles
+function BadMultiHandleNode() {
+  return (
+    <div>
+      <Handle type="source" position={Position.Right} />
+      <Handle type="source" position={Position.Right} style={{ top: 30 }} />
+    </div>
+  );
+}
+
+Connection Validation with Handles
+jsx// Validate connections based on handle types
+<Handle
+  type="target"
+  position={Position.Left}
+  id="data-input"
+  isValidConnection={(connection) => {
+    const sourceNode = getNode(connection.source);
+    const sourceHandle = connection.sourceHandle;
+    
+    // Only accept data connections
+    return sourceHandle === 'data-output';
+  }}
+/>
+
+// Global connection validation
+<ReactFlow
+  isValidConnection={(connection) => {
+    const { source, target, sourceHandle, targetHandle } = connection;
+    
+    // Prevent self-connections
+    if (source === target) return false;
+    
+    // Handle-specific validation
+    if (sourceHandle === 'control' && targetHandle !== 'control-input') {
+      return false;
+    }
+    
+    return true;
+  }}
+/>
+
+Dynamic Handle Updates
 jsx// Update node internals after handle changes
 const updateNodeInternals = useUpdateNodeInternals();
 
 useEffect(() => {
   updateNodeInternals(nodeId);
 }, [handleCount]);
+
+// Example: Dynamic handle creation based on node data
+function DynamicHandleNode({ data }) {
+  const inputCount = data.inputs || 1;
+  const outputCount = data.outputs || 1;
+  
+  return (
+    <div>
+      {/* Dynamic input handles */}
+      {Array.from({ length: inputCount }, (_, i) => (
+        <Handle
+          key={`input-${i}`}
+          type="target"
+          position={Position.Left}
+          id={`input-${i}`}
+          style={{ top: `${25 + (i * 30)}%` }}
+        />
+      ))}
+      
+      <div>Node Content</div>
+      
+      {/* Dynamic output handles */}
+      {Array.from({ length: outputCount }, (_, i) => (
+        <Handle
+          key={`output-${i}`}
+          type="source"
+          position={Position.Right}
+          id={`output-${i}`}
+          style={{ top: `${25 + (i * 30)}%` }}
+        />
+      ))}
+    </div>
+  );
+}
 
 Viewport & Controls
 Viewport Control
