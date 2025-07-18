@@ -33,9 +33,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
 }) => {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [currentTemplate, setCurrentTemplate] = useState<EmailTemplate | null>(null);
-  const [showRecommendations, setShowRecommendations] = useState(true);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // Generate contextual email templates based on hero and mentor
@@ -80,33 +78,6 @@ P.S. I noticed you need expertise in ${hero.skillsNeeded.slice(0, 2).join(' and 
     }
   }, [isOpen, currentTemplate, generateEmailTemplate]);
 
-  // Typing animation effect
-  const typeText = useCallback(async (text: string, targetSetter: (value: string) => void) => {
-    setIsTyping(true);
-    targetSetter('');
-    
-    for (let i = 0; i <= text.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 30));
-      targetSetter(text.slice(0, i));
-    }
-    
-    setIsTyping(false);
-  }, []);
-
-  const handleUseTemplate = useCallback(() => {
-    if (currentTemplate) {
-      setShowRecommendations(false);
-      typeText(currentTemplate.body, setBody);
-    }
-  }, [currentTemplate, typeText]);
-
-  const handleCustomize = useCallback(() => {
-    setShowRecommendations(false);
-    if (bodyRef.current) {
-      bodyRef.current.focus();
-    }
-  }, []);
-
   const handleSend = useCallback(() => {
     if (subject.trim() && body.trim()) {
       onSend({
@@ -119,12 +90,16 @@ P.S. I noticed you need expertise in ${hero.skillsNeeded.slice(0, 2).join(' and 
     }
   }, [subject, body, hero, onSend, onClose]);
 
+  const handleSaveToDrafts = useCallback(() => {
+    console.log('Email saved to drafts:', { subject, body, hero });
+    // TODO: Implement actual save to drafts functionality
+    onClose();
+  }, [subject, body, hero, onClose]);
+
   const handleClose = useCallback(() => {
     setSubject('');
     setBody('');
     setCurrentTemplate(null);
-    setShowRecommendations(true);
-    setIsTyping(false);
     onClose();
   }, [onClose]);
 
@@ -138,162 +113,106 @@ P.S. I noticed you need expertise in ${hero.skillsNeeded.slice(0, 2).join(' and 
   };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      size="large"
-      className={styles.emailComposer}
-    >
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <h2 className={styles.title}>Compose Email</h2>
-          <div className={styles.recipient}>
-            <span className={styles.recipientLabel}>To:</span>
-            <div className={styles.recipientInfo}>
-              <img 
-                src={hero.avatar} 
-                alt={hero.name}
-                className={styles.recipientAvatar}
-              />
-              <div className={styles.recipientDetails}>
-                <span className={styles.recipientName}>{hero.name}</span>
-                <span className={styles.recipientTitle}>{hero.title} at {hero.organization}</span>
+    <div data-theme="light">
+      <Modal
+        isOpen={isOpen}
+        onClose={handleClose}
+        size="large"
+        className={styles.emailComposer}
+      >
+        <div className={styles.header}>
+          <div className={styles.headerLeft}>
+            <h2 className={styles.title}>Compose Email</h2>
+            <div className={styles.recipient}>
+              <span className={styles.recipientLabel}>To:</span>
+              <div className={styles.recipientInfo}>
+                <img 
+                  src={hero.avatar} 
+                  alt={hero.name}
+                  className={styles.recipientAvatar}
+                />
+                <div className={styles.recipientDetails}>
+                  <span className={styles.recipientName}>{hero.name}</span>
+                  <span className={styles.recipientTitle}>{hero.title} at {hero.organization}</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className={styles.headerRight}>
-          <div 
-            className={styles.urgencyBadge}
-            style={{ backgroundColor: getUrgencyColor(hero.urgency) }}
-          >
-            {hero.urgency.toUpperCase()} PRIORITY
+          <div className={styles.headerRight}>
+            <div 
+              className={styles.urgencyBadge}
+              style={{ backgroundColor: getUrgencyColor(hero.urgency) }}
+            >
+              {hero.urgency.toUpperCase()} PRIORITY
+            </div>
           </div>
         </div>
-      </div>
 
-      {showRecommendations && (
-        <div className={styles.recommendations}>
-          <div className={styles.recommendationHeader}>
-            <h3>📧 Email Recommendations</h3>
-            <p>Based on your mentor's guidance and this hero's situation:</p>
+        <div className={styles.emailForm}>
+          <div className={styles.field}>
+            <label className={styles.label}>Subject</label>
+            <Input
+              value={subject}
+              onChange={(value) => setSubject(value)}
+              placeholder="Enter email subject..."
+              className={styles.subjectInput}
+            />
           </div>
-          
-          <div className={styles.recommendationContent}>
-            <div className={styles.mentorInsight}>
-              <img src={mentor.avatar} alt={mentor.name} className={styles.mentorAvatar} />
-              <div className={styles.mentorQuote}>
-                <p>"{mentor.message}"</p>
-                <cite>— {mentor.name}</cite>
-              </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Message</label>
+            <textarea
+              ref={bodyRef}
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Write your message here..."
+              className={styles.bodyInput}
+              rows={16}
+            />
+          </div>
+
+          <div className={styles.contextInfo}>
+            <div className={styles.contextSection}>
+              <h4>Hero's Technical Challenge:</h4>
+              <p>{hero.technicalProblem}</p>
             </div>
             
-            <div className={styles.templatePreview}>
-              <h4>Suggested Approach:</h4>
-              <ul className={styles.recommendations}>
-                <li>Acknowledge their specific technical challenge</li>
-                <li>Reference your mentor's wisdom about bridging gaps</li>
-                <li>Respect their business constraints (budget: {hero.businessConstraints.budget})</li>
-                <li>Emphasize the meaningful impact on {hero.impact.people.toLocaleString()} {hero.impact.metric}</li>
-                <li>Offer collaborative approach rather than selling</li>
-              </ul>
+            <div className={styles.contextSection}>
+              <h4>Skills Needed:</h4>
+              <div className={styles.skillsList}>
+                {hero.skillsNeeded.map((skill, index) => (
+                  <span key={index} className={styles.skillTag}>
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
-          
-          <div className={styles.templateActions}>
-            <Button
-              variant="primary"
-              onClick={handleUseTemplate}
-              disabled={isTyping}
-            >
-              Use Recommended Template
-            </Button>
+        </div>
+
+        <div className={styles.footer}>
+          <div className={styles.footerLeft}>
+            <span className={styles.impactReminder}>
+              💡 This could help {hero.impact.people.toLocaleString()} {hero.impact.metric}
+            </span>
+          </div>
+          <div className={styles.footerRight}>
             <Button
               variant="secondary"
-              onClick={handleCustomize}
+              onClick={handleSaveToDrafts}
             >
-              Write Custom Email
+              Save to Drafts
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSend}
+              disabled={!subject.trim() || !body.trim()}
+            >
+              Send
             </Button>
           </div>
         </div>
-      )}
-
-      <div className={styles.emailForm}>
-        <div className={styles.field}>
-          <label className={styles.label}>Subject</label>
-          <Input
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            placeholder="Enter email subject..."
-            className={styles.subjectInput}
-          />
-        </div>
-
-        <div className={styles.field}>
-          <label className={styles.label}>Message</label>
-          <textarea
-            ref={bodyRef}
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Write your message here..."
-            className={styles.bodyInput}
-            rows={12}
-            disabled={isTyping}
-          />
-          
-          {isTyping && (
-            <div className={styles.typingIndicator}>
-              <span className={styles.typingDots}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </span>
-              <span>Composing thoughtful message...</span>
-            </div>
-          )}
-        </div>
-
-        <div className={styles.contextInfo}>
-          <div className={styles.contextSection}>
-            <h4>Hero's Technical Challenge:</h4>
-            <p>{hero.technicalProblem}</p>
-          </div>
-          
-          <div className={styles.contextSection}>
-            <h4>Skills Needed:</h4>
-            <div className={styles.skillsList}>
-              {hero.skillsNeeded.map((skill, index) => (
-                <span key={index} className={styles.skillTag}>
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.footer}>
-        <div className={styles.footerLeft}>
-          <span className={styles.impactReminder}>
-            💡 This could help {hero.impact.people.toLocaleString()} {hero.impact.metric}
-          </span>
-        </div>
-        <div className={styles.footerRight}>
-          <Button
-            variant="secondary"
-            onClick={handleClose}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={handleSend}
-            disabled={!subject.trim() || !body.trim() || isTyping}
-          >
-            Send Email
-          </Button>
-        </div>
-      </div>
-    </Modal>
+      </Modal>
+    </div>
   );
 };

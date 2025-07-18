@@ -4,7 +4,7 @@
   flex-direction: column;
   height: 90vh;
   max-height: 800px;
-  background: var(--color-surface);
+  background: var(--color-surface-primary);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
 }
@@ -14,8 +14,8 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: var(--spacing-6);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border-primary);
+  background: var(--color-surface-primary);
 }
 
 .headerLeft {
@@ -182,44 +182,51 @@
 .emailForm {
   flex: 1;
   padding: var(--spacing-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
   overflow-y: auto;
+  background: var(--color-surface-primary);
 }
 
 .field {
-  margin-bottom: var(--spacing-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 
 .label {
-  display: block;
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  margin-bottom: var(--spacing-2);
 }
 
 .subjectInput {
   width: 100%;
-  font-size: var(--font-size-md);
 }
 
 .bodyInput {
   width: 100%;
-  min-height: 200px;
   padding: var(--spacing-3);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-primary);
   border-radius: var(--border-radius-md);
+  background: var(--color-surface-primary);
   color: var(--color-text-primary);
+  font-family: var(--font-sans);
   font-size: var(--font-size-sm);
-  font-family: var(--font-family-base);
-  line-height: 1.6;
+  line-height: 1.5;
   resize: vertical;
-  transition: border-color 0.2s ease;
+  min-height: 200px;
 }
 
 .bodyInput:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: var(--color-border-focus);
+  background: var(--color-surface-primary);
+}
+
+.bodyInput::placeholder {
+  color: var(--color-text-placeholder);
 }
 
 .bodyInput:disabled {
@@ -275,27 +282,33 @@
 }
 
 .contextInfo {
-  margin-top: var(--spacing-6);
-  padding-top: var(--spacing-6);
-  border-top: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  padding: var(--spacing-4);
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
 }
 
 .contextSection {
-  margin-bottom: var(--spacing-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
 }
 
 .contextSection h4 {
   color: var(--color-text-primary);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  margin: 0 0 var(--spacing-2) 0;
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
 }
 
 .contextSection p {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  line-height: 1.5;
   margin: 0;
+  line-height: 1.4;
 }
 
 .skillsList {
@@ -306,10 +319,10 @@
 
 .skillTag {
   padding: var(--spacing-1) var(--spacing-2);
-  background: var(--color-background-subtle);
-  border: 1px solid var(--color-border);
+  background: var(--color-surface-tertiary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-primary);
   border-radius: var(--border-radius-sm);
-  color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
 }
@@ -319,8 +332,8 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-6);
-  border-top: 1px solid var(--color-border);
-  background: var(--color-background);
+  border-top: 1px solid var(--color-border-primary);
+  background: var(--color-surface-secondary);
 }
 
 .footerLeft {
@@ -330,7 +343,7 @@
 .impactReminder {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
+  font-style: italic;
 }
 
 .footerRight {
@@ -366,4 +379,39 @@
   .footerLeft {
     text-align: center;
   }
+}
+
+/* Light theme specific adjustments */
+[data-theme="light"] .emailComposer {
+  background: var(--color-surface-primary);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .header {
+  background: var(--color-surface-primary);
+  border-bottom-color: var(--color-border-primary);
+}
+
+[data-theme="light"] .emailForm {
+  background: var(--color-surface-primary);
+}
+
+[data-theme="light"] .footer {
+  background: var(--color-surface-secondary);
+  border-top-color: var(--color-border-primary);
+}
+
+[data-theme="light"] .bodyInput {
+  background: var(--color-surface-primary);
+  border-color: var(--color-border-primary);
+  color: var(--color-text-primary);
+}
+
+[data-theme="light"] .bodyInput:focus {
+  border-color: var(--color-border-focus);
+}
+
+[data-theme="light"] .contextInfo {
+  background: var(--color-surface-secondary);
+  border-color: var(--color-border-primary);
 }

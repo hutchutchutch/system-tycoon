@@ -4,7 +4,7 @@ import { BentoGrid } from '../../components/molecules/BentoGrid';
 import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
 import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
 import { newsService } from '../../services/newsService';
-import type { NewsArticle } from '../../types/news.types';
+import type { NewsArticle, NewsHero } from '../../types/news.types';
 import type { Mentor } from '../../types/mentor.types';
 
 interface NewsWrapperProps {
@@ -59,6 +59,47 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
     }
   }, [selectedCategories]);
 
+  // Convert NewsArticle to NewsHero format for EmailComposer
+  const convertArticleToHero = useCallback((article: NewsArticle): NewsHero => {
+    return {
+      id: article.id,
+      name: article.author_name,
+      title: 'Community Leader', // Default title since it's not in NewsArticle
+      organization: article.publication_name,
+      avatar: article.author_avatar_url || '👤',
+      location: article.location || 'Unknown Location',
+      category: article.category_slug as NewsHero['category'],
+      urgency: article.urgency_level,
+      headline: article.headline,
+      preview: article.preview_text,
+      fullDescription: article.full_text,
+      impact: {
+        people: article.impact_stats?.people || 100,
+        metric: article.impact_stats?.metric || 'people affected'
+      },
+      technicalProblem: article.preview_text, // Use preview as technical problem description
+      skillsNeeded: article.tags.slice(0, 4), // Use tags as skills needed
+      businessConstraints: {
+        budget: '$10,000', // Default constraints since not in NewsArticle
+        timeline: '2-4 weeks',
+        compliance: ['Data Privacy', 'Security Standards']
+      }
+    };
+  }, []);
+
+  // Create a default mentor if none provided
+  const defaultMentor: Mentor = {
+    id: 'default-mentor',
+    name: 'Tech Mentor',
+    title: 'Senior Technical Advisor',
+    company: 'System Tycoon',
+    avatar: '🧠',
+    expertise: ['System Design', 'Social Impact', 'Mentorship'],
+    contribution: 'Technology should bridge gaps between problems and solutions',
+    message: 'Focus on understanding their real constraints and offer practical, sustainable solutions. Every technical decision should consider the human impact.',
+    toastMessage: 'Look for opportunities to connect your technical skills with real-world problems that matter.'
+  };
+
   const handleContact = useCallback(async (article: NewsArticle) => {
     try {
       await newsService.incrementContactCount(article.id);
@@ -67,6 +108,21 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
       console.error('Error tracking contact:', error);
       setEmailToOpen(article);
     }
+  }, []);
+
+  const handleCloseEmailComposer = useCallback(() => {
+    setEmailToOpen(null);
+  }, []);
+
+  const handleEmailSend = useCallback((emailData: {
+    to: string;
+    subject: string;
+    body: string;
+    hero: NewsHero;
+  }) => {
+    console.log('Email sent:', emailData);
+    // TODO: Implement actual email sending logic
+    setEmailToOpen(null);
   }, []);
 
   const handleTagClick = useCallback((categorySlug: string) => {
@@ -100,29 +156,19 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
         <div className="fixed inset-0 bg-gradient-to-br from-neutral-900 via-black to-neutral-900" />
         
         {/* Content */}
-        <div className="relative z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="relative z-10 p-6">
+          <div className="max-w-7xl mx-auto">
             {/* Header */}
-            {hero && (
-              <div className="text-center mb-12">
-                <div className="inline-flex items-center gap-2 mb-4">
-                  <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-sm font-medium text-red-500 uppercase tracking-wider">
-                    Breaking News
-                  </span>
-                </div>
-                
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                  {hero.headline}
-                </h1>
-                
-                <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
-                  {hero.subheadline}
-                </p>
-              </div>
-            )}
+            <div className="mb-8">
+              <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                Today's News
+              </h1>
+              <p className="text-gray-400 text-lg">
+                Discover heroes making a difference in their communities
+              </p>
+            </div>
 
-            {/* Category Tags */}
+            {/* Category filters */}
             {categories.length > 0 && (
               <div className="mb-8">
                 <h3 className="text-lg font-semibold mb-4 text-gray-300">Filter by Category:</h3>
@@ -164,43 +210,15 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
         </div>
       </div>
 
-      {/* Email Composer Modal - Simplified for now */}
+      {/* Email Composer Modal */}
       {emailToOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setEmailToOpen(null)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            className="bg-white rounded-lg p-6 max-w-2xl w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-bold mb-4 text-black">Contact About: {emailToOpen.headline}</h3>
-            <p className="text-gray-700 mb-6">{emailToOpen.preview_text}</p>
-            <div className="flex gap-4">
-              <button 
-                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-                onClick={() => {
-                  console.log('Contact initiated for article:', emailToOpen.id);
-                  setEmailToOpen(null);
-                }}
-              >
-                Send Message
-              </button>
-              <button 
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-                onClick={() => setEmailToOpen(null)}
-              >
-                Cancel
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
+        <EmailComposer
+          isOpen={!!emailToOpen}
+          onClose={handleCloseEmailComposer}
+          hero={convertArticleToHero(emailToOpen)}
+          mentor={mentor || defaultMentor}
+          onSend={handleEmailSend}
+        />
       )}
     </>
   );
