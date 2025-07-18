@@ -85,6 +85,9 @@ export default {
       animation: {
         spotlight: "spotlight 2s ease .75s 1 forwards",
         blob: "blob 7s infinite",
+        'fade-slide-in': 'fadeSlideIn 0.6s ease-out forwards',
+        'slide-right-in': 'slideRightIn 0.8s ease-out forwards',
+        'testimonial-in': 'testimonialIn 0.8s ease-out forwards',
       },
       keyframes: {
         spotlight: {
@@ -109,6 +112,42 @@ export default {
           },
           "100%": {
             transform: "translate(0px, 0px) scale(1)",
+          },
+        },
+        fadeSlideIn: {
+          "0%": {
+            opacity: 0,
+            filter: "blur(4px)",
+            transform: "translateY(20px)",
+          },
+          "100%": {
+            opacity: 1,
+            filter: "blur(0px)",
+            transform: "translateY(0px)",
+          },
+        },
+        slideRightIn: {
+          "0%": {
+            opacity: 0,
+            filter: "blur(4px)",
+            transform: "translateX(40px)",
+          },
+          "100%": {
+            opacity: 1,
+            filter: "blur(0px)",
+            transform: "translateX(0px)",
+          },
+        },
+        testimonialIn: {
+          "0%": {
+            opacity: 0,
+            filter: "blur(4px)",
+            transform: "translateY(20px) scale(0.95)",
+          },
+          "100%": {
+            opacity: 1,
+            filter: "blur(0px)",
+            transform: "translateY(0px) scale(1)",
           },
         },
       },

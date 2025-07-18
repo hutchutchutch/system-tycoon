@@ -1,3 +1,4 @@
+import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RootLayout } from './components/layout/RootLayout';
 import { AuthLayout } from './components/layout/AuthLayout';
@@ -6,7 +7,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
-import { UnifiedAuthPage } from './pages/auth/UnifiedAuthPage';
+import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
@@ -22,28 +23,6 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
-      },
-      {
-        path: 'auth',
-        element: <AuthLayout />,
-        children: [
-          {
-            index: true,
-            element: <UnifiedAuthPage />,
-          },
-          {
-            path: 'signin',
-            element: <Navigate to="/auth" replace />,
-          },
-          {
-            path: 'signup',
-            element: <Navigate to="/auth" replace />,
-          },
-          {
-            path: 'callback',
-            element: <div>Processing authentication...</div>, // OAuth callback handler
-          },
-        ],
       },
       {
         path: 'game',
@@ -130,5 +109,22 @@ export const router = createBrowserRouter([
         ],
       },
     ],
+  },
+  // Standalone auth routes (no layout wrapper)
+  {
+    path: 'auth',
+    element: <AuthFlowPage />,
+  },
+  {
+    path: 'auth/signin',
+    element: <Navigate to="/auth" replace />,
+  },
+  {
+    path: 'auth/signup', 
+    element: <Navigate to="/auth" replace />,
+  },
+  {
+    path: 'auth/callback',
+    element: <div>Processing authentication...</div>,
   },
 ]);
