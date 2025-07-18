@@ -184,7 +184,7 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
                      {isSignUp && (
              <AnimatedFormField
                type="text"
-               placeholder="Enter your full name"
+               placeholder="Username"
                value={name}
                onChange={(e) => setName(e.target.value)}
                icon={<User size={18} />}

@@ -13,7 +13,6 @@ import type { Node, Edge, Connection, NodeProps } from '@xyflow/react';
 import { User, Server, Database } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
 import { signInWithEmail, signUpWithEmail, clearError } from '../../../features/auth/authSlice';
-import { Requirements } from '../../../components/molecules/Requirements';
 import { AuthCardNode } from '../../../components/organisms/AuthCard/AuthCard';
 import '@xyflow/react/dist/style.css';
 import './AuthFlowDiagram.css';
@@ -50,7 +49,7 @@ const AuthServiceNode: React.FC<NodeProps> = ({ data }) => {
         <div className="node-title">{data.title as string}</div>
         <div className="node-subtitle">{data.subtitle as string}</div>
       </div>
-      <Handle type="source" position={Position.Right} />
+      <Handle type="source" position={Position.Bottom} id="bottom" />
     </div>
   );
 };
@@ -58,7 +57,7 @@ const AuthServiceNode: React.FC<NodeProps> = ({ data }) => {
 const DatabaseNode: React.FC<NodeProps> = ({ data }) => {
   return (
     <div className={`custom-node database-node ${data.animated ? 'animated' : ''} ${data.success ? 'success' : ''}`}>
-      <Handle type="target" position={Position.Left} />
+      <Handle type="target" position={Position.Top} id="top" />
       <div className="node-icon">
         <Database size={18} />
       </div>
@@ -66,7 +65,6 @@ const DatabaseNode: React.FC<NodeProps> = ({ data }) => {
         <div className="node-title">{data.title as string}</div>
         <div className="node-subtitle">{data.subtitle as string}</div>
       </div>
-      <Handle type="source" position={Position.Right} />
     </div>
   );
 };
@@ -82,7 +80,7 @@ const initialNodes: Node[] = [
   {
     id: '1',
     type: 'authCardNode',
-    position: { x: 50, y: 200 },
+    position: { x: 400, y: 250 },
     data: { 
       error: undefined,
       onSignIn: undefined,
@@ -95,7 +93,7 @@ const initialNodes: Node[] = [
   {
     id: '2',
     type: 'authServiceNode',
-    position: { x: 400, y: 500 },
+    position: { x: 750, y: 250 },
     data: { 
       title: 'Authentication Service',
       subtitle: 'Validates credentials',
@@ -107,7 +105,7 @@ const initialNodes: Node[] = [
   {
     id: '3',
     type: 'databaseNode',
-    position: { x: 600, y: 500 },
+    position: { x: 750, y: 450 },
     data: { 
       title: 'Database',
       subtitle: 'User data storage',
@@ -131,6 +129,8 @@ const initialEdges: Edge[] = [
     id: 'e2-3', 
     source: '2', 
     target: '3', 
+    sourceHandle: 'bottom',
+    targetHandle: 'top',
     animated: false,
     style: { stroke: '#64748b', strokeWidth: 2 },
     data: { phase: 'right' }
@@ -385,25 +385,6 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         >
           <Background color="transparent" gap={20} size={0} />
         </ReactFlow>
-      </div>
-      
-      {/* Requirements Panel - Right Side */}
-      <div className="requirements-container" style={{ 
-        position: 'absolute',
-        top: '20px',
-        right: '20px',
-        width: '400px',
-        padding: '20px', 
-        backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '12px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        zIndex: 1000
-      }}>
-        <Requirements 
-          requirements={requirements}
-          onRunTest={handleRunTest}
-        />
       </div>
     </div>
   );
