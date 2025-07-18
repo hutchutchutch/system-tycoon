@@ -98,6 +98,75 @@
 
 .mentorDetails {
   flex: 1;
+  position: relative;
+}
+
+.mentorSelector {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  font: inherit;
+}
+
+.mentorDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--color-neutral-50);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  z-index: 10000;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.mentorOption {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.mentorOption:last-child {
+  border-bottom: none;
+}
+
+.mentorOption:hover {
+  background: var(--color-neutral-100);
+}
+
+.mentorOption.selected {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+}
+
+.mentorOptionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mentorOptionContent strong {
+  font-size: var(--text-body-small);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.mentorOptionContent small {
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: 1.2;
 }
 
 .mentorName {

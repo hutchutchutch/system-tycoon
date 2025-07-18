@@ -17,19 +17,29 @@ const convertToEmailCardData = (email: EmailData) => {
   return {
     id: email.id,
     sender: {
+      id: email.sender_email,
       name: email.sender_name,
       email: email.sender_email,
       avatar: email.sender_avatar,
     },
     subject: email.subject,
     preview: email.preview,
-    content: email.content,
-    timestamp: new Date(email.timestamp),
-    status: email.status,
-    priority: email.priority === 'urgent' ? 'high' : email.priority,
-    hasAttachments: email.has_attachments,
-    tags: email.tags,
+    body: email.content, // Map content to body 
+    content: email.content, // Keep content for backwards compatibility
     category: email.category,
+    status: email.status,
+    priority: email.priority,
+    sentAt: email.timestamp, // Keep as string for Email interface
+    triggerType: 'manual', // Default trigger type
+    isAccessible: true,
+    hasAttachments: email.has_attachments,
+    attachments: email.has_attachments ? [] : undefined,
+    isImportant: email.priority === 'high' || email.priority === 'urgent',
+    isUrgent: email.priority === 'urgent',
+    canReply: true,
+    canForward: true,
+    requiresAction: false,
+    tags: email.tags,
   };
 };
 
@@ -596,14 +606,14 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
               <div className={styles.emailDetailMeta}>
                 <strong>From:</strong> {selectedEmail.sender.name} &lt;{selectedEmail.sender.email}&gt;<br />
                 <strong>To:</strong> Me<br />
-                <strong>Date:</strong> {selectedEmail.timestamp.toLocaleString()}
+                <strong>Date:</strong> {selectedEmail.sentAt ? new Date(selectedEmail.sentAt).toLocaleString() : 'N/A'}
               </div>
               
               <div className={styles.emailDetailContent}>
                 {/* Render email content with markdown formatting */}
                 <div 
                   dangerouslySetInnerHTML={{
-                    __html: selectedEmail.content
+                    __html: selectedEmail.body
                       .replace(/\n/g, '<br />')
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                       .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -615,8 +625,8 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                 {(selectedEmail.tags.includes('crisis') || 
                   selectedEmail.tags.includes('system-design') || 
                   selectedEmail.tags.includes('healthcare') ||
-                  selectedEmail.content?.toLowerCase().includes('system design') ||
-                  selectedEmail.content?.toLowerCase().includes('crisis') ||
+                  selectedEmail.body?.toLowerCase().includes('system design') ||
+                  selectedEmail.body?.toLowerCase().includes('crisis') ||
                   selectedEmail.subject?.toLowerCase().includes('urgent')) && (
                   <div className={styles.missionActionSection}>
                     <hr className={styles.divider} />
@@ -634,7 +644,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                   </div>
                 )}
                 
-                {selectedEmail.content?.includes('/?crisis=true') && (
+                {selectedEmail.body?.includes('/?crisis=true') && (
                   <div className={styles.systemDesignPrompt}>
                     <p>This email mentions a crisis situation that requires immediate system design attention.</p>
                     <button 

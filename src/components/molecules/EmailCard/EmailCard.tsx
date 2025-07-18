@@ -62,6 +62,7 @@ export const EmailCard: React.FC<EmailCardProps> = ({
     const diffTime = now.getTime() - date.getTime();
     const diffMinutes = Math.floor(diffTime / (1000 * 60));
     const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
     if (diffMinutes < 1) {
       return 'Just now';
@@ -69,10 +70,13 @@ export const EmailCard: React.FC<EmailCardProps> = ({
       return `${diffMinutes}m ago`;
     } else if (diffHours < 24) {
       return `${diffHours}h ago`;
-    } else if (diffHours < 48) {
+    } else if (diffDays === 1) {
       return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays}d ago`;
     } else {
-      return date.toLocaleDateString();
+      // Show actual date for older emails
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
   };
 
@@ -150,18 +154,24 @@ export const EmailCard: React.FC<EmailCardProps> = ({
         />
       </div>
 
-      {/* Email content */}
+      {/* Email content - NEW 2-ROW LAYOUT */}
       <div className={styles.content}>
-        <div className={styles.header}>
-          <div className={styles.sender}>
-            <span className={styles.senderName}>
-              {email.sender.name}
+        {/* Row 1: Sender Name */}
+        <div className={styles.senderRow}>
+          <span className={styles.senderName}>
+            {email.sender.name}
+          </span>
+        </div>
+
+        {/* Row 2: Subject (bold) + Body (truncated) + Timestamp */}
+        <div className={styles.contentRow}>
+          <div className={styles.contentText}>
+            <span className={styles.subject}>
+              {email.subject}
             </span>
-            {!compact && (
-              <span className={styles.senderEmail}>
-                {email.sender.email}
-              </span>
-            )}
+            <span className={styles.bodyText}>
+              {email.body || email.preview}
+            </span>
           </div>
           
           <div className={styles.meta}>
@@ -175,42 +185,34 @@ export const EmailCard: React.FC<EmailCardProps> = ({
           </div>
         </div>
 
-        <div className={styles.subject}>
-          {truncateText(email.subject, compact ? 40 : 60)}
-        </div>
-
-        {!compact && (
-          <div className={styles.preview}>
-            {truncateText(email.preview, 120)}
+        {/* Tags section - now includes mission tag */}
+        {(isMissionEmail || (email.tags && email.tags.length > 0)) && (
+          <div className={styles.tags}>
+            {/* Mission tag - always first and most prominent */}
+            {isMissionEmail && (
+              <span className={clsx(styles.tag, styles.missionTag)}>
+                <Icon name="star" size="xs" className={styles.missionIcon} />
+                {getMissionTagText()}
+              </span>
+            )}
+            
+            {/* Regular tags */}
+            {email.tags && email.tags.length > 0 && (
+              <>
+                {email.tags.slice(0, isMissionEmail ? 2 : 3).map((tag, index) => (
+                  <span key={index} className={styles.tag}>
+                    {tag}
+                  </span>
+                ))}
+                {email.tags.length > (isMissionEmail ? 2 : 3) && (
+                  <span className={styles.tagMore}>
+                    +{email.tags.length - (isMissionEmail ? 2 : 3)}
+                  </span>
+                )}
+              </>
+            )}
           </div>
         )}
-
-        {/* Tags section - now includes mission tag */}
-        <div className={styles.tags}>
-          {/* Mission tag - always first and most prominent */}
-          {isMissionEmail && (
-            <span className={clsx(styles.tag, styles.missionTag)}>
-              <Icon name="star" size="xs" className={styles.missionIcon} />
-              {getMissionTagText()}
-            </span>
-          )}
-          
-          {/* Regular tags */}
-          {email.tags && email.tags.length > 0 && (
-            <>
-              {email.tags.slice(0, isMissionEmail ? 2 : 3).map((tag, index) => (
-                <span key={index} className={styles.tag}>
-                  {tag}
-                </span>
-              ))}
-              {email.tags.length > (isMissionEmail ? 2 : 3) && (
-                <span className={styles.tagMore}>
-                  +{email.tags.length - (isMissionEmail ? 2 : 3)}
-                </span>
-              )}
-            </>
-          )}
-        </div>
       </div>
     </div>
   );
