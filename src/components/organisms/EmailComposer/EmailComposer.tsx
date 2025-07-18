@@ -2,16 +2,18 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Modal } from '../../atoms/Modal';
 import { Button } from '../../atoms/Button';
 import { Input } from '../../atoms/Input';
+import { Icon } from '../../atoms/Icon';
 import type { NewsHero } from '../../../types/news.types';
-import type { Mentor } from '../../../types/mentor.types';
+import { saveEmail } from '../../../services/emailService';
 import styles from './EmailComposer.module.css';
 
 export interface EmailComposerProps {
   isOpen: boolean;
   onClose: () => void;
   hero: NewsHero;
-  mentor: Mentor;
-  onSend: (emailData: {
+  missionId?: string;
+  stageId?: string;
+  onSend?: (emailData: {
     to: string;
     subject: string;
     body: string;
@@ -19,98 +21,137 @@ export interface EmailComposerProps {
   }) => void;
 }
 
-interface EmailTemplate {
-  subject: string;
-  body: string;
-}
-
 export const EmailComposer: React.FC<EmailComposerProps> = ({
   isOpen,
   onClose,
   hero,
-  mentor,
+  missionId,
+  stageId,
   onSend
 }) => {
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [currentTemplate, setCurrentTemplate] = useState<EmailTemplate | null>(null);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSending, setIsSending] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
-  // Generate contextual email templates based on hero and mentor
-  const generateEmailTemplate = useCallback((): EmailTemplate => {
-    const urgencyMap = {
-      low: 'Potential Solution',
-      medium: 'Technical Assistance Available',
-      high: 'Urgent Technical Support',
-      critical: 'Emergency Technical Response'
-    };
+  // Generate recipient email
+  const recipientEmail = `${hero.name.toLowerCase().replace(/\s+/g, '.')}@${hero.organization.toLowerCase().replace(/\s+/g, '')}.org`;
 
-    const subjectPrefix = urgencyMap[hero.urgency];
-    const subject = `${subjectPrefix}: ${hero.headline}`;
+  // Simple message template
+  const getSimpleMessage = useCallback(() => {
+    return `Hey ${hero.name}! I love what you're doing! Do you need any help with your software stack?`;
+  }, [hero.name]);
 
-    const body = `Dear ${hero.name},
-
-I hope this message finds you well. I'm reaching out after learning about the technical challenges you're facing with ${hero.technicalProblem}.
-
-As someone working in the technology sector, I believe I might be able to help bridge the gap between the technical solutions that exist and the specific needs of ${hero.organization}. My mentor, ${mentor.name}, has guided me to understand that ${mentor.contribution.toLowerCase()}.
-
-I understand that you're working with constraints around ${hero.businessConstraints.budget} budget and ${hero.businessConstraints.timeline} timeline. I'd be happy to explore how we might work together to find a solution that fits within these parameters.
-
-The impact you're having on ${hero.impact.people.toLocaleString()} ${hero.impact.metric} is truly meaningful, and I'd love to contribute to that mission in whatever way I can.
-
-Would you be open to a brief conversation about how we might collaborate? I'm happy to work within your schedule and preferred communication method.
-
-Best regards,
-[Your Name]
-
-P.S. I noticed you need expertise in ${hero.skillsNeeded.slice(0, 2).join(' and ')} - these are areas where I have relevant experience.`;
-
-    return { subject, body };
-  }, [hero, mentor]);
+  // Typing animation effect
+  const typeMessage = useCallback(async () => {
+    const message = getSimpleMessage();
+    setIsTyping(true);
+    setBody('');
+    
+    for (let i = 0; i <= message.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      setBody(message.slice(0, i));
+    }
+    
+    setIsTyping(false);
+  }, [getSimpleMessage]);
 
   // Auto-generate email when modal opens
   useEffect(() => {
-    if (isOpen && !currentTemplate) {
-      const template = generateEmailTemplate();
-      setCurrentTemplate(template);
-      setSubject(template.subject);
-      setBody(template.body);
+    if (isOpen) {
+      setSubject(`Re: ${hero.headline}`);
+      typeMessage();
+    } else {
+      // Reset state when modal closes
+      setSubject('');
+      setBody('');
+      setIsTyping(false);
+      setIsSaving(false);
+      setIsSending(false);
     }
-  }, [isOpen, currentTemplate, generateEmailTemplate]);
+  }, [isOpen, hero.headline, typeMessage]);
 
-  const handleSend = useCallback(() => {
-    if (subject.trim() && body.trim()) {
-      onSend({
-        to: `${hero.name} <${hero.name.toLowerCase().replace(/\s+/g, '.')}@${hero.organization.toLowerCase().replace(/\s+/g, '')}.org>`,
+  const handleSend = useCallback(async () => {
+    if (!subject.trim() || !body.trim() || isTyping) return;
+
+    setIsSending(true);
+    
+    try {
+      // Save to database as sent
+      const result = await saveEmail({
+        to: recipientEmail,
         subject: subject.trim(),
         body: body.trim(),
-        hero
+        status: 'sent',
+        hero,
+        missionId,
+        stageId
       });
-      onClose();
-    }
-  }, [subject, body, hero, onSend, onClose]);
 
-  const handleSaveToDrafts = useCallback(() => {
-    console.log('Email saved to drafts:', { subject, body, hero });
-    // TODO: Implement actual save to drafts functionality
-    onClose();
-  }, [subject, body, hero, onClose]);
+      if (result.success) {
+        // Call onSend callback if provided
+        onSend?.({
+          to: recipientEmail,
+          subject: subject.trim(),
+          body: body.trim(),
+          hero
+        });
+        onClose();
+      } else {
+        console.error('Failed to send email:', result.error);
+        // Could show error message here
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    } finally {
+      setIsSending(false);
+    }
+  }, [subject, body, hero, recipientEmail, onSend, onClose, isTyping]);
+
+  const handleSaveToDrafts = useCallback(async () => {
+    if (!subject.trim() && !body.trim()) {
+      onClose();
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const result = await saveEmail({
+        to: recipientEmail,
+        subject: subject.trim() || 'Draft',
+        body: body.trim(),
+        status: 'draft',
+        hero,
+        missionId,
+        stageId
+      });
+
+      if (result.success) {
+        onClose();
+      } else {
+        console.error('Failed to save draft:', result.error);
+        // For now, still close the modal
+        onClose();
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      onClose();
+    } finally {
+      setIsSaving(false);
+    }
+  }, [subject, body, hero, recipientEmail, onClose]);
 
   const handleClose = useCallback(() => {
-    setSubject('');
-    setBody('');
-    setCurrentTemplate(null);
-    onClose();
-  }, [onClose]);
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'critical': return 'var(--color-danger)';
-      case 'high': return 'var(--color-warning)';
-      case 'medium': return 'var(--color-primary)';
-      default: return 'var(--color-success)';
+    // If there's content, save as draft, otherwise just close
+    if (subject.trim() || body.trim()) {
+      handleSaveToDrafts();
+    } else {
+      onClose();
     }
-  };
+  }, [subject, body, handleSaveToDrafts, onClose]);
 
   return (
     <div data-theme="light">
@@ -121,96 +162,83 @@ P.S. I noticed you need expertise in ${hero.skillsNeeded.slice(0, 2).join(' and 
         className={styles.emailComposer}
       >
         <div className={styles.header}>
-          <div className={styles.headerLeft}>
-            <h2 className={styles.title}>Compose Email</h2>
-            <div className={styles.recipient}>
-              <span className={styles.recipientLabel}>To:</span>
-              <div className={styles.recipientInfo}>
-                <img 
-                  src={hero.avatar} 
-                  alt={hero.name}
-                  className={styles.recipientAvatar}
-                />
-                <div className={styles.recipientDetails}>
-                  <span className={styles.recipientName}>{hero.name}</span>
-                  <span className={styles.recipientTitle}>{hero.title} at {hero.organization}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className={styles.headerRight}>
-            <div 
-              className={styles.urgencyBadge}
-              style={{ backgroundColor: getUrgencyColor(hero.urgency) }}
-            >
-              {hero.urgency.toUpperCase()} PRIORITY
-            </div>
-          </div>
+          <h2 className={styles.title}>New Message</h2>
+          <button
+            onClick={handleClose}
+            className={styles.closeButton}
+            aria-label="Save to drafts and close"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <div className={styles.spinner} />
+            ) : (
+              <Icon name="x" size="sm" />
+            )}
+          </button>
         </div>
 
         <div className={styles.emailForm}>
           <div className={styles.field}>
-            <label className={styles.label}>Subject</label>
+            <label className={styles.label}>To:</label>
+            <Input
+              value={recipientEmail}
+              onChange={() => {}} // Read-only
+              className={styles.toInput}
+              disabled
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Subject:</label>
             <Input
               value={subject}
               onChange={(value) => setSubject(value)}
               placeholder="Enter email subject..."
               className={styles.subjectInput}
+              disabled={isTyping}
             />
           </div>
 
-          <div className={styles.field}>
-            <label className={styles.label}>Message</label>
+          <div className={styles.messageField}>
             <textarea
               ref={bodyRef}
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder="Write your message here..."
               className={styles.bodyInput}
-              rows={16}
+              rows={10}
+              disabled={isTyping}
             />
-          </div>
-
-          <div className={styles.contextInfo}>
-            <div className={styles.contextSection}>
-              <h4>Hero's Technical Challenge:</h4>
-              <p>{hero.technicalProblem}</p>
-            </div>
             
-            <div className={styles.contextSection}>
-              <h4>Skills Needed:</h4>
-              <div className={styles.skillsList}>
-                {hero.skillsNeeded.map((skill, index) => (
-                  <span key={index} className={styles.skillTag}>
-                    {skill}
-                  </span>
-                ))}
+            {isTyping && (
+              <div className={styles.typingIndicator}>
+                <span className={styles.typingDots}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+                <span>Typing message...</span>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         <div className={styles.footer}>
-          <div className={styles.footerLeft}>
-            <span className={styles.impactReminder}>
-              💡 This could help {hero.impact.people.toLocaleString()} {hero.impact.metric}
-            </span>
-          </div>
-          <div className={styles.footerRight}>
-            <Button
-              variant="secondary"
-              onClick={handleSaveToDrafts}
-            >
-              Save to Drafts
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSend}
-              disabled={!subject.trim() || !body.trim()}
-            >
-              Send
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            onClick={handleSend}
+            disabled={!subject.trim() || !body.trim() || isTyping || isSending}
+            className={styles.sendButton}
+          >
+            {isSending ? (
+              <>
+                <div className={styles.spinner} />
+                Sending...
+              </>
+            ) : (
+              'Send'
+            )}
+          </Button>
         </div>
       </Modal>
     </div>

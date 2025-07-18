@@ -138,9 +138,24 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   }, []);
 
   const folders: EmailFolder[] = [
-    { id: 'inbox', name: 'Inbox', count: 5, icon: 'inbox' },
-    { id: 'sent', name: 'Sent', count: 0, icon: 'send' },
-    { id: 'drafts', name: 'Drafts', count: 0, icon: 'edit' },
+    { 
+      id: 'inbox', 
+      name: 'Inbox', 
+      count: emails.filter(e => e.status !== 'draft' && e.status !== 'sent' && e.category !== 'drafts' && e.category !== 'sent').length, 
+      icon: 'inbox' 
+    },
+    { 
+      id: 'sent', 
+      name: 'Sent', 
+      count: emails.filter(e => e.status === 'sent' || e.category === 'sent').length, 
+      icon: 'send' 
+    },
+    { 
+      id: 'drafts', 
+      name: 'Drafts', 
+      count: emails.filter(e => e.status === 'draft' || e.category === 'drafts').length, 
+      icon: 'edit' 
+    },
     { id: 'mentorchat', name: 'Mentor Chat', count: 3, icon: 'message-circle' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
@@ -340,7 +355,19 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     let filtered = [...emails];
 
     // Filter by folder
-    if (selectedFolder !== 'inbox') {
+    if (selectedFolder === 'sent') {
+      filtered = filtered.filter(email => email.status === 'sent' || email.category === 'sent');
+    } else if (selectedFolder === 'drafts') {
+      filtered = filtered.filter(email => email.status === 'draft' || email.category === 'drafts');
+    } else if (selectedFolder === 'inbox') {
+      // Inbox shows emails that are not drafts or sent
+      filtered = filtered.filter(email => 
+        email.status !== 'draft' && 
+        email.status !== 'sent' && 
+        email.category !== 'drafts' && 
+        email.category !== 'sent'
+      );
+    } else if (selectedFolder !== 'mentorchat' && selectedFolder !== 'trash') {
       filtered = filtered.filter(email => email.category === selectedFolder);
     }
 
@@ -354,7 +381,12 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
       );
     }
 
-    return filtered.filter(email => email.category === selectedTab);
+    // Only apply tab filtering for inbox and other non-special folders
+    if (selectedFolder === 'inbox' || (selectedFolder !== 'sent' && selectedFolder !== 'drafts' && selectedFolder !== 'mentorchat' && selectedFolder !== 'trash')) {
+      return filtered.filter(email => email.category === selectedTab);
+    }
+
+    return filtered;
   }, [emails, selectedFolder, searchQuery, selectedTab]);
 
   if (loading) {

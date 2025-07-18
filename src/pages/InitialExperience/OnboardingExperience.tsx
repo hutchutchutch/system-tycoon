@@ -73,12 +73,11 @@ const NewsWrapper: React.FC<NewsWrapperProps> = ({ mentor, onEmailSent }) => {
         </p>
       </div>
       
-      {selectedHero && mentor && (
+      {selectedHero && (
         <EmailComposer
           isOpen={!!selectedHero}
           onClose={handleCloseEmailComposer}
           hero={selectedHero}
-          mentor={mentor}
           onSend={handleEmailSend}
         />
       )}

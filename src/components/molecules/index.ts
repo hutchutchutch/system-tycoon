@@ -15,6 +15,9 @@ export type { EmailCardProps } from './EmailCard';
 export { ContactAvatar } from './ContactAvatar';
 export type { ContactAvatarProps, ContactSize, OnlineStatus } from './ContactAvatar';
 
+export { HeroContextCard } from './HeroContextCard';
+export type { HeroContextCardProps } from './HeroContextCard';
+
 // export { ClientCard } from './ClientCard';
 // export type { ClientCardProps } from './ClientCard';
 

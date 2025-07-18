@@ -407,34 +407,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }));
   }, [activeMission]);
 
-  const reactFlowNodes = useAppSelector(selectNodes);
+
   
   const onConnect = useCallback((params: Connection) => {
-    // Get all selected nodes when connection is made
-    const selectedNodes = reactFlowNodes.filter((node: Node) => node.selected);
-    
-    // If multiple nodes are selected, create edges from all selected nodes to the target
-    if (selectedNodes.length > 1 && params.target) {
-      selectedNodes.forEach((node: Node) => {
-        // Don't create self-connections
-        if (node.id !== params.target) {
-          dispatch(addEdgeAction({
-            ...params,
-            source: node.id,
-            sourceHandle: 'output',
-            targetHandle: 'input'
-          } as Connection));
-        }
-      });
-    } else {
-      // Single connection (default behavior)
-      dispatch(addEdgeAction({
-        ...params,
-        sourceHandle: params.sourceHandle || 'output',
-        targetHandle: params.targetHandle || 'input'
-      } as Connection));
-    }
-  }, [dispatch, reactFlowNodes]);
+    dispatch(addEdgeAction(params));
+  }, [dispatch]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -546,6 +523,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             maxZoom={2}
           >
             <Background gap={20} size={1} />
+            <Controls />
             <MiniMap />
           </ReactFlow>
         </div>

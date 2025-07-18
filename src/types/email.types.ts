@@ -1,6 +1,6 @@
-export type EmailStatus = 'unread' | 'read' | 'archived' | 'deleted';
+export type EmailStatus = 'unread' | 'read' | 'archived' | 'deleted' | 'draft' | 'sent';
 
-export type EmailCategory = 'inbox' | 'sent' | 'drafts' | 'archive' | 'urgent';
+export type EmailCategory = 'inbox' | 'sent' | 'drafts' | 'archive' | 'urgent' | 'primary' | 'projects' | 'news' | 'promotions';
 
 export type EmailPriority = 'low' | 'normal' | 'high' | 'urgent';
 

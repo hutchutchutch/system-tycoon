@@ -2,21 +2,19 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BentoGrid } from '../../components/molecules/BentoGrid';
 import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
+import { HeroContextCard } from '../../components/molecules/HeroContextCard';
 import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
 import { newsService } from '../../services/newsService';
 import type { NewsArticle, NewsHero } from '../../types/news.types';
-import type { Mentor } from '../../types/mentor.types';
-
 interface NewsWrapperProps {
   hero?: {
     headline: string;
     subheadline: string;
     tags: string[];
   };
-  mentor?: Mentor;
 }
 
-export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
+export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero }) => {
   const [emailToOpen, setEmailToOpen] = useState<NewsArticle | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
@@ -59,12 +57,12 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
     }
   }, [selectedCategories]);
 
-  // Convert NewsArticle to NewsHero format for EmailComposer
+  // Convert NewsArticle to NewsHero format for components
   const convertArticleToHero = useCallback((article: NewsArticle): NewsHero => {
     return {
       id: article.id,
       name: article.author_name,
-      title: 'Community Leader', // Default title since it's not in NewsArticle
+      title: 'Community Leader',
       organization: article.publication_name,
       avatar: article.author_avatar_url || '👤',
       location: article.location || 'Unknown Location',
@@ -77,28 +75,15 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
         people: article.impact_stats?.people || 100,
         metric: article.impact_stats?.metric || 'people affected'
       },
-      technicalProblem: article.preview_text, // Use preview as technical problem description
-      skillsNeeded: article.tags.slice(0, 4), // Use tags as skills needed
+      technicalProblem: article.preview_text,
+      skillsNeeded: article.tags.slice(0, 4),
       businessConstraints: {
-        budget: '$10,000', // Default constraints since not in NewsArticle
+        budget: '$10,000',
         timeline: '2-4 weeks',
         compliance: ['Data Privacy', 'Security Standards']
       }
     };
   }, []);
-
-  // Create a default mentor if none provided
-  const defaultMentor: Mentor = {
-    id: 'default-mentor',
-    name: 'Tech Mentor',
-    title: 'Senior Technical Advisor',
-    company: 'System Tycoon',
-    avatar: '🧠',
-    expertise: ['System Design', 'Social Impact', 'Mentorship'],
-    contribution: 'Technology should bridge gaps between problems and solutions',
-    message: 'Focus on understanding their real constraints and offer practical, sustainable solutions. Every technical decision should consider the human impact.',
-    toastMessage: 'Look for opportunities to connect your technical skills with real-world problems that matter.'
-  };
 
   const handleContact = useCallback(async (article: NewsArticle) => {
     try {
@@ -148,6 +133,8 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
       </div>
     );
   }
+
+  const heroToShow = emailToOpen ? convertArticleToHero(emailToOpen) : null;
 
   return (
     <>
@@ -210,15 +197,39 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero, mentor }) => {
         </div>
       </div>
 
-      {/* Email Composer Modal */}
-      {emailToOpen && (
-        <EmailComposer
-          isOpen={!!emailToOpen}
-          onClose={handleCloseEmailComposer}
-          hero={convertArticleToHero(emailToOpen)}
-          mentor={mentor || defaultMentor}
-          onSend={handleEmailSend}
-        />
+      {/* Email Composition Flow */}
+      {emailToOpen && heroToShow && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            maxWidth: '800px',
+            width: '100%',
+            maxHeight: '90vh'
+          }}>
+            {/* Hero Context Card */}
+            <HeroContextCard hero={heroToShow} />
+            
+            {/* Email Composer */}
+            <EmailComposer
+              isOpen={!!emailToOpen}
+              onClose={handleCloseEmailComposer}
+              hero={heroToShow}
+              onSend={handleEmailSend}
+            />
+          </div>
+        </div>
       )}
     </>
   );

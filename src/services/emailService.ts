@@ -9,11 +9,124 @@ export interface EmailData {
   preview: string;
   content: string;
   timestamp: string;
-  status: 'unread' | 'read';
+  status: 'unread' | 'read' | 'draft' | 'sent';
   priority: 'low' | 'normal' | 'high' | 'urgent';
   has_attachments: boolean;
   tags: string[];
   category: 'primary' | 'projects' | 'news' | 'promotions';
+}
+
+// Save email as draft or sent
+export async function saveEmail(emailData: {
+  to: string;
+  subject: string;
+  body: string;
+  status: 'draft' | 'sent';
+  hero?: any;
+  missionId?: string;
+  stageId?: string;
+}): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  try {
+    // Generate preview from body (first 100 characters)
+    const preview = emailData.body.substring(0, 100) + (emailData.body.length > 100 ? '...' : '');
+    
+    // Extract sender info from current user (for now use placeholder)
+    const currentUser = 'Player'; // In a real app, get from auth context
+    
+    const emailRecord = {
+      sender_name: currentUser,
+      sender_email: `${currentUser.toLowerCase()}@systemtycoon.com`,
+      sender_avatar: null,
+      subject: emailData.subject,
+      preview,
+      body: emailData.body,
+      status: emailData.status,
+      priority: 'normal' as const,
+      has_attachments: false,
+      tags: ['user-composed'],
+      category: emailData.status === 'sent' ? 'sent' as const : 'drafts' as const,
+      mission_id: emailData.missionId,
+      stage_id: emailData.stageId,
+    };
+
+    const { data, error } = await supabase
+      .from('mission_emails')
+      .insert([emailRecord])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error saving email:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, emailId: data.id };
+  } catch (error) {
+    console.error('Error in saveEmail:', error);
+    return { success: false, error: 'Failed to save email' };
+  }
+}
+
+// Update existing draft
+export async function updateDraft(emailId: string, updates: {
+  subject?: string;
+  body?: string;
+}): Promise<boolean> {
+  try {
+    const updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    if (updates.subject) {
+      updateData.subject = updates.subject;
+    }
+
+    if (updates.body) {
+      updateData.body = updates.body;
+      updateData.preview = updates.body.substring(0, 100) + (updates.body.length > 100 ? '...' : '');
+    }
+
+    const { error } = await supabase
+      .from('mission_emails')
+      .update(updateData)
+      .eq('id', emailId)
+      .eq('status', 'draft'); // Only update if it's still a draft
+
+    if (error) {
+      console.error('Error updating draft:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in updateDraft:', error);
+    return false;
+  }
+}
+
+// Convert draft to sent
+export async function sendDraft(emailId: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('mission_emails')
+      .update({ 
+        status: 'sent',
+        category: 'sent',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', emailId)
+      .eq('status', 'draft');
+
+    if (error) {
+      console.error('Error sending draft:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in sendDraft:', error);
+    return false;
+  }
 }
 
 // Convert database row to EmailData

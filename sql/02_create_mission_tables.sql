@@ -37,11 +37,11 @@ CREATE TABLE IF NOT EXISTS mission_emails (
   subject TEXT NOT NULL,
   preview TEXT,
   body TEXT,
-  status TEXT CHECK (status IN ('read', 'unread', 'archived')) DEFAULT 'unread',
+  status TEXT CHECK (status IN ('read', 'unread', 'archived', 'draft', 'sent')) DEFAULT 'unread',
   priority TEXT CHECK (priority IN ('low', 'normal', 'high', 'urgent')) DEFAULT 'normal',
   has_attachments BOOLEAN DEFAULT FALSE,
   tags TEXT[] DEFAULT '{}',
-  category TEXT CHECK (category IN ('primary', 'projects', 'news', 'promotions')) DEFAULT 'primary',
+  category TEXT CHECK (category IN ('primary', 'projects', 'news', 'promotions', 'drafts', 'sent')) DEFAULT 'primary',
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -51,6 +51,8 @@ CREATE INDEX IF NOT EXISTS idx_mission_stages_mission_id ON mission_stages(missi
 CREATE INDEX IF NOT EXISTS idx_mission_stages_stage_number ON mission_stages(stage_number);
 CREATE INDEX IF NOT EXISTS idx_mission_emails_mission_id ON mission_emails(mission_id);
 CREATE INDEX IF NOT EXISTS idx_mission_emails_stage_id ON mission_emails(stage_id);
+CREATE INDEX IF NOT EXISTS idx_mission_emails_status ON mission_emails(status);
+CREATE INDEX IF NOT EXISTS idx_mission_emails_category ON mission_emails(category);
 
 -- Insert test mission
 INSERT INTO missions (id, slug, title, description, crisis_description) VALUES 
