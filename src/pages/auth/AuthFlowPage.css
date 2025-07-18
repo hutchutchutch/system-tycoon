@@ -1,26 +1,30 @@
 .auth-flow-page {
   min-height: 100vh;
-  display: flex;
-  background: linear-gradient(135deg, 
-    #0f0f23 0%, 
-    #1a1a3a 50%,
-    #0f0f23 100%);
+  width: 100vw;
+  background: #000000;
+  position: relative;
 }
 
-.auth-modal-container {
-  width: 50%;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2xl);
+.auth-flow-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+  background-image: radial-gradient(circle at center, rgba(55, 65, 81, 0.8) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .auth-diagram-container {
-  width: 50%;
-  background: #0a0a15;
+  width: 100%;
+  height: 100vh;
+  background: transparent;
   position: relative;
   overflow: hidden;
+  z-index: 2;
 } 

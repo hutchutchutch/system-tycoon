@@ -3,8 +3,8 @@
 .browserHeader {
   display: flex;
   align-items: center;
-  background-color: var(--color-gray-100);
-  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-neutral-700);
   padding: 8px 12px;
   gap: 12px;
   min-height: 48px;
@@ -67,15 +67,15 @@
 /* Right side controls use icons instead of dots */
 .windowControls--right .control {
   background-color: transparent;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-400);
   border-radius: 4px;
   width: 24px;
   height: 24px;
 }
 
 .windowControls--right .control:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+  background-color: var(--color-neutral-600);
+  color: var(--color-neutral-200);
 }
 
 .windowControls--right .control--close:hover {
@@ -115,15 +115,15 @@
   border: none;
   border-radius: 4px;
   background-color: transparent;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-400);
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .newTab:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-800);
+  background-color: var(--color-neutral-600);
+  color: var(--color-neutral-200);
 }
 
 /* Bookmarks */
@@ -133,8 +133,8 @@
   gap: 4px;
   padding: 4px 8px;
   border-radius: 6px;
-  background-color: var(--color-gray-50);
-  border: 1px solid var(--color-gray-200);
+  background-color: var(--color-neutral-800);
+  border: 1px solid var(--color-neutral-700);
   margin-left: 8px;
   flex-shrink: 0;
 }
@@ -147,7 +147,7 @@
   border: none;
   border-radius: 4px;
   background-color: transparent;
-  color: var(--color-gray-700);
+  color: var(--color-neutral-300);
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -158,8 +158,40 @@
 }
 
 .bookmark:hover {
-  background-color: var(--color-gray-200);
-  color: var(--color-gray-900);
+  background-color: var(--color-neutral-700);
+  color: var(--color-neutral-100);
+}
+
+/* Keep Email bookmark light */
+.bookmark[title*="Email"],
+.bookmark[aria-label*="Email"],
+.bookmark:has-text("Email"),
+.bookmark--email {
+  background-color: var(--color-white) !important;
+  color: var(--color-gray-700) !important;
+  border: 1px solid var(--color-gray-300) !important;
+}
+
+.bookmark[title*="Email"]:hover,
+.bookmark[aria-label*="Email"]:hover,
+.bookmark:has-text("Email"):hover,
+.bookmark--email:hover {
+  background-color: var(--color-gray-200) !important;
+  color: var(--color-gray-900) !important;
+  border-color: var(--color-gray-400) !important;
+}
+
+/* Additional Email button selector - check text content */
+.bookmark:contains("Email") {
+  background-color: var(--color-white) !important;
+  color: var(--color-gray-700) !important;
+  border: 1px solid var(--color-gray-300) !important;
+}
+
+.bookmark:contains("Email"):hover {
+  background-color: var(--color-gray-200) !important;
+  color: var(--color-gray-900) !important;
+  border-color: var(--color-gray-400) !important;
 }
 
 .bookmarkTitle {

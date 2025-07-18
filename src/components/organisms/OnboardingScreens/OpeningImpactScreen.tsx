@@ -19,17 +19,32 @@ export const OpeningImpactScreen: React.FC<OpeningImpactScreenProps> = ({
       padding: '40px',
       gap: '40px'
     }}>
-      <h1 style={{
-        fontSize: '4rem',
-        fontWeight: 'bold',
-        margin: 0,
-        color: 'var(--color-text-primary)',
-        lineHeight: 1.2
-      }}>
-        Software Changed
-        <br />
-        Everything
-      </h1>
+      <div style={{ lineHeight: 1, margin: 0, padding: 0, overflow: 'visible' }}>
+        <h1 style={{
+          fontSize: '4rem',
+          fontWeight: 'bold',
+          margin: 0,
+          color: 'var(--color-text-primary)',
+          lineHeight: 1
+        }}>
+          Software Changed
+        </h1>
+        <h1 style={{ 
+          fontSize: window.innerWidth >= 1024 ? '4.5rem' : '3rem',
+          fontWeight: 'bold',
+          letterSpacing: '-0.025em',
+          margin: 0,
+          background: 'linear-gradient(to right, #60A5FA, #A855F7)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          color: 'transparent',
+          lineHeight: 1,
+          paddingBottom: '0.5em' // add space below to prevent cutoff
+        }}>
+          Everything
+        </h1>
+      </div>
       
       <p style={{
         fontSize: '1.25rem',
@@ -43,7 +58,7 @@ export const OpeningImpactScreen: React.FC<OpeningImpactScreenProps> = ({
 
       <Button
         variant="primary"
-        size="large"
+        size="lg"
         onClick={onContinue}
         style={{
           padding: '16px 48px',

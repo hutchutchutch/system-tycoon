@@ -20,6 +20,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
   editable = true,
   onBookmark,
   isBookmarked = false,
+  onEmailClick,
   className = '',
 }) => {
   const [currentUrl, setCurrentUrl] = useState(url);
@@ -143,6 +144,18 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
             <Icon name="star" size="sm" />
           </button>
         )}
+      </div>
+
+      {/* Email button */}
+      <div className={styles.emailControls}>
+        <button
+          className={styles.emailButton}
+          aria-label="Email"
+          onClick={onEmailClick}
+        >
+          <Icon name="mail" size="sm" />
+          <span>Email</span>
+        </button>
       </div>
 
       {/* Additional controls */}

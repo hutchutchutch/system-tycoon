@@ -31,6 +31,9 @@ export interface BrowserAddressBarProps {
   onBookmark?: () => void;
   isBookmarked?: boolean;
   
+  /** Email button handler */
+  onEmailClick?: () => void;
+  
   /** Optional CSS class name */
   className?: string;
 } 

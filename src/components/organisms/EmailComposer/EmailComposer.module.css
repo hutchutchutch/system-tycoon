@@ -37,16 +37,29 @@
   cursor: pointer;
   color: var(--color-text-secondary);
   transition: all 0.2s ease;
+  opacity: 1;
+  visibility: visible;
 }
 
 .closeButton:hover:not(:disabled) {
   background: var(--color-surface-secondary);
   color: var(--color-text-primary);
+  transform: scale(1.05);
 }
 
 .closeButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Ensure close button is always visible */
+[data-theme="light"] .closeButton {
+  color: var(--color-neutral-600);
+}
+
+[data-theme="light"] .closeButton:hover:not(:disabled) {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-800);
 }
 
 .emailForm {

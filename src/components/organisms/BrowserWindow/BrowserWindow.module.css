@@ -23,13 +23,13 @@
 .chrome {
   display: flex;
   flex-direction: column;
-  background: var(--color-neutral-100);
-  border-bottom: 1px solid var(--color-neutral-200);
+  background: var(--color-neutral-800);
+  border-bottom: 1px solid var(--color-neutral-700);
 }
 
 [data-theme="dark"] .chrome {
-  background: var(--color-neutral-200);
-  border-color: var(--color-neutral-400);
+  background: var(--color-neutral-800);
+  border-color: var(--color-neutral-700);
 }
 
 /* Tab bar */
@@ -89,11 +89,11 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-neutral-100);
+  background: var(--color-neutral-800);
 }
 
 [data-theme="dark"] .controls {
-  background: var(--color-neutral-200);
+  background: var(--color-neutral-800);
 }
 
 
@@ -147,14 +147,30 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--color-white);
+  background: #000000;
   position: relative;
   overflow: auto;
   min-height: 0;
 }
 
+/* Grid background overlay */
+.content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.3;
+  background-image: radial-gradient(circle at center, rgba(55, 65, 81, 0.8) 1px, transparent 1px);
+  background-size: 20px 20px;
+  background-position: center center;
+  pointer-events: none;
+  z-index: 0;
+}
+
 [data-theme="dark"] .content {
-  background: var(--color-neutral-50);
+  background: #000000;
 }
 
 /* User info area (top right) */
