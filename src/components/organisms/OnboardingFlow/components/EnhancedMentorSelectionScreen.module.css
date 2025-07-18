@@ -1,10 +1,10 @@
 .container {
   width: 100%;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  padding: var(--space-6);
+  padding: var(--space-8) var(--space-6);
   background: var(--color-surface-primary);
   overflow-y: auto;
 }
@@ -35,21 +35,79 @@
   font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
-  margin: 0;
+  margin: 0 0 var(--space-4) 0;
 }
 
-.mentorGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: var(--space-6);
+.description {
+  font-size: var(--font-size-base);
+  color: var(--color-text-tertiary);
+  line-height: var(--line-height-relaxed);
+  margin: 0;
+  opacity: 0.9;
+}
+
+.mentorCarousel {
+  display: flex;
+  gap: 40px;
+  padding: var(--space-8) var(--space-6);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  max-width: 100%;
   width: 100%;
-  max-width: 1000px;
+  align-items: center;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mentorCarousel::-webkit-scrollbar {
+  display: none;
+}
+
+.carouselItem {
+  display: flex;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.scrollHint {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  margin-top: var(--space-4);
+  opacity: 0.7;
+}
+
+.detailCardContainer {
+  margin-top: var(--space-8);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.loading, .error {
+  text-align: center;
+  padding: var(--space-8);
+  max-width: 600px;
+}
+
+.loading h2, .error h2 {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.loading p, .error p {
+  font-size: var(--font-size-lg);
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .container {
-    padding: var(--space-4);
+    padding: var(--space-6) var(--space-4);
   }
   
   .title {
@@ -60,14 +118,12 @@
     font-size: var(--font-size-base);
   }
   
-  .mentorGrid {
-    grid-template-columns: 1fr;
-    gap: var(--space-4);
+  .description {
+    font-size: var(--font-size-sm);
   }
-}
-
-@media (max-width: 1024px) {
-  .mentorGrid {
-    grid-template-columns: repeat(2, 1fr);
+  
+  .mentorCarousel {
+    padding: var(--space-6) var(--space-4);
+    gap: 30px;
   }
 } 

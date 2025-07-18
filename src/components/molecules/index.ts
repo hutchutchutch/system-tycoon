@@ -76,3 +76,6 @@ export type { MentorChatProps, ChatMessage, MentorChatState } from './MentorChat
 // Onboarding components
 export { MentorSelectionCard } from './MentorSelectionCard';
 export type { MentorSelectionCardProps } from './MentorSelectionCard';
+
+export { MentorDetailCard } from './MentorDetailCard';
+export type { MentorDetailCardProps } from './MentorDetailCard';

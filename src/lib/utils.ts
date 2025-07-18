@@ -1,12 +1,6 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-/**
- * Utility function for concatenating class names
- * Currently using clsx directly, but can be extended with tailwind-merge if needed
- * 
- * @example
- * cn('base-class', conditional && 'conditional-class', 'another-class')
- */
 export function cn(...inputs: ClassValue[]) {
-  return clsx(inputs);
+  return twMerge(clsx(inputs))
 }

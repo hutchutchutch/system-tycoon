@@ -1,15 +1,18 @@
 .card {
   cursor: pointer;
   text-align: center;
-  padding: var(--space-6);
-  height: 100%;
+  padding: var(--space-4);
+  width: 180px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-3);
-  transition: all var(--transition-normal);
+  gap: var(--space-2);
+  transition: all 0.3s ease;
   background: var(--color-surface-secondary);
   border: 2px solid transparent;
+  flex-shrink: 0;
+  transform-origin: center;
 }
 
 .card:hover {
@@ -24,26 +27,27 @@
 }
 
 .avatar {
-  width: 80px;
-  height: 80px;
+  width: 50px;
+  height: 50px;
   border-radius: var(--radius-full);
   background: var(--color-surface-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
 }
 
 .avatarEmoji {
-  font-size: 3rem;
+  font-size: 1.8rem;
   line-height: 1;
 }
 
 .name {
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
   margin: 0;
+  line-height: var(--line-height-tight);
 }
 
 .info {
@@ -65,11 +69,12 @@
 }
 
 .contribution {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
-  margin: var(--space-2) 0;
-  line-height: var(--line-height-normal);
+  margin: var(--space-1) 0;
+  line-height: var(--line-height-tight);
+  text-align: center;
 }
 
 .expertise {

@@ -2,12 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Card } from '../../atoms/Card';
 import { Badge } from '../../atoms/Badge';
-import type { Mentor } from '../../../types/mentor.types';
+import type { MentorForUI } from '../../../services/mentorService';
 import styles from './MentorSelectionCard.module.css';
 
 export interface MentorSelectionCardProps {
-  mentor: Mentor;
-  onClick: (mentor: Mentor) => void;
+  mentor: MentorForUI;
+  onClick: (mentor: MentorForUI) => void;
   isSelected?: boolean;
 }
 
@@ -39,11 +39,9 @@ export const MentorSelectionCard: React.FC<MentorSelectionCardProps> = ({
         <p className={styles.contribution}>{mentor.contribution}</p>
         
         <div className={styles.expertise}>
-          {mentor.expertise.slice(0, 2).map((skill) => (
-            <Badge key={skill} variant="secondary" size="small">
-              {skill}
-            </Badge>
-          ))}
+          <Badge variant="secondary" size="sm">
+            {mentor.expertise[0]}
+          </Badge>
         </div>
       </Card>
     </motion.div>

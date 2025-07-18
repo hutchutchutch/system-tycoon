@@ -7,6 +7,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
+import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
@@ -23,6 +24,10 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <LandingPage />,
+      },
+      {
+        path: 'onboarding',
+        element: <OnboardingPage />,
       },
       {
         path: 'game',

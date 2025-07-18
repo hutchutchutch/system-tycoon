@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Button } from '../../../atoms/Button';
+import { Globe } from '../../../ui/globe';
 import styles from './OpeningImpactScreen.module.css';
 
 export interface OpeningImpactScreenProps {
@@ -52,6 +53,16 @@ export const OpeningImpactScreen: React.FC<OpeningImpactScreenProps> = ({
             Continue →
           </Button>
         </motion.div>
+      </motion.div>
+
+      {/* Globe at bottom */}
+      <motion.div
+        className={styles.globeContainer}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 1.5, delay: 1.2, ease: [0.23, 0.86, 0.39, 0.96] }}
+      >
+        <Globe />
       </motion.div>
     </div>
   );

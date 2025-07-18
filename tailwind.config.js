@@ -21,11 +21,9 @@ export default {
           DEFAULT: '#EF4444',
           foreground: '#FFFFFF',
         },
-        // Background colors for dark theme
-        background: {
-          DEFAULT: '#0F0F0F', // Dark main background
-          foreground: '#FFFFFF',
-        },
+        // Background colors
+        background: '#FFFFFF',
+        foreground: '#000000',
         // Surface colors
         surface: {
           primary: '#0F0F0F', // Dark main background
@@ -33,19 +31,19 @@ export default {
           tertiary: '#252525', // Elevated elements
         },
         // Text colors
-        foreground: '#FFFFFF',
+        foreground: '#000000',
         muted: {
           DEFAULT: '#6B7280',
           foreground: '#9CA3AF',
         },
         'muted-foreground': '#9CA3AF',
         accent: {
-          DEFAULT: '#252525',
-          foreground: '#FFFFFF',
+          DEFAULT: '#F5F5F5',
+          foreground: '#000000',
         },
         // Border and input colors
-        border: 'rgba(255, 255, 255, 0.1)',
-        input: 'rgba(255, 255, 255, 0.1)',
+        border: 'rgba(0, 0, 0, 0.1)',
+        input: 'rgba(0, 0, 0, 0.1)',
         ring: '#3B82F6',
         // Neutral colors
         neutral: {

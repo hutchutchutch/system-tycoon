@@ -2,57 +2,74 @@
 /* Professional Dark-First Design System */
 
 :root {
-  /* === MODERN COLOR SYSTEM === */
+  /* === OBSIDIAN DARK COLOR SYSTEM === */
   
-  /* Surface Colors - Dark Theme Primary */
-  --color-surface-primary: #0a0b0f;     /* Main background */
-  --color-surface-secondary: #1a1d23;   /* Card backgrounds */
-  --color-surface-tertiary: #2d3340;    /* Elevated elements */
-  --color-surface-interactive: #404754; /* Hover states */
-  --color-surface-overlay: #565d6d;     /* Modal overlays */
+  /* Surface Colors - Obsidian Theme */
+  --color-surface-primary: #0B1426;     /* Obsidian black - main background */
+  --color-surface-secondary: #1E2328;   /* Soft dark grey - card backgrounds */
+  --color-surface-tertiary: #2A2D3A;    /* Medium grey - elevated elements */
+  --color-surface-interactive: #363A47; /* Lighter grey - hover states */
+  --color-surface-overlay: #424651;     /* Modal overlays */
   
   /* Border Colors */
-  --color-border-primary: #2d3340;      /* Main borders */
-  --color-border-secondary: #404754;    /* Subtle borders */
-  --color-border-focus: #3b82f6;        /* Focus rings */
-  --color-border-accent: #22c55e;       /* Success borders */
+  --color-border-primary: #2A2D3A;      /* Main borders - matches tertiary surface */
+  --color-border-secondary: #363A47;    /* Subtle borders - matches interactive */
+  --color-border-focus: #4F9CF9;        /* Bright blue focus rings */
+  --color-border-accent: #22D3EE;       /* Cyan accent borders */
   
-  /* Text Colors - High Contrast */
-  --color-text-primary: #ffffff;        /* Primary text */
-  --color-text-secondary: #e5e7eb;      /* Secondary text */
-  --color-text-tertiary: #9ca3af;       /* Muted text */
-  --color-text-placeholder: #6b7280;    /* Placeholders */
-  --color-text-inverse: #111827;        /* Text on light backgrounds */
+  /* Text Colors - High Contrast White System */
+  --color-text-primary: #FFFFFF;        /* Pure white - primary text */
+  --color-text-secondary: #E2E4E7;      /* Off-white - secondary text */
+  --color-text-tertiary: #B8BCC8;       /* Light grey - muted text */
+  --color-text-placeholder: #6B7280;    /* Medium grey - placeholders */
+  --color-text-inverse: #0B1426;        /* Obsidian - text on light backgrounds */
   
-  /* Accent Colors - Strategic Usage */
-  --color-accent-primary: #3b82f6;      /* Primary blue */
-  --color-accent-secondary: #22c55e;    /* Success green */
-  --color-accent-tertiary: #8b5cf6;     /* Purple accents */
-  --color-accent-warning: #f59e0b;      /* Warning amber */
-  --color-accent-error: #ef4444;        /* Error red */
+  /* Accent Colors - Vibrant Against Dark */
+  --color-accent-primary: #4F9CF9;      /* Bright blue */
+  --color-accent-secondary: #22D3EE;    /* Cyan */
+  --color-accent-tertiary: #A855F7;     /* Purple */
+  --color-accent-warning: #FBBF24;      /* Warm amber */
+  --color-accent-error: #F87171;        /* Coral red */
+  --color-accent-success: #34D399;      /* Emerald green */
   
   /* Blue Color Scale - For UI Components */
-  --color-blue-500: #3b82f6;           /* Medium blue */
-  --color-blue-600: #2563eb;           /* Darker blue */
+  --color-blue-400: #60A5FA;           /* Light blue */
+  --color-blue-500: #4F9CF9;           /* Medium blue */
+  --color-blue-600: #3B82F6;           /* Darker blue */
+  --color-blue-700: #2563EB;           /* Deep blue */
   
   /* Interactive States */
-  --color-interactive-primary: #2563eb;     /* Primary button */
-  --color-interactive-primary-hover: #1d4ed8; /* Primary hover */
-  --color-interactive-secondary: #374151;   /* Secondary button */
-  --color-interactive-secondary-hover: #4b5563; /* Secondary hover */
+  --color-interactive-primary: #4F9CF9;       /* Primary button */
+  --color-interactive-primary-hover: #3B82F6; /* Primary hover */
+  --color-interactive-secondary: #2A2D3A;     /* Secondary button */
+  --color-interactive-secondary-hover: #363A47; /* Secondary hover */
   
-  /* Legacy Color Support */
-  --color-primary-500: var(--color-accent-primary);
-  --color-primary-600: var(--color-interactive-primary-hover);
-  --color-secondary-500: var(--color-accent-secondary);
-  --color-neutral-50: var(--color-surface-secondary);
-  --color-neutral-100: var(--color-surface-tertiary);
-  --color-neutral-200: var(--color-border-primary);
-  --color-neutral-800: var(--color-text-secondary);
-  --color-neutral-900: var(--color-text-primary);
-  --color-white: var(--color-surface-secondary);
-  --color-black: var(--color-surface-primary);
-  
+  /* Obsidian-Specific Greys */
+  --color-obsidian-50: #F8FAFC;        /* Lightest (for light mode) */
+  --color-obsidian-100: #F1F5F9;       /* Very light */
+  --color-obsidian-200: #E2E8F0;       /* Light */
+  --color-obsidian-300: #CBD5E1;       /* Medium light */
+  --color-obsidian-400: #94A3B8;       /* Medium */
+  --color-obsidian-500: #64748B;       /* Medium dark */
+  --color-obsidian-600: #475569;       /* Dark */
+  --color-obsidian-700: #334155;       /* Darker */
+  --color-obsidian-800: #1E293B;       /* Very dark */
+  --color-obsidian-850: #1E2328;       /* Soft grey secondary */
+  --color-obsidian-900: #0F172A;       /* Near black */
+  --color-obsidian-950: #0B1426;       /* Obsidian black */
+
+    /* Legacy Color Support - Updated for Obsidian */
+    --color-primary-500: var(--color-accent-primary);
+    --color-primary-600: var(--color-interactive-primary-hover);
+    --color-secondary-500: var(--color-accent-secondary);
+    --color-neutral-50: var(--color-surface-secondary);
+    --color-neutral-100: var(--color-surface-tertiary);
+    --color-neutral-200: var(--color-border-primary);
+    --color-neutral-800: var(--color-text-secondary);
+    --color-neutral-900: var(--color-text-primary);
+    --color-white: #FFFFFF;
+    --color-black: var(--color-surface-primary);
+
   /* === MODERN TYPOGRAPHY === */
   
   /* Font Families */
@@ -173,27 +190,26 @@
   
   /* === COMPONENT-SPECIFIC TOKENS === */
   
-  /* Modern Cards */
+  /* Modern Cards - Obsidian Style */
   --card-background: var(--color-surface-secondary);
   --card-border: 1px solid var(--color-border-primary);
   --card-shadow: var(--shadow-card);
   --card-radius: var(--radius-lg);
   --card-padding: var(--spacing-card-padding);
   
-  /* Modern Buttons */
+  /* Modern Buttons - High Contrast */
   --button-radius: var(--radius-md);
   --button-padding-x: var(--spacing-button-padding-x);
   --button-padding-y: var(--spacing-button-padding-y);
   --button-font-weight: var(--font-weight-medium);
   --button-transition: var(--transition-fast);
   
-  /* Modern Forms */
+  /* Modern Forms - Dark Theme */
   --input-background: var(--color-surface-tertiary);
   --input-border: 1px solid var(--color-border-primary);
   --input-border-focus: 1px solid var(--color-border-focus);
   --input-radius: var(--radius-md);
   --input-padding: var(--space-2) var(--space-3);
-  
   /* === RESPONSIVE BREAKPOINTS === */
   
   --breakpoint-sm: 640px;
@@ -203,21 +219,21 @@
   --breakpoint-2xl: 1536px;
 }
 
-/* Light Mode Overrides (for when needed) */
+/* Light Mode Overrides (for accessibility/user preference) */
 [data-theme="light"] {
-  --color-surface-primary: #ffffff;
-  --color-surface-secondary: #f9fafb;
-  --color-surface-tertiary: #f3f4f6;
-  --color-surface-interactive: #e5e7eb;
+  --color-surface-primary: #FFFFFF;
+  --color-surface-secondary: #F8FAFC;
+  --color-surface-tertiary: #F1F5F9;
+  --color-surface-interactive: #E2E8F0;
   
-  --color-border-primary: #e5e7eb;
-  --color-border-secondary: #d1d5db;
+  --color-border-primary: #E2E8F0;
+  --color-border-secondary: #CBD5E1;
   
-  --color-text-primary: #111827;
-  --color-text-secondary: #374151;
-  --color-text-tertiary: #6b7280;
-  --color-text-placeholder: #9ca3af;
-  --color-text-inverse: #ffffff;
+  --color-text-primary: #0B1426;
+  --color-text-secondary: #334155;
+  --color-text-tertiary: #64748B;
+  --color-text-placeholder: #94A3B8;
+  --color-text-inverse: #FFFFFF;
   
   --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
@@ -226,28 +242,28 @@
 
 /* Legacy token mappings for backward compatibility */
 :root {
-  /* Legacy color mappings */
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Legacy color mappings - Updated for Obsidian */
+  --color-primary-50: #EFF6FF;
+  --color-primary-100: #DBEAFE;
+  --color-primary-200: #BFDBFE;
+  --color-primary-300: #93C5FD;
+  --color-primary-400: #60A5FA;
+  --color-primary-700: #2563EB;
+  --color-primary-800: #1E40AF;
+  --color-primary-900: #1E3A8A;
   
-  /* Gray color scale - Missing tokens used throughout codebase */
-  --color-gray-50: #f9fafb;
-  --color-gray-100: #f3f4f6;
-  --color-gray-200: #e5e7eb;
-  --color-gray-300: #d1d5db;
-  --color-gray-400: #9ca3af;
-  --color-gray-500: #6b7280;
-  --color-gray-600: #4b5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1f2937;
-  --color-gray-850: #1a1e2a;
-  --color-gray-900: #111827;
+  /* Gray color scale - Updated to match Obsidian theme */
+  --color-gray-50: var(--color-obsidian-50);
+  --color-gray-100: var(--color-obsidian-100);
+  --color-gray-200: var(--color-obsidian-200);
+  --color-gray-300: var(--color-obsidian-300);
+  --color-gray-400: var(--color-obsidian-400);
+  --color-gray-500: var(--color-obsidian-500);
+  --color-gray-600: var(--color-obsidian-600);
+  --color-gray-700: var(--color-obsidian-700);
+  --color-gray-800: var(--color-obsidian-800);
+  --color-gray-850: var(--color-obsidian-850);
+  --color-gray-900: var(--color-obsidian-900);
   
   /* Legacy spacing */
   --space-7: 1.75rem;
@@ -272,4 +288,58 @@
   --transition-instant: 0ms;
   --transition-slower: 700ms;
   --transition-slowest: 1000ms;
+}
+
+/* === OBSIDIAN THEME SPECIFIC UTILITIES === */
+
+/* High contrast text utilities */
+.text-obsidian-primary {
+  color: var(--color-text-primary);
+}
+
+.text-obsidian-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-obsidian-tertiary {
+  color: var(--color-text-tertiary);
+}
+
+/* Background utilities */
+.bg-obsidian-primary {
+  background-color: var(--color-surface-primary);
+}
+
+.bg-obsidian-secondary {
+  background-color: var(--color-surface-secondary);
+}
+
+.bg-obsidian-tertiary {
+  background-color: var(--color-surface-tertiary);
+}
+
+/* Border utilities */
+.border-obsidian {
+  border-color: var(--color-border-primary);
+}
+
+.border-obsidian-focus {
+  border-color: var(--color-border-focus);
+}
+
+/* Accent utilities */
+.text-accent-primary {
+  color: var(--color-accent-primary);
+}
+
+.text-accent-secondary {
+  color: var(--color-accent-secondary);
+}
+
+.bg-accent-primary {
+  background-color: var(--color-accent-primary);
+}
+
+.bg-accent-secondary {
+  background-color: var(--color-accent-secondary);
 }
