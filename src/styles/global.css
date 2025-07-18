@@ -49,6 +49,20 @@ body {
   outline: none;
 }
 
+/* Onboarding Modal Dark Theme */
+.onboarding-modal-dark {
+  background: var(--color-surface-primary) !important;
+}
+
+/* Dark theme utilities */
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+}
+
 /* Scrollbar Styles */
 ::-webkit-scrollbar {
   width: 12px;

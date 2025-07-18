@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { OpeningImpactScreen } from '../components/organisms/OnboardingFlow/components/OpeningImpactScreen';
-import { TransformationStoryScreen } from '../components/organisms/OnboardingFlow/components/TransformationStoryScreen';
-import { EnhancedMentorSelectionScreen } from '../components/organisms/OnboardingFlow/components/EnhancedMentorSelectionScreen';
-import { MentorWisdomScreen } from '../components/organisms/OnboardingFlow/components/MentorWisdomScreen';
+import { useTheme } from '../contexts/ThemeContext';
+import { 
+  OpeningImpactScreen, 
+  TransformationStoryScreen, 
+  EnhancedMentorSelectionScreen, 
+  MentorWisdomScreen 
+} from '../components/organisms/OnboardingScreens';
 import type { MentorForUI } from '../services/mentorService';
 
 type OnboardingStep = 'opening' | 'transformation' | 'mentor-selection' | 'mentor-wisdom';
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('opening');
   const [selectedMentor, setSelectedMentor] = useState<MentorForUI | null>(null);
+
+  // Ensure dark mode for onboarding
+  useEffect(() => {
+    if (theme !== 'dark') {
+      setTheme('dark');
+    }
+  }, [theme, setTheme]);
 
   const transformationStories = [
     {
@@ -96,13 +107,28 @@ export const OnboardingPage: React.FC = () => {
     <div style={{
       width: '100vw',
       height: '100vh',
-      background: 'var(--color-surface-primary)',
+      backgroundColor: '#000000',
+      color: 'white',
+      position: 'relative',
+      overflow: 'hidden',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      position: 'relative',
-      overflow: 'hidden'
     }}>
+      {/* Grid background overlay */}
+      <div style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0.3,
+        backgroundImage: `radial-gradient(circle at center, rgba(55, 65, 81, 0.8) 1px, transparent 1px)`,
+        backgroundSize: '20px 20px',
+        backgroundPosition: 'center center',
+        pointerEvents: 'none'
+      }} />
+      
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -111,11 +137,13 @@ export const OnboardingPage: React.FC = () => {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.5, ease: [0.23, 0.86, 0.39, 0.96] }}
           style={{
+            position: 'relative',
             width: '100%',
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            zIndex: 1,
           }}
         >
           {renderCurrentStep()}

@@ -5,10 +5,8 @@ import { AuthLayout } from './components/layout/AuthLayout';
 import { GameLayout } from './components/layout/GameLayout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
-// Marketing
-import { Landing, MarketingLayout } from './marketing';
-
 // Pages
+import { SimpleLanding } from './pages/SimpleLanding';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
@@ -21,16 +19,13 @@ import { ResultsPage } from './pages/game/ResultsPage';
 export const router = createBrowserRouter([
   {
     path: '/',
+    index: true,
+    element: <SimpleLanding />,
+  },
+  {
+    path: '/',
     element: <RootLayout />,
     children: [
-      {
-        index: true,
-        element: (
-          <MarketingLayout>
-            <Landing />
-          </MarketingLayout>
-        ),
-      },
       {
         path: 'onboarding',
         element: <OnboardingPage />,
@@ -138,7 +133,7 @@ export const router = createBrowserRouter([
     path: 'auth/callback',
     element: <div>Processing authentication...</div>,
   },
-  // Login/Signup redirects for marketing header
+  // Legacy auth redirects
   {
     path: 'login',
     element: <Navigate to="/auth" replace />,

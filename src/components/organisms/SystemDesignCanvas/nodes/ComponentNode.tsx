@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { Handle, Position, type NodeProps } from 'reactflow';
+import { Handle, Position, type NodeProps } from '@xyflow/react';
 import styles from './ComponentNode.module.css';
 
 export interface ComponentNodeData {

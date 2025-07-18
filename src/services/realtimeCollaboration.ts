@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Node, Edge } from 'reactflow';
+import type { Node, Edge } from '@xyflow/react';
 
 export interface DesignSession {
   id: string;

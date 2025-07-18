@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
   ReactFlowProvider,
   Background,
   Controls,
@@ -18,8 +19,8 @@ import ReactFlow, {
   type OnNodesChange,
   type OnEdgesChange,
   type OnConnect,
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 import { CursorManager } from '../CursorManager';
 import { ParticipantsList } from '../../molecules/ParticipantsList';
 import { useRealtimeCollaboration } from '../../../hooks/useRealtimeCollaboration';

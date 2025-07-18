@@ -1,16 +1,18 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import ReactFlow, {
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  Handle,
+  Position,
+  ReactFlowProvider,
   addEdge,
   useNodesState,
   useEdgesState,
-  Controls,
-  Background,
-  Handle,
-  Position,
-} from 'reactflow';
-import type { Node, Edge, Connection, NodeProps } from 'reactflow';
+} from '@xyflow/react';
+import type { Node, Edge, Connection, NodeProps } from '@xyflow/react';
 import { User, Shield, Server, Database } from 'lucide-react';
-import 'reactflow/dist/style.css';
+import '@xyflow/react/dist/style.css';
 import './AuthFlowDiagram.css';
 
 interface AuthFlowDiagramProps {

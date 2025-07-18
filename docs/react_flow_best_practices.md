@@ -709,6 +709,101 @@ jsx<ReactFlow
     return sourceNode?.type === 'input';
   }}
 />
+
+11. Nodes Exist in DOM but Not Visible (CSS Override Issue)
+**Symptoms:**
+- Console shows nodes exist in React Flow state
+- DOM inspection shows correct number of `.react-flow__node` elements
+- Container has proper dimensions
+- Nodes have `display: 'none'` and `visibility: 'hidden'` in computed styles
+- MiniMap shows no nodes (blank)
+- `fitView` executes but viewport doesn't change meaningfully
+
+**Debugging Process:**
+1. **Verify State Management:**
+   ```javascript
+   console.log('nodes from state:', nodes);
+   console.log('nodes length:', nodes?.length || 0);
+   ```
+
+2. **Check Node Properties:**
+   ```javascript
+   nodes.forEach((node, index) => {
+     console.log(`Node ${index + 1}:`, {
+       id: node.id,
+       position: node.position,
+       type: node.type,
+       measured: node.measured,
+       hasStyle: !!node.style
+     });
+   });
+   ```
+
+3. **DOM Inspection:**
+   ```javascript
+   const reactFlowNodes = document.querySelectorAll('.react-flow__node');
+   console.log('Number of .react-flow__node elements:', reactFlowNodes.length);
+   
+   reactFlowNodes.forEach((node, index) => {
+     const styles = getComputedStyle(node);
+     console.log(`Node ${index + 1} DOM styles:`, {
+       display: styles.display,
+       visibility: styles.visibility,
+       opacity: styles.opacity,
+       width: styles.width,
+       height: styles.height
+     });
+   });
+   ```
+
+4. **Container Verification:**
+   ```javascript
+   const reactFlowWrapper = document.querySelector('.react-flow');
+   console.log('React Flow wrapper dimensions:', {
+     width: reactFlowWrapper.clientWidth,
+     height: reactFlowWrapper.clientHeight,
+     display: getComputedStyle(reactFlowWrapper).display,
+     visibility: getComputedStyle(reactFlowWrapper).visibility
+   });
+   ```
+
+**Root Cause:**
+CSS styles (possibly from global stylesheets, CSS reset, or theme conflicts) were setting:
+```css
+.react-flow__node {
+  display: none;
+  visibility: hidden;
+}
+```
+
+**Solution:**
+Force override the problematic CSS with `!important`:
+```jsx
+<ReactFlow nodes={nodes} edges={edges}>
+  {/* Other components */}
+  
+  {/* CSS OVERRIDE to force nodes visible */}
+  <style>{`
+    .react-flow__node {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+    .react-flow__edge {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+  `}</style>
+</ReactFlow>
+```
+
+**Prevention:**
+- Ensure React Flow styles are loaded after global styles: `import '@xyflow/react/dist/style.css';`
+- Check for CSS conflicts in global stylesheets
+- Use CSS specificity to avoid overriding React Flow classes
+- Consider using CSS modules or styled-components for component isolation
+
 Error Prevention Best Practices
 
 Always define nodeTypes/edgeTypes outside components
