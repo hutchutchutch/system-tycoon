@@ -1,0 +1,304 @@
+/* ProductTour Component Styles */
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 99998;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .overlay {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.highlight {
+  position: absolute;
+  background: transparent;
+  border: 3px solid var(--color-primary-500);
+  border-radius: var(--radius-lg);
+  box-shadow: 
+    0 0 0 4px rgba(59, 130, 246, 0.2),
+    0 0 20px rgba(59, 130, 246, 0.4),
+    inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+  animation: tourPulse 2s ease-in-out infinite;
+  z-index: 99999;
+  pointer-events: none;
+}
+
+[data-theme="dark"] .highlight {
+  border-color: var(--color-primary-400);
+  box-shadow: 
+    0 0 0 4px rgba(96, 165, 250, 0.3),
+    0 0 20px rgba(96, 165, 250, 0.5),
+    inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+}
+
+@keyframes tourPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 4px rgba(59, 130, 246, 0.2),
+      0 0 20px rgba(59, 130, 246, 0.4),
+      inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 8px rgba(59, 130, 246, 0.3),
+      0 0 30px rgba(59, 130, 246, 0.6),
+      inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+  }
+}
+
+/* Tour Controls */
+.tourControls {
+  position: fixed;
+  top: 50%;
+  right: var(--space-6);
+  transform: translateY(-50%);
+  z-index: 99999;
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 200px;
+  pointer-events: auto;
+}
+
+[data-theme="dark"] .tourControls {
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-300);
+}
+
+.stepIndicator {
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-600);
+  text-align: center;
+  padding: var(--space-2);
+  background: var(--color-neutral-50);
+  border-radius: var(--radius-md);
+}
+
+[data-theme="dark"] .stepIndicator {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-700);
+}
+
+.stepTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+[data-theme="dark"] .stepTitle {
+  color: var(--color-neutral-800);
+}
+
+.stepContent {
+  font-size: var(--text-sm);
+  color: var(--color-neutral-700);
+  line-height: var(--leading-relaxed);
+  text-align: left;
+  margin-bottom: var(--space-3);
+}
+
+[data-theme="dark"] .stepContent {
+  color: var(--color-neutral-600);
+}
+
+.controlButtons {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nextButton,
+.prevButton,
+.skipButton {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  border: 1px solid transparent;
+}
+
+.nextButton {
+  background: var(--color-primary-600);
+  color: var(--color-white);
+  border-color: var(--color-primary-600);
+}
+
+.nextButton:hover {
+  background: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.prevButton {
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-700);
+  border-color: var(--color-neutral-300);
+}
+
+.prevButton:hover {
+  background: var(--color-neutral-200);
+  border-color: var(--color-neutral-400);
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .prevButton {
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-800);
+  border-color: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .prevButton:hover {
+  background: var(--color-neutral-300);
+  border-color: var(--color-neutral-500);
+}
+
+.skipButton {
+  background: transparent;
+  color: var(--color-neutral-500);
+  border: none;
+  font-size: var(--text-xs);
+  text-decoration: underline;
+  padding: var(--space-2);
+}
+
+.skipButton:hover {
+  color: var(--color-neutral-700);
+  background: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .skipButton:hover {
+  color: var(--color-neutral-600);
+  background: var(--color-neutral-200);
+}
+
+/* Tour MentorChat Positioning */
+.tourMentorChat {
+  position: fixed;
+  bottom: var(--space-5);
+  left: var(--space-5);
+  z-index: 99999;
+  pointer-events: auto;
+}
+
+/* Make sure the tour mentor chat is always expanded during tour */
+.tourMentorChat .mentorChat {
+  transform: none !important;
+  opacity: 1 !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .tourControls {
+    right: var(--space-4);
+    min-width: 160px;
+    padding: var(--space-3);
+  }
+
+  .stepIndicator {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .nextButton,
+  .prevButton {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--text-xs);
+  }
+
+  .tourMentorChat {
+    bottom: var(--space-4);
+    left: var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .tourControls {
+    position: fixed;
+    bottom: var(--space-4);
+    left: 50%;
+    right: auto;
+    top: auto;
+    transform: translateX(-50%);
+    min-width: calc(100vw - var(--space-8));
+    max-width: 300px;
+  }
+
+  .controlButtons {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .nextButton,
+  .prevButton {
+    flex: 1;
+  }
+
+  .tourMentorChat {
+    bottom: 120px; /* Make room for controls */
+    left: var(--space-2);
+    right: var(--space-2);
+  }
+}
+
+/* Animation for tour entrance */
+.tourControls {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.tourMentorChat {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%) translateY(-50%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) translateY(-50%);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile responsive animations */
+@media (max-width: 480px) {
+  @keyframes slideInRight {
+    from {
+      transform: translateX(-50%) translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  }
+} 

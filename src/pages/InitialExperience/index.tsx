@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BrowserWindow } from '../../components/organisms/BrowserWindow';
+import { ProductTour } from '../../components/organisms/ProductTour';
 import { EmailClientWrapper } from './EmailClientWrapper';
 import { SystemDesignCanvasWrapper } from './SystemDesignCanvasWrapper';
 import { ProfileWrapper } from './ProfileWrapper';
@@ -23,6 +24,7 @@ const InitialExperienceContent: React.FC = () => {
   }]);
   const [missionComplete, setMissionComplete] = useState(false);
   const [emailNotificationShown, setEmailNotificationShown] = useState(false);
+  const [showProductTour, setShowProductTour] = useState(false);
   const [bookmarks, setBookmarks] = useState([
     {
       id: 'email',
@@ -81,6 +83,36 @@ const InitialExperienceContent: React.FC = () => {
       setActiveTab('system-design');
     }
   }, [searchParams]);
+
+  // Start product tour after page loads
+  useEffect(() => {
+    // Check if user has seen the tour before (localStorage check)
+    const hasSeenTour = localStorage.getItem('systemTycoon_hasSeenProductTour');
+    
+    if (!hasSeenTour) {
+      // Start tour after a brief delay to ensure components are rendered
+      const timer = setTimeout(() => {
+        setShowProductTour(true);
+      }, 2000); // 2 seconds delay
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  // Add keyboard shortcut to manually trigger tour (for testing)
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Trigger tour with Ctrl+Shift+T (or Cmd+Shift+T on Mac)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+        event.preventDefault();
+        setShowProductTour(true);
+        console.log('Product tour manually triggered via keyboard shortcut');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   // Generic function to open a new tab
   const openNewTab = useCallback((tabConfig: any) => {
@@ -182,6 +214,13 @@ const InitialExperienceContent: React.FC = () => {
     console.log('Mission completed! Alex\'s system is now stable.');
   }, []);
 
+  const handleTourComplete = useCallback(() => {
+    setShowProductTour(false);
+    // Mark that user has seen the tour
+    localStorage.setItem('systemTycoon_hasSeenProductTour', 'true');
+    console.log('Product tour completed!');
+  }, []);
+
   const handleTabChange = useCallback((tabId: string) => {
     setActiveTab(tabId);
   }, []);
@@ -226,6 +265,12 @@ const InitialExperienceContent: React.FC = () => {
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         onNewTab={handleNewTab}
+      />
+      
+      {/* Product Tour */}
+      <ProductTour
+        isActive={showProductTour}
+        onComplete={handleTourComplete}
       />
     </div>
   );

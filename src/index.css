@@ -1,6 +1,9 @@
 /* Import Global Styles - Foundation and Utilities */
 @import './styles/global.css';
 
+/* Import React Flow styles */
+@import '@xyflow/react/dist/style.css';
+
 /* Tailwind CSS - Used alongside design system for utility classes */
 @tailwind base;
 @tailwind components;
@@ -38,13 +41,7 @@
 
   body {
     margin: 0;
-    background: var(--color-neutral-50);
-    color: var(--color-neutral-900);
-  }
-
-  /* Dark mode styles */
-  .dark body {
-    background: #0F0F0F;
+    background: #0B1426;
     color: #FFFFFF;
   }
 }

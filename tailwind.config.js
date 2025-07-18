@@ -8,56 +8,93 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Primary colors - from design system
+        // Obsidian Dark Color System
+        surface: {
+          primary: '#0B1426',     // Obsidian black - main background
+          secondary: '#1E2328',   // Soft dark grey - card backgrounds
+          tertiary: '#2A2D3A',    // Medium grey - elevated elements
+          interactive: '#363A47', // Lighter grey - hover states
+          overlay: '#424651',     // Modal overlays
+        },
+        // Border Colors
+        border: {
+          DEFAULT: '#2A2D3A',     // Main borders
+          secondary: '#363A47',   // Subtle borders
+          focus: '#4F9CF9',       // Bright blue focus rings
+          accent: '#22D3EE',      // Cyan accent borders
+        },
+        // Text Colors
+        text: {
+          primary: '#FFFFFF',     // Pure white - primary text
+          secondary: '#E2E4E7',   // Off-white - secondary text
+          tertiary: '#B8BCC8',    // Light grey - muted text
+          placeholder: '#6B7280', // Medium grey - placeholders
+          inverse: '#0B1426',     // Obsidian - text on light backgrounds
+        },
+        // Accent Colors
+        accent: {
+          primary: '#4F9CF9',     // Bright blue
+          secondary: '#22D3EE',   // Cyan
+          tertiary: '#A855F7',    // Purple
+          warning: '#FBBF24',     // Warm amber
+          error: '#F87171',       // Coral red
+          success: '#34D399',     // Emerald green
+        },
+        // Blue Color Scale
+        blue: {
+          400: '#60A5FA',
+          500: '#4F9CF9',
+          600: '#3B82F6',
+          700: '#2563EB',
+        },
+        // Interactive States
+        interactive: {
+          primary: '#4F9CF9',
+          'primary-hover': '#3B82F6',
+          secondary: '#2A2D3A',
+          'secondary-hover': '#363A47',
+        },
+        // Obsidian Greys
+        obsidian: {
+          50: '#F8FAFC',
+          100: '#F1F5F9',
+          200: '#E2E8F0',
+          300: '#CBD5E1',
+          400: '#94A3B8',
+          500: '#64748B',
+          600: '#475569',
+          700: '#334155',
+          800: '#1E293B',
+          850: '#1E2328',
+          900: '#0F172A',
+          950: '#0B1426',
+        },
+        // Tailwind defaults mapping
+        background: '#0B1426',
+        foreground: '#FFFFFF',
         primary: {
-          DEFAULT: '#10B981', // Accent green
+          DEFAULT: '#4F9CF9',
           foreground: '#FFFFFF',
         },
         secondary: {
-          DEFAULT: '#3B82F6', // Accent blue
+          DEFAULT: '#22D3EE',
           foreground: '#FFFFFF',
         },
         destructive: {
-          DEFAULT: '#EF4444',
+          DEFAULT: '#F87171',
           foreground: '#FFFFFF',
         },
-        // Background colors
-        background: '#FFFFFF',
-        foreground: '#000000',
-        // Surface colors
-        surface: {
-          primary: '#0F0F0F', // Dark main background
-          secondary: '#1A1A1A', // Card backgrounds
-          tertiary: '#252525', // Elevated elements
-        },
-        // Text colors
-        foreground: '#000000',
         muted: {
           DEFAULT: '#6B7280',
-          foreground: '#9CA3AF',
+          foreground: '#B8BCC8',
         },
-        'muted-foreground': '#9CA3AF',
+        'muted-foreground': '#B8BCC8',
         accent: {
-          DEFAULT: '#F5F5F5',
-          foreground: '#000000',
+          DEFAULT: '#22D3EE',
+          foreground: '#FFFFFF',
         },
-        // Border and input colors
-        border: 'rgba(0, 0, 0, 0.1)',
-        input: 'rgba(0, 0, 0, 0.1)',
-        ring: '#3B82F6',
-        // Neutral colors
-        neutral: {
-          50: '#FAFAFA',
-          100: '#F5F5F5',
-          200: '#E5E5E5',
-          300: '#D4D4D4',
-          400: '#A3A3A3',
-          500: '#737373',
-          600: '#525252',
-          700: '#404040',
-          800: '#262626',
-          900: '#171717',
-        }
+        input: 'rgba(255, 255, 255, 0.1)',
+        ring: '#4F9CF9',
       },
       spacing: {
         // Design system spacing

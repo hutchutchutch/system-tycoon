@@ -39,6 +39,8 @@ export * from './CareerMap';
 export { ComponentDrawer } from './ComponentDrawer';
 export { GameHUD } from './GameHUD';
 export { MetricsDashboard } from './MetricsDashboard';
+export { ProductTour } from './ProductTour';
+export type { ProductTourProps, TourStep } from './ProductTour';
 export { SystemDesignCanvas } from './SystemDesignCanvas';
 export type { SystemDesignCanvasProps } from './SystemDesignCanvas';
 export { CollaborationPanel } from './CollaborationPanel';
@@ -50,21 +52,16 @@ export type { CursorManagerProps } from './CursorManager';
 export { BentoGrid } from '../molecules/BentoGrid';
 export type { BentoGridProps } from '../molecules/BentoGrid';
 
-// Landing page organisms
-export { default as LandingHero } from './LandingHero/LandingHero';
+// Game-specific organisms
 export { default as CrisisAlert } from './CrisisAlert/CrisisAlert';
-export { default as HowItWorks } from './HowItWorks/HowItWorks';
 export { default as MissionShowcase } from './MissionShowcase/MissionShowcase';
-export { default as FooterCTA } from './FooterCTA/FooterCTA';
 export { MentorSelectionModal } from './MentorSelectionModal';
 export { OnboardingFlow } from './OnboardingFlow';
 export type { MentorSelectionModalProps } from './MentorSelectionModal';
 export { EmailComposer } from './EmailComposer';
 export type { EmailComposerProps } from './EmailComposer';
-// TODO: Implement remaining landing page components
+// TODO: Implement remaining game components
 // export { ImpactDashboard } from './ImpactDashboard';
 // export { LearningPaths } from './LearningPaths';
-// export { Partners } from './Partners';
 // export { CollaborationFeature } from './CollaborationFeature';
 // export { Certification } from './Certification';
-// export { Pricing } from './Pricing';

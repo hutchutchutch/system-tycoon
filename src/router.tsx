@@ -5,8 +5,10 @@ import { AuthLayout } from './components/layout/AuthLayout';
 import { GameLayout } from './components/layout/GameLayout';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 
+// Marketing
+import { Landing, MarketingLayout } from './marketing';
+
 // Pages
-import { LandingPage } from './pages/LandingPage';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
@@ -23,7 +25,11 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LandingPage />,
+        element: (
+          <MarketingLayout>
+            <Landing />
+          </MarketingLayout>
+        ),
       },
       {
         path: 'onboarding',
@@ -131,5 +137,14 @@ export const router = createBrowserRouter([
   {
     path: 'auth/callback',
     element: <div>Processing authentication...</div>,
+  },
+  // Login/Signup redirects for marketing header
+  {
+    path: 'login',
+    element: <Navigate to="/auth" replace />,
+  },
+  {
+    path: 'signup',
+    element: <Navigate to="/auth" replace />,
   },
 ]);
