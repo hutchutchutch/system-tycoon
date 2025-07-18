@@ -67,6 +67,8 @@ export { EmailToolbar } from './EmailToolbar';
 export { Requirements } from './Requirements';
 export { MultiConnectionLine } from './MultiConnectionLine';
 export { MessageRecommendations } from './MessageRecommendations';
+export { MentorChat } from './MentorChat';
+export type { MentorChatProps, ChatMessage, MentorChatState } from './MentorChat';
 
 // Onboarding components
 export { MentorSelectionCard } from './MentorSelectionCard';

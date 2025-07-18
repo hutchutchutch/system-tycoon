@@ -1,23 +1,20 @@
 import { supabase } from './supabase';
 
-export interface MissionData {
+export interface Requirement {
   id: string;
-  slug: string;
-  title: string;
   description: string;
-  crisis_description: string;
-  stages: MissionStage[];
-  components: ComponentRequirement[];
-  requirements: Requirement[];
-}
-
-export interface MissionStage {
-  id: string;
-  stage_number: number;
-  title: string;
-  problem_description: string;
-  required_components: any;
-  validation_rules: any;
+  completed: boolean;
+  type?: string;
+  priority?: string;
+  validation?: string;
+  validation_type?: string;
+  required_nodes?: string[];
+  min_nodes?: number;
+  min_nodes_of_type?: Record<string, number>;
+  required_connection?: { from: string; to: string };
+  target_metric?: string;
+  target_value?: number;
+  validator?: (nodes: any[], edges: any[]) => boolean;
 }
 
 export interface ComponentRequirement {
@@ -27,14 +24,59 @@ export interface ComponentRequirement {
   icon_name: string;
   short_description: string;
   unlock_level: number;
-  required?: boolean;
+  required: boolean;
 }
 
-export interface Requirement {
+export interface MissionData {
   id: string;
+  slug: string;
+  title: string;
   description: string;
+  crisis_description: string;
+  stages: any[];
+  components: ComponentRequirement[];
+  requirements: Requirement[];
+}
+
+interface MissionStageData {
+  id: string;
+  title: string;
+  problem_description: string;
+  system_requirements: Requirement[];
+  mission: {
+    id: string;
+    title: string;
+    description: string;
+    crisis_description: string;
+  };
+}
+
+// New types for our enhanced validation system
+export interface ValidationResult {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
   completed: boolean;
-  validator?: (nodes: any[], edges: any[]) => boolean;
+  visible: boolean;
+  priority: number;
+  points: number;
+  message: string;
+  hint?: string;
+  validationDetails: any;
+}
+
+export interface ValidationResponse {
+  success: boolean;
+  stageAttemptId?: string;
+  summary: {
+    totalRequirements: number;
+    completedRequirements: number;
+    pointsEarned: number;
+    allCompleted: boolean;
+    completionPercentage: number;
+  };
+  requirements: ValidationResult[];
 }
 
 export class MissionService {
@@ -50,7 +92,7 @@ export class MissionService {
 
   async loadMissionBySlug(slug: string): Promise<MissionData | null> {
     try {
-      // Load mission with stages
+      // Load mission with stages and their requirements
       const { data: missionData, error: missionError } = await supabase
         .from('missions')
         .select(`
@@ -60,8 +102,7 @@ export class MissionService {
             stage_number,
             title,
             problem_description,
-            required_components,
-            validation_rules
+            system_requirements
           )
         `)
         .eq('slug', slug)
@@ -82,6 +123,10 @@ export class MissionService {
         console.warn('Failed to load components:', componentsError);
       }
 
+      // Use requirements from the first stage (or combine all stages)
+      const firstStage = missionData.mission_stages[0];
+      const requirements = this.transformDatabaseRequirements(firstStage?.system_requirements || []);
+
       // Transform to our interface
       const mission: MissionData = {
         id: missionData.id,
@@ -91,7 +136,7 @@ export class MissionService {
         crisis_description: missionData.crisis_description,
         stages: missionData.mission_stages || [],
         components: this.transformComponents(componentsData || []),
-        requirements: this.generateRequirements(missionData.slug)
+        requirements: requirements
       };
 
       this.activeMission = mission;
@@ -99,6 +144,133 @@ export class MissionService {
     } catch (error) {
       console.error('Failed to load mission:', error);
       return this.getFallbackMission(slug);
+    }
+  }
+
+  // Transform database requirements to include validator functions
+  private transformDatabaseRequirements(dbRequirements: any[]): Requirement[] {
+    return dbRequirements.map(req => ({
+      ...req,
+      completed: false,
+      validator: this.createValidatorFunction(req)
+    }));
+  }
+
+  // Create validator function based on database validation criteria
+  private createValidatorFunction(requirement: any): (nodes: any[], edges: any[]) => boolean {
+    const { validation_type, required_nodes, min_nodes, required_connection, min_nodes_of_type, target_metric, target_value } = requirement;
+    
+    return (nodes: any[], edges: any[]) => {
+      switch (validation_type) {
+        case 'node_categories':
+          if (min_nodes && nodes.length < min_nodes) return false;
+          if (required_nodes) {
+            return required_nodes.every((category: string) => 
+              nodes.some(n => n.data.category === category)
+            );
+          }
+          return true;
+
+        case 'node_count':
+          if (min_nodes_of_type && required_nodes) {
+            return required_nodes.every((category: string) => {
+              const count = nodes.filter(n => n.data.category === category).length;
+              const requiredCount = min_nodes_of_type[category] || 1;
+              return count >= requiredCount;
+            });
+          }
+          return true;
+
+        case 'node_and_connection':
+          // First check if required nodes exist
+          if (required_nodes) {
+            const hasRequiredNodes = required_nodes.every((category: string) => 
+              nodes.some(n => n.data.category === category)
+            );
+            if (!hasRequiredNodes) return false;
+          }
+          
+          // Then check the connection
+          if (required_connection) {
+            return edges.some((e) => {
+              const sourceNode = nodes.find(n => n.id === e.source);
+              const targetNode = nodes.find(n => n.id === e.target);
+              
+              return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
+                     (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
+            });
+          }
+          return true;
+
+        case 'edge_connection':
+          if (required_connection) {
+            return edges.some((e) => {
+              const sourceNode = nodes.find(n => n.id === e.source);
+              const targetNode = nodes.find(n => n.id === e.target);
+              
+              if (required_connection.from === 'families' || required_connection.to === 'families') {
+                return (sourceNode?.data.label === 'Families' && targetNode?.data.category === required_connection.to) ||
+                       (sourceNode?.data.category === required_connection.from && targetNode?.data.label === 'Families');
+              }
+              
+              return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
+                     (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
+            });
+          }
+          return true;
+
+        case 'metric':
+          // For now, return true for metric-based validations as they require runtime metrics
+          // This could be enhanced to check actual performance metrics if available
+          return true;
+
+        default:
+          // Fallback: try to evaluate the validation string as JavaScript (careful!)
+          try {
+            return new Function('nodes', 'edges', `return ${requirement.validation}`)(nodes, edges);
+          } catch (error) {
+            console.warn('Failed to evaluate requirement validation:', error);
+            return false;
+          }
+      }
+    };
+  }
+
+  // Load mission stage data by stage ID
+  async loadMissionStageById(stageId: string): Promise<MissionStageData | null> {
+    try {
+      const { data: stageData, error: stageError } = await supabase
+        .from('mission_stages')
+        .select(`
+          id,
+          title,
+          problem_description,
+          system_requirements,
+          missions!inner(
+            id,
+            title,
+            description,
+            crisis_description
+          )
+        `)
+        .eq('id', stageId)
+        .single();
+
+      if (stageError) {
+        console.warn(`Mission stage '${stageId}' not found:`, stageError);
+        return null;
+      }
+
+      return {
+        id: stageData.id,
+        title: stageData.title,
+        problem_description: stageData.problem_description,
+        system_requirements: this.transformDatabaseRequirements(stageData.system_requirements || []),
+        mission: Array.isArray(stageData.missions) ? stageData.missions[0] : stageData.missions
+      };
+    } catch (error) {
+      console.error('Failed to load mission stage:', error);
+      return null;
     }
   }
 
@@ -112,7 +284,7 @@ export class MissionService {
         crisis_description: 'Database crashes every few hours, no backups, 200+ families depending on the data',
         stages: [],
         components: this.getDefaultComponents(),
-        requirements: this.generateRequirements('health-tracker-crisis')
+        requirements: this.generateFallbackRequirements('health-tracker-crisis')
       },
       'outbreak-documentation-site': {
         id: 'fallback-outbreak-docs',
@@ -122,7 +294,7 @@ export class MissionService {
         crisis_description: 'A mysterious illness is affecting children in the neighborhood. Parents are desperately trying to document symptoms to find patterns and prove environmental contamination.',
         stages: [],
         components: this.getDefaultComponents(),
-        requirements: this.generateRequirements('outbreak-documentation-site')
+        requirements: this.generateFallbackRequirements('outbreak-documentation-site')
       }
     };
 
@@ -173,7 +345,8 @@ export class MissionService {
     ];
   }
 
-  private generateRequirements(missionSlug: string): Requirement[] {
+  // Fallback requirements (only used if database fails)
+  private generateFallbackRequirements(missionSlug: string): Requirement[] {
     const requirementSets: Record<string, Requirement[]> = {
       'health-tracker-crisis': [
         {
@@ -231,27 +404,50 @@ export class MissionService {
     }));
   }
 
-  async getMissionFromEmail(emailId: string): Promise<MissionData | null> {
+  /**
+   * Validate requirements using the Supabase Edge Function
+   * This integrates with our database-driven requirement system
+   */
+  async validateRequirementsWithAPI(
+    stageId: string,
+    userId: string,
+    nodes: any[],
+    edges: any[],
+    stageAttemptId?: string
+  ): Promise<ValidationResponse> {
     try {
-      const { data: emailData, error } = await supabase
-        .from('mission_emails')
-        .select(`
-          mission_id,
-          missions!inner(slug)
-        `)
-        .eq('id', emailId)
-        .single();
+      const { data, error } = await supabase.functions.invoke('validate-requirements', {
+        body: {
+          stageId,
+          userId,
+          nodes,
+          edges,
+          stageAttemptId
+        }
+      });
 
-      if (error || !emailData) {
-        console.warn('Email not found or not linked to mission');
-        return null;
+      if (error) {
+        console.error('Validation API error:', error);
+        throw new Error(`Validation failed: ${error.message}`);
       }
 
-      return this.loadMissionBySlug((emailData.missions as any).slug);
+      if (!data.success) {
+        throw new Error('Validation was not successful');
+      }
+
+      return data as ValidationResponse;
     } catch (error) {
-      console.error('Failed to get mission from email:', error);
-      return null;
+      console.error('Error validating requirements:', error);
+      throw error;
     }
+  }
+
+  /**
+   * Get the current user ID from Supabase auth
+   */
+  async getCurrentUserId(): Promise<string | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
   }
 }
 

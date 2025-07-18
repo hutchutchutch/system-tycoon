@@ -41,13 +41,31 @@ export const EmailCard: React.FC<EmailCardProps> = ({
     onStatusChange?.(email.id, mapEmailStatus(newStatus));
   };
 
-  const formatTimestamp = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+  const formatTimestamp = (dateInput: string | Date) => {
+    // Handle different input types and invalid dates
+    let date: Date;
     
-    if (diffHours < 1) {
-      const diffMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
+    if (dateInput instanceof Date) {
+      date = dateInput;
+    } else if (typeof dateInput === 'string') {
+      date = new Date(dateInput);
+    } else {
+      return 'Just now'; // Fallback for invalid input
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Just now'; // Fallback for invalid dates
+    }
+    
+    const now = new Date();
+    const diffTime = now.getTime() - date.getTime();
+    const diffMinutes = Math.floor(diffTime / (1000 * 60));
+    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
+    
+    if (diffMinutes < 1) {
+      return 'Just now';
+    } else if (diffMinutes < 60) {
       return `${diffMinutes}m ago`;
     } else if (diffHours < 24) {
       return `${diffHours}h ago`;

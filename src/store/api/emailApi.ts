@@ -43,7 +43,7 @@ export interface StageCompletionRequest {
 export const emailApi = createApi({
   reducerPath: 'emailApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: process.env.REACT_APP_API_URL + '/api/emails',
+    baseUrl: (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api/emails',
     prepareHeaders: (headers, { getState }) => {
       // Note: Auth token handling would need to be implemented based on your specific auth slice structure
       // const state = getState() as RootState;
@@ -173,6 +173,22 @@ export const emailApi = createApi({
       ],
     }),
 
+    // Get mission stage data from email
+    getMissionStageFromEmail: builder.query<{
+      missionId: string;
+      stageId: string;
+      stageNumber: number;
+      stageTitle: string;
+      problemDescription: string;
+      systemRequirements: any[];
+    }, { emailId: string; playerId: string }>({
+      query: ({ emailId, playerId }) => `/email/${emailId}/mission-stage?playerId=${playerId}`,
+      providesTags: (result, error, arg) => [
+        { type: 'Email', id: arg.emailId },
+        { type: 'MissionEmails', id: result?.missionId },
+      ],
+    }),
+
     // Complete stage and check for emails (combined operation)
     completeStageAndCheckEmails: builder.mutation<{
       stageCompleted: boolean;
@@ -205,4 +221,5 @@ export const {
   useGetEmailProgressionStatusQuery,
   useTriggerManualEmailMutation,
   useCompleteStageAndCheckEmailsMutation,
+  useGetMissionStageFromEmailQuery,
 } = emailApi; 

@@ -159,17 +159,17 @@ const InitialExperienceContent: React.FC = () => {
     });
   }, [openNewTab]);
 
-  const handleOpenSystemDesignTab = useCallback(() => {
+  const handleOpenSystemDesignTab = useCallback((emailId?: string) => {
     const newTab = {
-      id: 'system-design',
-      title: 'System Builder - Emergency: Health Crisis',
+      id: `system-design-${emailId || 'default'}`,
+      title: emailId ? 'System Builder - Mission Stage' : 'System Builder - Emergency: Health Crisis',
       url: 'https://systembuilder.tech/emergency/healthcrisis',
-      component: SystemDesignCanvasWrapper,
+      component: (props: any) => <SystemDesignCanvasWrapper {...props} emailId={emailId} />,
       closable: true,
     };
     
     setTabs(prev => [...prev, newTab]);
-    setActiveTab('system-design');
+    setActiveTab(`system-design-${emailId || 'default'}`);
   }, []);
 
   const handleMissionComplete = useCallback(() => {

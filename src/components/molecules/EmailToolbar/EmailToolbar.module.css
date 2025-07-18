@@ -9,4 +9,5 @@
   justify-content: space-between;
   width: 100%;
   overflow: hidden;
+  min-height: 60px;
 } 

@@ -4,10 +4,12 @@ import styles from './SystemDesignCanvasWrapper.module.css';
 
 interface SystemDesignCanvasWrapperProps {
   onMissionComplete?: () => void;
+  emailId?: string;
 }
 
 export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps> = ({ 
-  onMissionComplete
+  onMissionComplete,
+  emailId
 }) => {
   const [loading, setLoading] = useState(true);
   const [currentMission, setCurrentMission] = useState('separate_concerns');
@@ -40,7 +42,7 @@ export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps>
 
   return (
     <div className={styles.systemDesignWrapper}>      
-      <CrisisSystemDesignCanvas />
+      <CrisisSystemDesignCanvas emailId={emailId} />
     </div>
   );
 };

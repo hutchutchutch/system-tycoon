@@ -316,6 +316,45 @@
   display: none;
 }
 
+/* Stage Information */
+.stageInfo {
+  background: var(--color-primary-50);
+  border: 1px solid var(--color-primary-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.stageTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary-700);
+  margin: 0 0 var(--space-2) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.stageProblem {
+  font-size: var(--text-sm);
+  color: var(--color-primary-600);
+  margin: 0;
+  line-height: 1.5;
+}
+
+[data-theme="dark"] .stageInfo {
+  background: var(--color-primary-100);
+  border-color: var(--color-primary-300);
+}
+
+[data-theme="dark"] .stageTitle {
+  color: var(--color-primary-800);
+}
+
+[data-theme="dark"] .stageProblem {
+  color: var(--color-primary-700);
+}
+
 .drawerHint {
   font-size: var(--text-sm);
   color: var(--color-neutral-600);

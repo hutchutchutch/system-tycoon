@@ -721,3 +721,220 @@ Wrap with ReactFlowProvider when using hooks
 Memoize expensive computations
 Handle loading states for async data
 Test thoroughly with mock setup for Jest
+
+## Redux Integration for React Flow (System Design Tycoon)
+
+### Overview
+In System Design Tycoon, we integrate React Flow with Redux Toolkit for centralized state management. This approach provides better control over the application state and enables features like undo/redo, state persistence, and real-time collaboration.
+
+### State Structure
+```typescript
+// features/design/designSlice.ts
+interface DesignState {
+  // React Flow state
+  nodes: Node[];
+  edges: Edge[];
+  selectedNodeId: string | null;
+  
+  // Drag and drop state
+  draggedComponent: ComponentData | null;
+  isDragging: boolean;
+  
+  // Design metrics
+  totalCost: number;
+  isValidDesign: boolean;
+  validationErrors: string[];
+  
+  // Canvas viewport
+  canvasViewport: {
+    x: number;
+    y: number;
+    zoom: number;
+  };
+}
+```
+
+### Key Differences from Standard React Flow
+
+#### 1. State Management
+Instead of using React Flow's built-in hooks:
+```typescript
+// ❌ Standard React Flow approach
+const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+// ✅ Our Redux approach
+const nodes = useAppSelector(selectNodes);
+const edges = useAppSelector(selectEdges);
+const dispatch = useAppDispatch();
+```
+
+#### 2. Node and Edge Updates
+```typescript
+// Redux actions for state updates
+dispatch(onNodesChange(changes)); // Handles node position updates
+dispatch(onEdgesChange(changes)); // Handles edge updates
+dispatch(addNode({ component, position })); // Add new node
+dispatch(addEdge(connection)); // Add new edge
+```
+
+#### 3. Connection Handling
+```typescript
+const onConnect = useCallback((params: Connection) => {
+  // Get selected nodes from Redux state
+  const selectedNodes = useAppSelector(selectNodes).filter(node => node.selected);
+  
+  // Multi-connection support
+  if (selectedNodes.length > 1 && params.target) {
+    selectedNodes.forEach((node: Node) => {
+      if (node.id !== params.target) {
+        dispatch(addEdgeAction({
+          ...params,
+          source: node.id,
+          sourceHandle: 'output',
+          targetHandle: 'input'
+        } as Connection));
+      }
+    });
+  } else {
+    dispatch(addEdgeAction(params as Connection));
+  }
+}, [dispatch]);
+```
+
+### Selectors
+```typescript
+// Design slice selectors
+export const selectNodes = (state: { design: DesignState }) => state.design.nodes;
+export const selectEdges = (state: { design: DesignState }) => state.design.edges;
+export const selectTotalCost = (state: { design: DesignState }) => state.design.totalCost;
+export const selectIsValidDesign = (state: { design: DesignState }) => state.design.isValidDesign;
+export const selectValidationErrors = (state: { design: DesignState }) => state.design.validationErrors;
+export const selectDraggedComponent = (state: { design: DesignState }) => state.design.draggedComponent;
+```
+
+### Component Pattern
+```typescript
+// CrisisSystemDesignCanvas.tsx
+const CrisisSystemDesignCanvasInner: React.FC<Props> = ({ emailId }) => {
+  const dispatch = useAppDispatch();
+  const nodes = useAppSelector(selectNodes);
+  const edges = useAppSelector(selectEdges);
+  const draggedComponent = useAppSelector(selectDraggedComponent);
+
+  return (
+    <ReactFlow
+      nodes={nodes}
+      edges={edges}
+      onNodesChange={(changes) => dispatch(onNodesChange(changes))}
+      onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
+      onConnect={onConnect}
+      // ... other props
+    />
+  );
+};
+
+// Wrap with ReactFlowProvider
+export const CrisisSystemDesignCanvas: React.FC<Props> = (props) => (
+  <ReactFlowProvider>
+    <CrisisSystemDesignCanvasInner {...props} />
+  </ReactFlowProvider>
+);
+```
+
+### Mission-Specific Node Initialization
+```typescript
+// Initialize nodes based on mission data
+useEffect(() => {
+  if (nodes.length === 0 && !loading && activeMission) {
+    dispatch(addNode({
+      component: {
+        id: 'families',
+        name: 'Families',
+        type: 'families',
+        category: 'stakeholder',
+        cost: 0,
+        capacity: 200,
+        description: 'Affected families trying to report',
+        icon: 'users'
+      },
+      position: { x: 250, y: 50 }
+    }));
+  }
+}, [nodes.length, dispatch, loading, activeMission]);
+```
+
+### Drag and Drop Integration
+```typescript
+const handleDrop = useCallback((event: React.DragEvent) => {
+  event.preventDefault();
+  const position = screenToFlowPosition({
+    x: event.clientX,
+    y: event.clientY,
+  });
+  
+  if (draggedComponent) {
+    dispatch(addNode({ component: draggedComponent, position }));
+    dispatch(setDraggedComponent(null));
+  }
+}, [screenToFlowPosition, draggedComponent, dispatch]);
+```
+
+### Benefits of Redux Integration
+
+1. **Centralized State**: All canvas state in one place, accessible throughout the app
+2. **Time Travel Debugging**: Redux DevTools for debugging state changes
+3. **Undo/Redo Support**: Easy to implement with Redux state history
+4. **Persistence**: Can persist design state across sessions
+5. **Real-time Collaboration**: Easier to sync state across multiple users
+6. **Type Safety**: Full TypeScript support with Redux Toolkit
+7. **Performance**: Optimized re-renders with selective subscriptions
+8. **Testing**: Easier to test with predictable state updates
+
+### Common Patterns
+
+#### Pattern 1: Component-Driven Node Creation
+```typescript
+// From component drawer
+const availableComponents = useMemo(() => {
+  if (!activeMission) return [];
+  return activeMission.components.map(comp => ({
+    id: comp.id,
+    name: comp.name,
+    category: comp.category,
+    cost: comp.cost,
+    capacity: 1000,
+    description: comp.short_description,
+    icon: comp.icon_name
+  }));
+}, [activeMission]);
+```
+
+#### Pattern 2: Mission-Based Requirements
+```typescript
+// Requirements from active mission
+<Requirements 
+  requirements={activeMission?.requirements || []}
+  onRunTest={handleRunTest}
+/>
+```
+
+#### Pattern 3: Multi-Connection Support
+Our implementation supports creating multiple connections at once by selecting multiple source nodes before connecting to a target.
+
+### Migration Guide
+
+If migrating from standard React Flow to Redux:
+
+1. Replace `useNodesState` and `useEdgesState` with Redux selectors
+2. Replace set functions with dispatch actions
+3. Move node/edge change handlers to Redux actions
+4. Update connection handlers to dispatch Redux actions
+5. Ensure ReactFlowProvider wraps the component using React Flow hooks
+
+### Performance Considerations
+
+1. **Memoize Selectors**: Use `createSelector` for computed values
+2. **Shallow Equality**: Use `shallowEqual` for multi-value selectors
+3. **Batch Updates**: Redux automatically batches updates in event handlers
+4. **Component Memoization**: Use `React.memo` for custom node components

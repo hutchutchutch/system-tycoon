@@ -4,156 +4,256 @@
 
 This document details the complete nested component hierarchy displayed when clicking 'Email' in the initial loading experience after selecting 'Demo Mode' on the sign-in modal. The components are organized following atomic design principles (Atoms → Molecules → Organisms → Templates → Pages).
 
-## Component Hierarchy
+## ⚠️ CRITICAL LAYOUT ISSUES IDENTIFIED
+
+### 1. EmailSidebar Position Fixed Problem
+**Issue**: EmailSidebar uses `position: fixed` with `top: 0` and `left: 0`, positioning it relative to the viewport instead of its parent BrowserWindow container.
+
+**Location**: `src/components/molecules/EmailSidebar/EmailSidebar.module.css`
+```css
+.sidebar {
+  position: fixed;  /* ❌ PROBLEM: Fixed to viewport */
+  top: 0;
+  left: 0;
+  height: 100%;
+  z-index: 10;
+}
+```
+
+**Impact**: 
+- EmailSidebar appears outside BrowserWindow boundaries
+- Not contained within browser chrome area
+- Overlaps with GameHUD and other components
+- Doesn't respect BrowserAddressBar positioning
+
+**Required Fix**: Change to `position: relative` and proper flex layout within EmailClientWrapper
+
+### 2. Layout Compensation Attempts
+**Current Workaround**: `EmailClientWrapper.module.css` tries to compensate with `margin-left: 220px` but this doesn't solve the fundamental positioning issue.
+
+## Current Component Hierarchy (ACTUAL)
 
 ### Page Level
 - **InitialExperience** (`/src/pages/InitialExperience/index.tsx`)
-  - Root page component that manages the initial experience flow
-  - Contains state for browser visibility and active tabs
-  - **Layout Fix**: Removed duplicate `margin-top: 64px`, changed to `height: 100%` to fill parent container
-- **Container States**: Added CSS modifier classes for blank vs browser states
-- **Browser Tab Visibility**: Fixed positioning to ensure BrowserTab components are visible in top chrome area
+  - Root page component managing initial experience flow
+  - Renders BrowserWindow with tabs including EmailClientWrapper
 
-### Template Level  
-- **GameLayout** (`/src/components/layout/GameLayout.tsx`)
-  - Wraps the entire page with game-specific layout
-  - Conditionally renders GameHUD based on route
-  - Provides main content area with proper spacing
-  - **Spacing Control**: Uses `pt-16` (64px) to account for fixed GameHUD height
-  - **Layout Fix**: Centralized spacing control to prevent double margins from child components
+### Browser Level  
+- **BrowserWindow** (`/src/components/organisms/BrowserWindow/BrowserWindow.tsx`)
+  - **Structure**:
+    ```jsx
+    <div className={styles.browserWindow}>
+      <div className={styles.chrome}>
+        <BrowserHeader tabs={...} />
+        <div className={styles.controls}>
+          <BrowserAddressBar url={...} />
+        </div>
+      </div>
+      <div className={styles.content}>
+        {ActiveComponent} // EmailClientWrapper rendered here
+      </div>
+    </div>
+    ```
+
+### Email Interface Level
+- **EmailClientWrapper** (`/src/pages/InitialExperience/EmailClientWrapper.tsx`)
+  - **Actual Structure**:
+    ```jsx
+    <div className={styles.wrapper}>
+      <EmailSidebar />  // ❌ BROKEN: Uses position: fixed
+      <div className={styles.main}>
+        <EmailToolbar />  // Search + tabs
+        <div className={styles.content}>
+          // Email list, chat interface, or email detail
+        </div>
+      </div>
+    </div>
+    ```
+  - **Problem**: EmailSidebar breaks out of this container due to `position: fixed`
+
+## INTENDED vs ACTUAL Layout
+
+### INTENDED Layout Structure
+```
+BrowserWindow
+├── Chrome (BrowserHeader + BrowserAddressBar)
+└── Content
+    └── EmailClientWrapper
+        ├── EmailSidebar (left, contained)
+        └── Main Content (right)
+            ├── EmailToolbar (search + tabs)
+            └── Email List/Chat/Detail
+```
+
+### ACTUAL Layout Structure (BROKEN)
+```
+BrowserWindow
+├── Chrome (BrowserHeader + BrowserAddressBar)
+└── Content
+    └── EmailClientWrapper
+        ├── [Empty space where sidebar should be]
+        └── Main Content (compensated with margin-left: 220px)
+            ├── EmailToolbar
+            └── Email List/Chat/Detail
+
+EmailSidebar (position: fixed to viewport)
+├── Positioned at top: 0, left: 0
+├── Overlaps GameHUD
+└── Extends outside BrowserWindow
+```
+
+## Component Breakdown
 
 ### Organism Level
 
-#### 1. GameHUD (`/src/components/organisms/GameHUD/GameHUD.tsx`)
-- **Purpose**: Top-level navigation and status display
-- **Atomic Components Used**:
-  - Uses primitive HTML elements with CSS classes
-  - Icons from lucide-react library
-- **State Management**: 
-  - Connected to Redux (auth.profile, mission.crisisMetrics)
-  - Displays user info, system status, level, reputation
-- **Styling Issues Fixed**: 
-  - ❌ **Previous Issue**: Duplicate background declarations causing black bar
-  - ✅ **Fix Applied**: Removed duplicate background, fixed dark mode colors
-  - ❌ **Layout Gap Issue**: Multiple components had `margin-top: 64px` causing double spacing
-  - ✅ **Gap Fix Applied**: Consolidated spacing control to GameLayout's `pt-16` class
+#### 1. BrowserWindow (`/src/components/organisms/BrowserWindow/BrowserWindow.tsx`)
+- **Purpose**: Simulates web browser interface with chrome and content areas
+- **Layout**: `display: flex; flex-direction: column`
+- **Sections**:
+  - `.chrome`: Contains header and address bar (fixed height)
+  - `.content`: Contains tab content (flex: 1, fills remaining space)
 
-#### 2. BrowserWindow (`/src/components/organisms/BrowserWindow/BrowserWindow.tsx`)
-- **Purpose**: Simulates a web browser interface
-- **Nested Components**:
-  - **Molecules**: 
-    - `BrowserAddressBar` - URL bar with navigation controls
-  - **Atoms**: 
-    - `BrowserTab` - Individual browser tabs
-    - `Button` - New tab button
-- **Dynamic Content**: Renders tab content based on active tab
-- **Styling Issues Fixed**:
-  - ❌ **Previous Issue**: `margin-top: 64px` creating gap below GameHUD
-  - ❌ **Height Issue**: `calc(100vh - 64px)` with offset caused content to extend beyond viewport
-  - ✅ **Fix Applied**: Removed margin-top, changed height to `100%` to fill parent container
-
-#### 3. EmailClient (`/src/components/organisms/EmailClient/EmailClient.tsx`)
-- **Purpose**: Complete email interface simulation
-- **Nested Components**:
-  - **Molecules**:
-    - `EmailCard` - Individual email entries
-  - **Atoms**:
-    - `Button` - Compose, Archive, Delete actions
-    - `Input` - Search functionality 
-    - `Icon` - Various UI icons
-- **Features**: Email list, folders, search, actions
+#### 2. EmailClientWrapper (`/src/pages/InitialExperience/EmailClientWrapper.tsx`) 
+- **Purpose**: Wrapper around email interface with state management
+- **Layout**: `display: flex` (horizontal)
+- **Manages**: Email data, chat data, mentor interactions
+- **Problem**: Child EmailSidebar breaks layout with position: fixed
 
 ### Molecule Level
 
-#### 1. BrowserAddressBar (`/src/components/molecules/BrowserAddressBar/BrowserAddressBar.tsx`)
-- **Purpose**: Browser navigation controls and URL display
-- **Nested Components**:
-  - **Atoms**:
-    - `Icon` - Navigation arrows, security indicators
-    - `Input` - URL input field
-- **Features**: Back/forward, refresh, security indicators
+#### 1. EmailSidebar (`/src/components/molecules/EmailSidebar/EmailSidebar.tsx`)
+- **Purpose**: Left navigation with folders and compose button
+- **Current Implementation**: Uses position: fixed (BROKEN)
+- **Contains**:
+  - Compose button at top
+  - Folder navigation (Inbox, Sent, Drafts, etc.)
+  - Special "Mentor Chat" folder at bottom (absolute positioned)
+- **Width**: Fixed 220px
+- **Critical Issue**: Escapes parent container boundaries
 
-#### 2. EmailCard (`/src/components/molecules/EmailCard/EmailCard.tsx`)  
+#### 2. EmailToolbar (`/src/components/molecules/EmailToolbar/EmailToolbar.tsx`)
+- **Purpose**: Search bar and email category tabs
+- **Contains**:
+  - Search input ("Search emails...")
+  - Tabs: Primary, Projects, News, Promotions
+- **Layout**: Horizontal flex layout
+- **Position**: Should be at top of main content area
+
+#### 3. EmailCard (`/src/components/molecules/EmailCard/EmailCard.tsx`)
 - **Purpose**: Individual email display in list view
-- **Nested Components**:
-  - **Molecules**:
-    - `ContactAvatar` - Sender's profile picture/initials
-  - **Atoms**:
-    - `EmailStatus` - Read/unread indicator
-    - `Icon` - Priority, attachments, etc.
-- **Features**: Sender info, subject, preview, timestamps, tags
+- **Contains**: Sender avatar, subject, preview, status indicators
 
-#### 3. ContactAvatar (`/src/components/molecules/ContactAvatar/ContactAvatar.tsx`)
-- **Purpose**: User profile image or initials display
-- **Fallback Logic**: Shows initials when image fails to load
-- **Features**: Multiple sizes, status indicators, clickable variants
+### Content Areas
 
-### Atom Level
+#### Email List View
+- **Location**: `.emailList` in EmailClientWrapper content area
+- **Contains**: Multiple EmailCard components
+- **Layout**: Vertical scrolling list
 
-#### 1. BrowserTab (`/src/components/atoms/BrowserTab/BrowserTab.tsx`)
-- **Purpose**: Individual browser tab representation
-- **Nested Components**:
-  - **Atoms**: `Icon` - Favicon, close button, notification dot
-- **Features**: Active state, loading spinner, close functionality
+#### Chat Interface View  
+- **Location**: `.chatInterface` when selectedFolder === 'mentorchat'
+- **Contains**:
+  - Chat header with online status
+  - Scrollable message list
+  - Input area with mentor mentions (@mentions)
+  - MessageRecommendations component
 
-#### 2. EmailStatus (`/src/components/atoms/EmailStatus/EmailStatus.tsx`)
-- **Purpose**: Visual indicator for email read/unread status
-- **Variants**: Different sizes (sm, md), read/unread states
+#### Email Detail View
+- **Location**: `.emailDetail` when showEmailDetail === true
+- **Contains**:
+  - Email metadata (from, to, date)
+  - Email content with HTML rendering
+  - System design action buttons (for mission emails)
 
-#### 3. Input (`/src/components/atoms/Input/Input.tsx`)
-- **Purpose**: Form input elements
-- **Used In**: Search bars, URL bars
-- **Features**: Icons, validation states, keyboard handling
+## CSS Architecture Issues
 
-#### 4. Button (`/src/components/atoms/Button/Button.tsx`)
-- **Purpose**: Interactive buttons throughout interface
-- **Variants**: Primary, secondary, ghost, different sizes
-- **Used In**: Compose, actions, navigation
+### Fixed Position Problems
+1. **EmailSidebar**: `position: fixed` breaks container hierarchy
+2. **Z-index Conflicts**: Fixed sidebar (z-index: 10) conflicts with other components
+3. **Margin Compensation**: Main content uses `margin-left: 220px` as workaround
 
-#### 5. Icon (`/src/components/atoms/Icon/Icon.tsx`)
-- **Purpose**: Consistent iconography system
-- **Implementation**: Wraps lucide-react icons
-- **Used Throughout**: All components for visual indicators
+### Flex Layout Expectations vs Reality
+- **Expected**: EmailClientWrapper uses flex with sidebar and main content side-by-side
+- **Actual**: Sidebar escapes flex container, main content has artificial margin
 
-## Email Flow Detailed Breakdown
+## Required Fixes
 
-### Initial State
-1. **InitialExperience** renders blank browser with Email icon
-2. **GameHUD** displays at top (fixed position)
+### 1. Fix EmailSidebar Positioning
+**File**: `src/components/molecules/EmailSidebar/EmailSidebar.module.css`
 
-### After Clicking Email
-1. **InitialExperience** triggers `handleEmailIconClick()`
-2. Sets `showBrowser = true`, creates email tab
-3. **BrowserWindow** renders with:
-   - **BrowserAddressBar** showing "https://promail.com/inbox"
-   - **BrowserTab** showing "ProMail - Inbox"
-   - **EmailClientWrapper** as tab content
+```css
+.sidebar {
+  width: 220px;
+  background-color: var(--color-gray-50);
+  border-right: 1px solid var(--color-gray-200);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  flex-shrink: 0;
+  /* Remove these broken styles: */
+  /* position: fixed; */
+  /* top: 0; */
+  /* left: 0; */
+  /* height: 100%; */
+  /* z-index: 10; */
+}
 
-### Email Interface Components
-4. **EmailClientWrapper** manages email data and state
-5. **EmailClient** renders with:
-   - Sidebar with compose button and folders
-   - Main area with search and email list
-   - Multiple **EmailCard** components for each email
+.compose {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-gray-200);
+  flex-shrink: 0;
+  /* Remove margin-top compensation: */
+  /* margin-top: 84px; */
+}
+```
 
-### Email Card Breakdown (per email)
-6. Each **EmailCard** contains:
-   - **EmailStatus** atom (read/unread indicator)
-   - **ContactAvatar** molecule (sender's image/initials)
-   - Email metadata and content
-   - **Icon** atoms for attachments, priority
+### 2. Fix EmailClientWrapper Layout
+**File**: `src/pages/InitialExperience/EmailClientWrapper.module.css`
 
-### Crisis Email Detail View
-7. When Alex's crisis email is clicked:
-   - Shows full email content
-   - Contains link to system builder
-   - Triggers mission progression when clicked
+```css
+.wrapper {
+  display: flex;
+  height: 100%;
+  background-color: var(--color-white);
+  overflow: hidden;
+  width: 100%;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  /* Remove margin compensation: */
+  /* margin-left: 220px; */
+}
+```
+
+### 3. Mentor Chat Folder Positioning
+**File**: `src/components/molecules/EmailSidebar/EmailSidebar.module.css`
+
+```css
+/* Fix special Mentor Chat positioning to work within relative layout */
+.folder[data-folder-id="mentorchat"] {
+  /* Change from position: absolute to margin-top: auto to push to bottom */
+  margin-top: auto;
+  margin-bottom: 16px;
+  margin-left: 8px;
+  margin-right: 8px;
+  background-color: var(--color-blue-500) !important;
+  color: white !important;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+```
 
 ## State Management Integration
 
 ### Redux Connections
 - **GameHUD**: `auth.profile`, `mission.crisisMetrics`
-- **EmailClientWrapper**: Local state for emails and selection
+- **EmailClientWrapper**: Local state for emails, folders, search, chat
 - **MissionInitializer**: Wraps experience with mission context
 
 ### Data Flow
@@ -162,29 +262,15 @@ This document details the complete nested component hierarchy displayed when cli
 3. Email interactions trigger mission state updates
 4. Component re-renders reflect state changes
 
-## CSS Architecture
-
-### Design System Integration
-- All components use CSS custom properties from `design-system/`
-- Consistent spacing with `--space-*` variables
-- Color system with semantic color tokens
-- Responsive design with mobile-first approach
-
-### Component-Specific Styles
-- **GameHUD**: `game-hud__*` classes in `components.css`
-- **BrowserWindow**: `browser-window__*` classes
-- **EmailClient**: `email-client__*` classes
-- **Email Cards**: `email-card__*` classes
-
 ## Performance Considerations
 
 ### Component Optimization
-- **EmailClient**: Uses `useMemo` for filtered emails
+- **EmailClientWrapper**: Uses `useMemo` for filtered emails and mentors
 - **ContactAvatar**: Handles image loading errors gracefully
 - **BrowserTab**: Truncates long titles efficiently
 
 ### Memory Management
-- **EmailClientWrapper**: Proper cleanup of timers
+- **EmailClientWrapper**: Proper cleanup of timers and effects
 - **Event Handlers**: Uses `useCallback` where appropriate
 - **State Updates**: Minimal re-renders through proper state structure
 
@@ -201,86 +287,19 @@ This document details the complete nested component hierarchy displayed when cli
 - **Input Fields**: Enter key submission
 - **Buttons**: Keyboard activation support
 
-## Common Issues & Solutions
+## Testing Strategy
 
-### Fixed Issues
-✅ **GameHUD Black Bar**: Fixed duplicate background declarations and dark mode colors
-✅ **Layout Gap Issue**: Fixed duplicate spacing between GameHUD and content
-
-#### Layout Gap Investigation & Resolution
-
-**Problem**: Black gap appearing between GameHUD and BrowserWindow components
-
-**Root Cause Analysis**:
-1. GameHUD has `position: fixed` and `height: 64px`
-2. GameLayout applies `pt-16` (64px) padding to main content
-3. InitialExperience component had additional `margin-top: 64px`
-4. BrowserWindow component had additional `margin-top: 64px`
-5. Both also used `height: calc(100vh - 64px)` expecting to account for GameHUD
-6. **Double Height Issue**: Components were offset 64px but still used full viewport calculations
-7. **Layout Issue**: InitialExperience container centered content, hiding BrowserWindow chrome
-8. **PRIMARY ISSUE**: BrowserWindow CSS used `width: 100vw` forcing viewport positioning
-
-**Solution Applied**:
-- **GameLayout**: Maintained `pt-16` class for proper GameHUD spacing
-- **InitialExperience**: Removed `margin-top: 64px`, changed height from `calc(100vh - 64px)` to `100%`
-- **BrowserWindow**: Removed `margin-top: 64px`, changed height from `calc(100vh - 64px)` to `100%`
-- **Container Layout**: Added state-based CSS classes (--blank, --browser) to control centering vs full-width
-- **Height Fix**: Components now use `100%` height to fill parent container instead of viewport calculations
-- **PRIMARY FIX**: Changed BrowserWindow CSS from `width: 100vw` to `width: 100%` in components.css
-- **Spacing Principle**: GameLayout provides offset positioning, child components fill available space
-
-### CSS Files Analysis
-
-**Files Affecting InitialExperience Screen**:
-
-1. **`src/styles/design-system/components.css`** ❌ **ROOT CAUSE**
-   - Line 2725: `.browser-window { width: 100vw; }` 
-   - Line 913: `.game-hud { position: fixed; z-index: 40; }`
-   - **Issue**: Viewport width forces positioning relative to viewport instead of container
-
-2. **`src/pages/InitialExperience/InitialExperience.css`** ⚠️ Minor
-   - Line 209: Loading overlay with `z-index: 1000`
-   - **Status**: No positioning conflicts, properly contained
-
-3. **`src/pages/InitialExperience/EmailClientWrapper.css`** ✅ Clean
-   - Only contains wrapper and loading styles
-   - **Status**: No positioning issues
-
-4. **`src/index.css` & `src/styles/design-system/index.css`** ✅ Clean
-   - Standard CSS reset and design system imports
-   - **Status**: No conflicts detected
-
-**CSS Specificity & Load Order**:
-- Design system loaded before page-specific CSS
-- Tailwind utilities available but not conflicting
-- Component CSS takes precedence over global styles
-
-### Known Limitations
-- **Email Loading**: 2-second simulated delay
-- **Browser Navigation**: Limited functionality (demo purposes)
-- **Real-time Updates**: Not implemented (static demo data)
-
-## Component Testing Strategy
-
-### Unit Testing
-- **Atoms**: Test rendering, props, interactions
-- **Molecules**: Test composition and data flow
-- **Organisms**: Test integration and state management
+### Layout Testing Priority
+1. **EmailSidebar Containment**: Verify sidebar stays within BrowserWindow
+2. **Responsive Behavior**: Test layout at different screen sizes
+3. **Content Overflow**: Ensure content doesn't escape containers
+4. **Z-index Management**: Verify proper layering without conflicts
 
 ### Integration Testing
 - **Email Flow**: Complete user journey from initial load to mission trigger
 - **State Changes**: Redux integration and updates
 - **Browser Simulation**: Tab management and navigation
 
-## Future Enhancements
-
-### Potential Improvements
-- **Real Email Backend**: Replace mock data with actual API
-- **Enhanced Browser**: More realistic browser functionality
-- **Animation System**: Smooth transitions between states
-- **Collaborative Features**: Multi-user email interactions
-
 ---
 
-*This documentation reflects the current state of the nested component architecture in the initial experience email flow.* 
+*This documentation reflects the current state of the nested component architecture and identifies critical layout issues that need immediate attention.* 

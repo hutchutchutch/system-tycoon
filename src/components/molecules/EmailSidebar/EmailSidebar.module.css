@@ -6,6 +6,7 @@
   flex-direction: column;
   overflow: hidden;
   flex-shrink: 0;
+  height: 100%; /* Fill parent height instead of viewport height */
 }
 
 .compose {
@@ -21,6 +22,8 @@
   flex-direction: column;
   overflow-y: auto;
   min-height: 0;
+  width: 100%; /* Ensure folders stay within sidebar width */
+  box-sizing: border-box;
 }
 
 .folder {
@@ -45,6 +48,28 @@
   background-color: var(--color-primary-50);
   color: var(--color-primary-700);
   font-weight: 500;
+}
+
+/* Special styling for Mentor Chat - use margin-top: auto to push to bottom */
+.folder[data-folder-id="mentorchat"] {
+  margin-top: auto;
+  margin-bottom: 16px;
+  margin-left: 8px;
+  margin-right: 8px;
+  background-color: var(--color-blue-500) !important;
+  color: white !important;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.folder[data-folder-id="mentorchat"]:hover {
+  background-color: var(--color-blue-600) !important;
+}
+
+.folder[data-folder-id="mentorchat"] .folderCount {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  color: white !important;
 }
 
 .folderName {

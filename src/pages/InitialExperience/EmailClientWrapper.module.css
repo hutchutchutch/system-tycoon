@@ -59,6 +59,7 @@
   overflow: hidden;
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box; /* Added for proper sizing */
 }
 
 .chatHeader {
@@ -106,6 +107,7 @@
   max-width: 100%;
   box-sizing: border-box;
   margin-bottom: 4px;
+  overflow: hidden; /* Added to prevent overflow */
 }
 
 .chatMessage.userMessage {
@@ -247,8 +249,11 @@
   padding: 16px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   animation: slideDown 0.2s ease-out;
-  max-width: 450px;
+  max-width: 100%; /* Changed from 450px to fit within container */
   width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .mentorCardExpanded .mentorCardHeader {
@@ -412,8 +417,9 @@
   border-radius: 16px;
   padding: 10px 14px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  max-width: 65%;
+  max-width: 100%; /* Changed from 65% to fit properly */
   position: relative;
+  box-sizing: border-box;
 }
 
 .chatContent::before {
@@ -437,6 +443,8 @@
   width: fit-content;
   flex: none;
   min-width: 200px;
+  max-width: 80%; /* Added max-width to prevent overflow */
+  box-sizing: border-box;
 }
 
 .chatMessage.userMessage .chatContent::before {
@@ -512,7 +520,8 @@
   position: absolute;
   bottom: 100%;
   left: 20px;
-  width: calc(33.333% - 20px);
+  width: calc(100% - 140px); /* Adjusted to fit better within container */
+  max-width: 300px; /* Added max-width */
   background: white;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -520,6 +529,7 @@
   z-index: 1000;
   max-height: 200px;
   overflow-y: auto;
+  box-sizing: border-box;
 }
 
 .mentorSuggestion {

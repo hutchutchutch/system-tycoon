@@ -29,7 +29,6 @@ export const EmailSidebar: React.FC<EmailSidebarProps> = ({
       <div className={styles.compose}>
         <Button 
           variant="primary" 
-          fullWidth 
           onClick={onEmailCompose}
         >
           Compose
@@ -43,6 +42,7 @@ export const EmailSidebar: React.FC<EmailSidebarProps> = ({
             className={clsx(styles.folder, {
               [styles['folder--active']]: selectedFolder === folder.id
             })}
+            data-folder-id={folder.id}
             onClick={() => onFolderSelect(folder.id)}
           >
             <Icon name={folder.icon as any} size="sm" />

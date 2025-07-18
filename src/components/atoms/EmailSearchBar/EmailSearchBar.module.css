@@ -1,5 +1,11 @@
 .searchBar {
-  width: 300px;
-  max-width: 300px;
+  width: 450px;
+  max-width: 450px;
   flex-shrink: 0;
+  min-width: 350px;
+}
+
+.searchBar input {
+  padding-left: 40px !important;
+  padding-right: 16px !important;
 } 

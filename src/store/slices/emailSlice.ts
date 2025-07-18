@@ -17,6 +17,9 @@ interface EmailState {
   missionEmailProgress: Record<string, MissionEmailProgress>; // Keyed by mission ID
   availableEmails: string[]; // Email IDs that can be shown to user
   
+  // Mission Stage Data (from emails)
+  missionStageData: Record<string, MissionStageData>; // Keyed by email ID
+  
   // UI State
   isLoading: boolean;
   error: string | null;
@@ -38,6 +41,15 @@ interface MissionEmailProgress {
   nextEligibleEmail: string | null; // Next email that can be unlocked
 }
 
+interface MissionStageData {
+  missionId: string;
+  stageId: string;
+  stageNumber: number;
+  stageTitle: string;
+  problemDescription: string;
+  systemRequirements: any[];
+}
+
 const initialState: EmailState = {
   emails: {},
   emailsByCategory: {
@@ -55,6 +67,8 @@ const initialState: EmailState = {
   
   missionEmailProgress: {},
   availableEmails: [],
+  
+  missionStageData: {},
   
   isLoading: false,
   error: null,
@@ -198,6 +212,15 @@ const emailSlice = createSlice({
           state.emails[emailId].isAccessible = true;
         }
       });
+    },
+    
+    // Mission Stage Data from Email
+    setMissionStageData: (state, action: PayloadAction<{
+      emailId: string;
+      stageData: MissionStageData;
+    }>) => {
+      const { emailId, stageData } = action.payload;
+      state.missionStageData[emailId] = stageData;
     },
     
     // UI State Management
@@ -378,6 +401,7 @@ export const {
   deleteEmail,
   setError,
   clearError,
+  setMissionStageData,
 } = emailSlice.actions;
 
 export default emailSlice.reducer;
@@ -389,8 +413,14 @@ export const selectEmailsByCategory = (category: EmailCategory) => (state: { ema
 export const selectAvailableEmails = (state: { email: EmailState }) =>
   state.email.availableEmails.map(id => state.email.emails[id]).filter(Boolean);
 export const selectUnreadCount = (state: { email: EmailState }) => state.email.unreadCount;
-export const selectSelectedEmail = (state: { email: EmailState }) =>
-  state.email.selectedEmailId ? state.email.emails[state.email.selectedEmailId] : null;
+export const selectSelectedEmail = (state: { email: EmailState }) => {
+  const selectedId = state.email.selectedEmailId;
+  return selectedId ? state.email.emails[selectedId] : null;
+};
 export const selectMissionProgress = (missionId: string) => (state: { email: EmailState }) =>
   state.email.missionEmailProgress[missionId];
+
+export const selectMissionStageFromEmail = (emailId: string) => (state: { email: EmailState }) =>
+  state.email.missionStageData[emailId];
+
 export const selectNewEmailNotification = (state: { email: EmailState }) => state.email.newEmailNotification; 

@@ -31,6 +31,10 @@
   --color-accent-warning: #f59e0b;      /* Warning amber */
   --color-accent-error: #ef4444;        /* Error red */
   
+  /* Blue Color Scale - For UI Components */
+  --color-blue-500: #3b82f6;           /* Medium blue */
+  --color-blue-600: #2563eb;           /* Darker blue */
+  
   /* Interactive States */
   --color-interactive-primary: #2563eb;     /* Primary button */
   --color-interactive-primary-hover: #1d4ed8; /* Primary hover */

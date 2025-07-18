@@ -9,7 +9,7 @@ import type { GroupChatMessage, MentorInfo } from '../../components/organisms/Em
 import styles from './EmailClientWrapper.module.css';
 
 interface EmailClientWrapperProps {
-  onOpenSystemDesign?: () => void;
+  onOpenSystemDesign?: (emailId?: string) => void;
 }
 
 // Convert service EmailData to component EmailCardData
@@ -130,6 +130,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const folders: EmailFolder[] = [
     { id: 'inbox', name: 'Inbox', count: 5, icon: 'inbox' },
     { id: 'sent', name: 'Sent', count: 0, icon: 'send' },
+    { id: 'drafts', name: 'Drafts', count: 0, icon: 'edit' },
     { id: 'mentorchat', name: 'Mentor Chat', count: 3, icon: 'message-circle' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
@@ -625,7 +626,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                     </p>
                     <button 
                       className={styles.openSystemDesignButton}
-                      onClick={onOpenSystemDesign}
+                      onClick={() => onOpenSystemDesign?.(selectedEmail.id)}
                     >
                       <span className={styles.buttonIcon}>🚀</span>
                       Open System Design Canvas
@@ -638,7 +639,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                     <p>This email mentions a crisis situation that requires immediate system design attention.</p>
                     <button 
                       className={styles.systemDesignButton}
-                      onClick={onOpenSystemDesign}
+                      onClick={() => onOpenSystemDesign?.(selectedEmail.id)}
                     >
                       Open Crisis System Design Canvas
                     </button>

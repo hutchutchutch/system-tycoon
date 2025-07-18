@@ -699,3 +699,788 @@ const handleMissionComplete = () => {
 4. **Achievement Integration**: Unlock rewards for mission completions
 
 This comprehensive state management approach provides a solid foundation for the game's core learning experiences while maintaining excellent performance and user experience standards. 
+
+---
+
+## Migration Guide
+
+If migrating from standard React Flow to Redux:
+
+1. Replace `useNodesState` and `useEdgesState` with Redux selectors
+2. Replace set functions with dispatch actions
+3. Move node/edge change handlers to Redux actions
+4. Update connection handlers to dispatch Redux actions
+5. Ensure ReactFlowProvider wraps the component using React Flow hooks
+
+### Performance Considerations
+
+1. **Memoize Selectors**: Use `createSelector` for computed values
+2. **Shallow Equality**: Use `shallowEqual` for multi-value selectors
+3. **Batch Updates**: Redux automatically batches updates in event handlers
+4. **Component Memoization**: Use `React.memo` for custom node components
+
+---
+
+## Mission Email Integration & Design Canvas State
+
+### Overview
+
+The mission email system now integrates with the design canvas through Redux state management, enabling stage-specific system requirements to flow from mission emails to the system design interface.
+
+### Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│  Mission Emails │───▶│   Redux State    │◀───│   Design Canvas     │
+│                 │    │                  │    │                     │
+│ - stage_id      │    │ emailSlice:      │    │ - Load Requirements │
+│ - Click Link    │    │ - missionStage   │    │ - Stage Context     │
+│                 │    │ - requirements   │    │ - Initial Nodes     │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+                              │
+                   ┌──────────────────────┐
+                   │    RTK Query API     │
+                   │ getMissionStageFrom  │
+                   │     Email           │
+                   └──────────────────────┘
+```
+
+### Email Slice Extension
+
+```typescript
+// store/slices/emailSlice.ts
+interface EmailState {
+  // ... existing email state
+  
+  // Mission Stage Data (from emails)
+  missionStageData: Record<string, MissionStageData>; // Keyed by email ID
+}
+
+interface MissionStageData {
+  missionId: string;
+  stageId: string;
+  stageNumber: number;
+  stageTitle: string;
+  problemDescription: string;
+  systemRequirements: SystemRequirement[];
+}
+
+// Actions
+setMissionStageData: (state, action: PayloadAction<{
+  emailId: string;
+  stageData: MissionStageData;
+}>) => {
+  const { emailId, stageData } = action.payload;
+  state.missionStageData[emailId] = stageData;
+}
+
+// Selectors
+export const selectMissionStageFromEmail = (emailId: string) => 
+  (state: { email: EmailState }) => state.email.missionStageData[emailId];
+```
+
+### RTK Query Email API
+
+```typescript
+// store/api/emailApi.ts
+getMissionStageFromEmail: builder.query<{
+  missionId: string;
+  stageId: string;
+  stageNumber: number;
+  stageTitle: string;
+  problemDescription: string;
+  systemRequirements: any[];
+}, { emailId: string; playerId: string }>({
+  query: ({ emailId, playerId }) => 
+    `/email/${emailId}/mission-stage?playerId=${playerId}`,
+  providesTags: (result, error, arg) => [
+    { type: 'Email', id: arg.emailId },
+    { type: 'MissionEmails', id: result?.missionId },
+  ],
+})
+```
+
+### Design Canvas Integration
+
+#### Component Structure
+```typescript
+// CrisisSystemDesignCanvas.tsx
+const CrisisSystemDesignCanvasInner: React.FC<{ emailId?: string }> = ({ emailId }) => {
+  const dispatch = useAppDispatch();
+  
+  // Redux state
+  const nodes = useAppSelector(state => state.design?.nodes || []);
+  const edges = useAppSelector(state => state.design?.edges || []);
+  const draggedComponent = useAppSelector(selectDraggedComponent);
+  
+  // Mission data from email
+  const { data: missionStageData, isLoading, error } = useGetMissionStageFromEmailQuery(
+    emailId ? { emailId, playerId: 'default-player' } : skipToken
+  );
+  
+  // Active mission state
+  const [activeMission, setActiveMission] = useState<MissionData | null>(null);
+  
+  // Load mission based on stage data
+  useEffect(() => {
+    if (missionStageData) {
+      dispatch(setMissionStageData({ emailId, stageData: missionStageData }));
+      // Load full mission data with stage requirements
+    }
+  }, [missionStageData, emailId, dispatch]);
+};
+```
+
+### Design Slice with React Flow
+
+```typescript
+// features/design/designSlice.ts
+const designSlice = createSlice({
+  name: 'design',
+  initialState: {
+    nodes: [],
+    edges: [],
+    selectedNodeId: null,
+    draggedComponent: null,
+    totalCost: 0,
+    isValidDesign: false,
+    validationErrors: [],
+  },
+  reducers: {
+    // React Flow handlers
+    onNodesChange: (state, action: PayloadAction<NodeChange[]>) => {
+      state.nodes = applyNodeChanges(action.payload, state.nodes);
+    },
+    
+    onEdgesChange: (state, action: PayloadAction<EdgeChange[]>) => {
+      state.edges = applyEdgeChanges(action.payload, state.edges);
+    },
+    
+    addNode: (state, action: PayloadAction<{ 
+      component: ComponentData; 
+      position: { x: number; y: number } 
+    }>) => {
+      const { component, position } = action.payload;
+      const newNode: Node = {
+        id: `${component.id}_${Date.now()}`,
+        type: 'customNode',
+        position,
+        data: { ...component }
+      };
+      state.nodes.push(newNode);
+      recalculateTotalCost(state);
+    },
+    
+    addEdge: (state, action: PayloadAction<Connection>) => {
+      const newEdge = addEdge(action.payload, state.edges);
+      state.edges = newEdge;
+      validateDesign(state);
+    },
+  },
+});
+```
+
+### Data Flow: Email to Canvas
+
+```
+1. User clicks email link (e.g., "systembuilder.tech/emergency/alexsite")
+   ↓
+2. EmailClientWrapper calls onOpenSystemDesign(emailId)
+   ↓
+3. Initial Experience creates System Design tab with emailId prop
+   ↓
+4. CrisisSystemDesignCanvas receives emailId
+   ↓
+5. RTK Query fetches mission stage data from Supabase
+   ↓
+6. Stage requirements populate Requirements component
+   ↓
+7. Mission-specific nodes initialize on canvas
+   ↓
+8. User completes system design
+   ↓
+9. Mission progress updates in Redux
+```
+
+### Stage Information Display
+
+When loaded from an email with stage context:
+
+```typescript
+{activeMission?.currentStage && (
+  <div className={styles.stageInfo}>
+    <h4 className={styles.stageTitle}>
+      Stage {activeMission.currentStage.stage_number}: 
+      {activeMission.currentStage.title}
+    </h4>
+    <p className={styles.stageProblem}>
+      {activeMission.currentStage.problem_description}
+    </p>
+  </div>
+)}
+```
+
+### Multi-Connection Pattern
+
+Our implementation supports advanced connection patterns:
+
+```typescript
+const onConnect = useCallback((params: Connection) => {
+  const selectedNodes = reactFlowNodes.filter((node: Node) => node.selected);
+  
+  // Multi-connection: connect all selected nodes to target
+  if (selectedNodes.length > 1 && params.target) {
+    selectedNodes.forEach((node: Node) => {
+      if (node.id !== params.target) {
+        dispatch(addEdgeAction({
+          ...params,
+          source: node.id,
+          sourceHandle: 'output',
+          targetHandle: 'input'
+        }));
+      }
+    });
+  } else {
+    // Single connection
+    dispatch(addEdgeAction(params));
+  }
+}, [dispatch, reactFlowNodes]);
+```
+
+### Supabase Integration
+
+#### Database Schema
+```sql
+-- Mission emails with stage references
+CREATE TABLE mission_emails (
+  id UUID PRIMARY KEY,
+  mission_id UUID REFERENCES missions(id),
+  stage_id UUID REFERENCES mission_stages(id),
+  subject TEXT,
+  content TEXT,
+  status TEXT,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Mission stages with requirements
+CREATE TABLE mission_stages (
+  id UUID PRIMARY KEY,
+  mission_id UUID REFERENCES missions(id),
+  stage_number INT,
+  title TEXT,
+  problem_description TEXT,
+  system_requirements JSONB
+);
+```
+
+#### Function for Email-Stage Data
+```sql
+CREATE OR REPLACE FUNCTION get_mission_stage_from_email(
+  email_id_param TEXT,
+  player_id_param TEXT
+) RETURNS JSON AS $$
+BEGIN
+  RETURN (
+    SELECT json_build_object(
+      'missionId', m.id,
+      'stageId', ms.id,
+      'stageNumber', ms.stage_number,
+      'stageTitle', ms.title,
+      'problemDescription', ms.problem_description,
+      'systemRequirements', COALESCE(ms.system_requirements, '[]'::jsonb)
+    )
+    FROM mission_emails me
+    JOIN missions m ON me.mission_id = m.id
+    JOIN mission_stages ms ON me.stage_id = ms.id
+    WHERE me.id = email_id_param
+  );
+END;
+$$ LANGUAGE plpgsql;
+```
+
+### Benefits of This Architecture
+
+1. **Context Preservation**: Mission stage context flows seamlessly from email to canvas
+2. **Type Safety**: Full TypeScript support across Redux, RTK Query, and React Flow
+3. **Performance**: Selective re-renders with Redux selectors
+4. **Debugging**: Redux DevTools show complete state flow
+5. **Scalability**: Easy to add new mission stages and requirements
+6. **Testing**: Predictable state updates enable comprehensive testing
+
+### Current Implementation Status
+
+✅ **Completed**:
+- Mission email to canvas navigation
+- Stage-specific requirements loading
+- Redux integration for React Flow
+- RTK Query for mission stage data
+- Supabase schema and functions
+- Multi-connection support
+- Dark mode theme integration
+
+🚧 **In Progress**:
+- Real-time collaboration features
+- Undo/redo functionality
+- State persistence across sessions
+
+📋 **Planned**:
+- WebSocket integration for live updates
+- Advanced validation rules
+- Performance metrics tracking
+- Achievement system integration
+
+This comprehensive state management approach ensures that mission context, user progress, and system design state flow seamlessly through the application while maintaining excellent performance and developer experience.
+
+---
+
+## Requirements Validation System
+
+### Overview
+
+The requirements validation system provides database-driven, API-powered validation for system design requirements. When users click "Run Test" in the Requirements component, their current canvas state is validated against mission stage requirements stored in Supabase, with rich feedback and progress tracking.
+
+### Architecture
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
+│  Requirements   │───▶│  Validation Hook │◀───│  Edge Function      │
+│   Component     │    │                  │    │                     │
+│ - Click "Run    │    │ - State Mgmt     │    │ - validate-         │
+│   Test"         │    │ - API Calls      │    │   requirements      │
+│ - Display       │    │ - Error Handle   │    │ - Database Logic    │
+│   Results       │    │ - Loading State  │    │ - Validation Funcs  │
+└─────────────────┘    └──────────────────┘    └─────────────────────┘
+                              │                           │
+                    ┌──────────────────────┐    ┌──────────────────┐
+                    │   Mission Service    │    │   Supabase DB    │
+                    │ - validateRequire-   │    │ - mission_stage_ │
+                    │   mentsWithAPI()     │    │   requirements   │
+                    │ - getCurrentUserId() │    │ - user_require-  │
+                    │ - Type Conversions   │    │   ment_progress  │
+                    └──────────────────────┘    │ - Validation     │
+                                               │   Functions      │
+                                               └──────────────────┘
+```
+
+### Data Flow: Requirements Validation
+
+#### 1. User Interaction
+```
+User clicks "Run Test" in Requirements component
+   ↓
+Parent component's handleRunTest() called
+   ↓
+useRequirementValidation hook triggered
+```
+
+#### 2. API Request Data
+The `validate-requirements` Edge Function receives:
+
+```typescript
+interface ValidateRequest {
+  stageId: string;        // UUID of current mission stage
+  userId: string;         // Current authenticated user ID
+  nodes: any[];          // React Flow nodes array from canvas
+  edges: any[];          // React Flow edges array from canvas
+  stageAttemptId?: string; // Optional existing attempt ID
+}
+```
+
+**Example Request Payload:**
+```json
+{
+  "stageId": "550e8400-e29b-41d4-a716-446655440001",
+  "userId": "c6f7d1e2-4f8c-4d5e-8a9b-3f2e1d0c9b8a",
+  "nodes": [
+    {
+      "id": "families",
+      "type": "custom",
+      "position": { "x": 100, "y": 200 },
+      "data": {
+        "label": "Families",
+        "component_type": "stakeholder",
+        "capacity": 200
+      }
+    },
+    {
+      "id": "web-server-1",
+      "type": "custom", 
+      "position": { "x": 300, "y": 200 },
+      "data": {
+        "label": "Web Server",
+        "component_type": "web_server",
+        "specs": { "cpu": "4 cores", "ram": "16GB" }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "families-to-web",
+      "source": "families",
+      "target": "web-server-1", 
+      "sourceHandle": "output",
+      "targetHandle": "input"
+    }
+  ]
+}
+```
+
+#### 3. Edge Function Processing
+
+The Edge Function performs these operations:
+
+```typescript
+// 1. Call database function for validation
+const { data: requirements } = await supabaseClient
+  .rpc('get_requirements_status', {
+    p_user_id: userId,
+    p_stage_id: stageId,
+    p_nodes: nodes,
+    p_edges: edges
+  });
+
+// 2. Create or update stage attempt
+const { data: attempt } = await supabaseClient
+  .from('stage_attempts')
+  .insert({
+    user_id: userId,
+    stage_id: stageId,
+    current_design: { nodes, edges }
+  });
+
+// 3. Update progress for each requirement
+for (const req of requirements) {
+  await supabaseClient.rpc('update_requirement_progress', {
+    p_user_id: userId,
+    p_stage_attempt_id: attemptId,
+    p_requirement_id: req.requirementId,
+    p_validation_result: req.validationResult
+  });
+}
+```
+
+#### 4. API Response Data
+The Edge Function returns:
+
+```typescript
+interface ValidationResponse {
+  success: boolean;
+  stageAttemptId?: string;
+  summary: {
+    totalRequirements: number;
+    completedRequirements: number;
+    pointsEarned: number;
+    allCompleted: boolean;
+    completionPercentage: number;
+  };
+  requirements: ValidationResult[];
+}
+
+interface ValidationResult {
+  id: string;              // Requirement UUID
+  title: string;           // Human-readable title
+  description: string;     // Requirement description
+  type: string;           // 'component_required', 'connection_required', etc.
+  completed: boolean;      // Whether requirement is met
+  visible: boolean;        // Whether to show this requirement
+  priority: number;        // 1=required, 2=bonus, 3=optional
+  points: number;          // Points awarded for completion
+  message: string;         // Success or error message
+  hint?: string;          // Optional hint for struggling users
+  validationDetails: any;  // Detailed validation results
+}
+```
+
+**Example Response:**
+```json
+{
+  "success": true,
+  "stageAttemptId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "summary": {
+    "totalRequirements": 3,
+    "completedRequirements": 2,
+    "pointsEarned": 20,
+    "allCompleted": false,
+    "completionPercentage": 67
+  },
+  "requirements": [
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440001",
+      "title": "Add Dedicated Database Server",
+      "description": "The health tracking system needs a separate database server...",
+      "type": "component_required",
+      "completed": false,
+      "visible": true,
+      "priority": 1,
+      "points": 10,
+      "message": "You still need to add a dedicated database server.",
+      "hint": "Add a Database component from the Storage category.",
+      "validationDetails": {
+        "is_valid": false,
+        "found_components": ["web_server"],
+        "missing_components": ["database"],
+        "reason": "Required component 'database' not found in design"
+      }
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440002", 
+      "title": "Add Web Server",
+      "description": "Separate web server to handle user requests...",
+      "type": "component_required",
+      "completed": true,
+      "visible": true,
+      "priority": 1,
+      "points": 10,
+      "message": "✅ Great! You've added a dedicated web server.",
+      "validationDetails": {
+        "is_valid": true,
+        "found_components": ["web_server"],
+        "instances": 1
+      }
+    }
+  ]
+}
+```
+
+### Frontend Integration Flow
+
+#### 1. Hook Usage in Parent Component
+```typescript
+// CrisisSystemDesignCanvas.tsx
+const { isValidating, validateRequirements } = useRequirementValidation({
+  stageId: missionStageData?.id || '',
+  onValidationComplete: (result: ValidationResponse) => {
+    // Convert API response to Requirements component format
+    const convertedReqs = result.requirements
+      .filter(req => req.visible)
+      .map(req => ({
+        id: req.id,
+        description: req.description,
+        completed: req.completed
+      }));
+    
+    setRequirements(convertedReqs);
+
+    // Update metrics on completion
+    if (result.summary.allCompleted) {
+      setMetrics(prev => ({
+        ...prev,
+        reportsSaved: 200,
+        familiesHelped: 200,
+        uptimePercent: 99,
+        systemHealth: 'healthy'
+      }));
+    }
+  }
+});
+
+const handleRunTest = useCallback(async () => {
+  if (!missionStageData?.id) return;
+  await validateRequirements(nodes, edges);
+}, [validateRequirements, nodes, edges, missionStageData?.id]);
+```
+
+#### 2. Requirements Component Integration
+```typescript
+// Requirements.tsx stays unchanged - just receives updated data
+<Requirements
+  requirements={requirements}  // Updated from validation response
+  onRunTest={handleRunTest}   // Triggers validation API
+/>
+
+{isValidating && (
+  <div className="validation-loading">
+    🔍 Validating your design...
+  </div>
+)}
+```
+
+### Database Validation Functions
+
+#### Core Validation Functions
+The Edge Function uses these database functions for validation logic:
+
+```sql
+-- Main validation dispatcher
+get_requirements_status(
+  p_user_id UUID,
+  p_stage_id UUID, 
+  p_nodes JSONB,
+  p_edges JSONB
+) RETURNS TABLE(...)
+
+-- Component validation
+validate_component_requirement(
+  nodes JSONB,
+  edges JSONB,
+  config JSONB  -- { required_components: ["database"], min_instances: 1 }
+) RETURNS JSONB
+
+-- Connection validation  
+validate_connection_requirement(
+  nodes JSONB,
+  edges JSONB,
+  config JSONB  -- { source_types: ["web_server"], target_types: ["database"] }
+) RETURNS JSONB
+
+-- Performance validation
+validate_performance_requirement(
+  nodes JSONB,
+  edges JSONB, 
+  config JSONB  -- { max_latency_ms: 200, min_throughput_rps: 1000 }
+) RETURNS JSONB
+```
+
+#### Progress Tracking
+```sql
+-- Update user progress
+update_requirement_progress(
+  p_user_id UUID,
+  p_stage_attempt_id UUID,
+  p_requirement_id UUID,
+  p_validation_result JSONB
+) RETURNS VOID
+```
+
+### State Management Integration
+
+#### Service Layer
+```typescript
+// missionService.ts
+export class MissionService {
+  async validateRequirementsWithAPI(
+    stageId: string,
+    userId: string,
+    nodes: any[],
+    edges: any[],
+    stageAttemptId?: string
+  ): Promise<ValidationResponse> {
+    const { data, error } = await supabase.functions.invoke('validate-requirements', {
+      body: { stageId, userId, nodes, edges, stageAttemptId }
+    });
+    
+    if (error) throw new Error(`Validation failed: ${error.message}`);
+    return data as ValidationResponse;
+  }
+
+  async getCurrentUserId(): Promise<string | null> {
+    const { data: { user } } = await supabase.auth.getUser();
+    return user?.id || null;
+  }
+}
+```
+
+#### Custom Hook
+```typescript
+// useRequirementValidation.ts
+export const useRequirementValidation = ({
+  stageId,
+  onValidationComplete
+}: UseRequirementValidationProps): UseRequirementValidationReturn => {
+  const [isValidating, setIsValidating] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const validateRequirements = useCallback(async (nodes: any[], edges: any[]) => {
+    try {
+      setIsValidating(true);
+      setValidationError(null);
+
+      const userId = await missionService.getCurrentUserId();
+      if (!userId) throw new Error('User not authenticated');
+
+      const result = await missionService.validateRequirementsWithAPI(
+        stageId, userId, nodes, edges
+      );
+
+      if (onValidationComplete) {
+        onValidationComplete(result);
+      }
+
+      return result;
+    } catch (error) {
+      setValidationError(error.message);
+      return null;
+    } finally {
+      setIsValidating(false);
+    }
+  }, [stageId, onValidationComplete]);
+
+  return { isValidating, validationError, validateRequirements };
+};
+```
+
+### Benefits of This Architecture
+
+#### Technical Benefits
+1. **Separation of Concerns**: UI components focus on display, validation logic in database
+2. **Scalability**: Add new requirement types without frontend changes
+3. **Consistency**: Centralized validation rules ensure consistent behavior
+4. **Performance**: On-demand validation reduces unnecessary API calls
+5. **Type Safety**: Full TypeScript integration from frontend to database
+
+#### User Experience Benefits
+1. **Rich Feedback**: Detailed error messages with hints for struggling users
+2. **Progressive Disclosure**: Requirements unlock based on dependencies
+3. **Point System**: Gamification through points and completion tracking
+4. **Context Awareness**: Validation messages specific to current design state
+5. **Loading States**: Clear feedback during validation process
+
+#### Educational Benefits
+1. **Scaffolded Learning**: Requirements guide users through system design principles
+2. **Immediate Feedback**: Learn from mistakes with specific guidance
+3. **Achievement Tracking**: Progress measurement encourages completion
+4. **Real-world Validation**: Requirements mirror actual system design constraints
+
+### Error Handling & Edge Cases
+
+#### Frontend Error Handling
+```typescript
+// Handle validation API errors
+if (validationError) {
+  return (
+    <div className="validation-error">
+      ❌ Validation Error: {validationError}
+      <button onClick={clearError}>Dismiss</button>
+    </div>
+  );
+}
+
+// Handle missing stage data
+if (!missionStageData?.id) {
+  console.warn('No stage ID available for validation');
+  return;
+}
+```
+
+#### Backend Error Handling
+```typescript
+// Edge Function error handling
+try {
+  const result = await validateRequirements(nodes, edges);
+  return new Response(JSON.stringify(result), { 
+    headers: { 'Content-Type': 'application/json' } 
+  });
+} catch (error) {
+  return new Response(
+    JSON.stringify({ error: 'Internal server error', details: error.message }),
+    { status: 500, headers: { 'Content-Type': 'application/json' } }
+  );
+}
+```
+
+### Future Enhancements
+
+#### Planned Features
+1. **Real-time Validation**: Optional live validation as users design
+2. **Collaborative Validation**: Multi-user validation sessions
+3. **Advanced Analytics**: Detailed validation metrics and patterns
+4. **Custom Requirements**: User-generated validation rules
+5. **A/B Testing**: Compare different validation approaches
+
+#### Extension Points
+1. **Validation Types**: Easy addition of new requirement categories
+2. **Scoring Algorithms**: Pluggable point calculation systems
+3. **Feedback Mechanisms**: Customizable hint and message systems
+4. **Integration Hooks**: Connect with external validation services
+
+This comprehensive validation system provides a robust foundation for educational system design validation while maintaining excellent performance and user experience. 
