@@ -137,14 +137,14 @@ const BentoCardBase: React.FC<{
         borderRadius: 'var(--radius-lg)',
         padding: 'var(--space-4)',
         background: 'var(--color-surface-secondary)',
-        border: actuallyHovered ? '2px solid var(--color-accent-primary)' : '1px solid var(--color-border-primary)',
+        border: '1px solid var(--color-border-primary)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         transition: 'all var(--transition-normal)',
         cursor: 'pointer',
         transform: actuallyHovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: actuallyHovered ? 'var(--shadow-lg)' : 'var(--shadow-sm)',
+        boxShadow: actuallyHovered ? '0 0 20px rgba(59, 130, 246, 0.3), var(--shadow-lg)' : 'var(--shadow-sm)',
         height,
         minHeight: height
       }}
@@ -161,51 +161,34 @@ const BentoCardBase: React.FC<{
         {/* Header */}
         <div style={{
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'space-between',
           gap: 'var(--space-2)',
-          marginBottom: 'var(--space-2)'
+          marginBottom: 'var(--space-3)'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
-            <div style={{
-              width: 'var(--space-5)',
-              height: 'var(--space-5)',
-              background: getPriorityColor(),
-              borderRadius: 'var(--radius-md)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}>
-              <Icon 
-                name={displayIcon} 
-                size="sm" 
-                color="var(--color-accent-primary-foreground)" 
-              />
-            </div>
-          </div>
-
           {(displayCategory || displayTime) && (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-1)' }}>
+            <>
               {displayCategory && (
                 <span style={{
-                  fontSize: 'var(--text-caption)',
+                  fontSize: 'var(--text-xs)',
                   color: 'var(--color-text-tertiary)',
                   textTransform: 'uppercase',
-                  letterSpacing: '0.05em'
+                  letterSpacing: '0.05em',
+                  fontWeight: 'var(--font-weight-medium)'
                 }}>
                   {displayCategory}
                 </span>
               )}
               {displayTime && (
                 <span style={{
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--color-text-secondary)'
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--color-text-secondary)',
+                  marginLeft: 'auto'
                 }}>
                   {displayTime}
                 </span>
               )}
-            </div>
+            </>
           )}
         </div>
 
@@ -222,9 +205,7 @@ const BentoCardBase: React.FC<{
               size="sm"
               onClick={handleContactClick}
               style={{
-                width: '100%',
-                background: getPriorityColor(),
-                border: 'none'
+                width: '100%'
               }}
             >
               Contact

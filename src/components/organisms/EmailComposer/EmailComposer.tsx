@@ -61,7 +61,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   // Auto-generate email when modal opens
   useEffect(() => {
     if (isOpen) {
-      setSubject(`Re: ${hero.headline}`);
+      setSubject('Do you need any help??');
       typeMessage();
     } else {
       // Reset state when modal closes
@@ -166,7 +166,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           <button
             onClick={handleClose}
             className={styles.closeButton}
-            aria-label="Save to drafts and close"
+            aria-label="Close email composer"
             disabled={isSaving}
           >
             {isSaving ? (
@@ -178,25 +178,15 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         </div>
 
         <div className={styles.emailForm}>
-          <div className={styles.field}>
-            <label className={styles.label}>To:</label>
-            <Input
-              value={recipientEmail}
-              onChange={() => {}} // Read-only
-              className={styles.toInput}
-              disabled
-            />
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Subject:</label>
-            <Input
-              value={subject}
-              onChange={(value) => setSubject(value)}
-              placeholder="Enter email subject..."
-              className={styles.subjectInput}
-              disabled={isTyping}
-            />
+          <div className={styles.emailHeader}>
+            <div className={styles.headerField}>
+              <span className={styles.headerLabel}>To:</span>
+              <span className={styles.headerValue}>{hero.name}</span>
+            </div>
+            <div className={styles.headerField}>
+              <span className={styles.headerLabel}>Subject:</span>
+              <span className={styles.headerValue}>{subject}</span>
+            </div>
           </div>
 
           <div className={styles.messageField}>
@@ -233,10 +223,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             {isSending ? (
               <>
                 <div className={styles.spinner} />
-                Sending...
+                Submitting...
               </>
             ) : (
-              'Send'
+              'Submit'
             )}
           </Button>
         </div>

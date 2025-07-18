@@ -4,7 +4,11 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
  
-export default function Globe3D() {
+interface Globe3DProps {
+  onStartMission?: () => void;
+}
+
+export default function Globe3D({ onStartMission }: Globe3DProps) {
   return (
     <section
       className="relative w-full overflow-hidden bg-[#0a0613] pb-10 pt-32 font-light text-white antialiased md:pb-16 md:pt-20"
@@ -47,12 +51,12 @@ export default function Globe3D() {
           </p>
  
           <div className="mb-10 sm:mb-0 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Link
-              to="/auth"
+            <button
+              onClick={onStartMission}
               className="neumorphic-button hover:shadow-[0_0_20px_rgba(155,_135,_245,_0.5)] relative w-full overflow-hidden rounded-full border border-white/10 bg-gradient-to-b from-white/10 to-white/5 px-8 py-4 text-white shadow-lg transition-all duration-300 hover:border-[#9b87f5]/30 sm:w-auto"
             >
               Start Learning
-            </Link>
+            </button>
             <a
               href="#how-it-works"
               className="flex w-full items-center justify-center gap-2 text-white/70 transition-colors hover:text-white sm:w-auto"

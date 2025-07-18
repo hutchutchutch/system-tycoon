@@ -27,6 +27,7 @@
     "class-variance-authority": "^0.7.1",
     "claude-flow": "^2.0.0-alpha.53",
     "clsx": "^2.1.1",
+    "cobe": "^0.6.4",
     "framer-motion": "^12.23.6",
     "inquirer": "^12.7.0",
     "lodash-es": "^4.17.21",

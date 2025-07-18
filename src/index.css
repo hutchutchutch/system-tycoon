@@ -6,6 +6,23 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Gradient Text Classes */
+.gradient-text-dark {
+  background: linear-gradient(180deg, #ffffff 0%, rgba(156, 163, 175, 0.8) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffffff; /* Fallback for browsers that don't support background-clip: text */
+}
+
+.gradient-text-light {
+  background: linear-gradient(180deg, #1f2937 0%, rgba(75, 85, 99, 0.8) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #1f2937; /* Fallback for browsers that don't support background-clip: text */
+}
+
 /* Override Tailwind's base styles with design system tokens */
 @layer base {
   :root {

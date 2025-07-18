@@ -57,6 +57,7 @@ export { default as HowItWorks } from './HowItWorks/HowItWorks';
 export { default as MissionShowcase } from './MissionShowcase/MissionShowcase';
 export { default as FooterCTA } from './FooterCTA/FooterCTA';
 export { MentorSelectionModal } from './MentorSelectionModal';
+export { OnboardingFlow } from './OnboardingFlow';
 export type { MentorSelectionModalProps } from './MentorSelectionModal';
 export { EmailComposer } from './EmailComposer';
 export type { EmailComposerProps } from './EmailComposer';

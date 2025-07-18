@@ -3,15 +3,20 @@ import { BentoGrid } from '../../components/molecules/BentoGrid';
 import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
 import { HeroContextCard } from '../../components/molecules/HeroContextCard';
 import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
+import { Globe } from '../../components/ui/globe';
+import { useTheme } from '../../contexts/ThemeContext';
 import { newsService } from '../../services/newsService';
 import type { NewsArticle, NewsHero } from '../../types/news.types';
 
 export const TodaysNewsWrapper: React.FC = () => {
+  const { theme } = useTheme();
   const [emailToOpen, setEmailToOpen] = useState<NewsArticle | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+
 
   // Fetch articles and categories on mount
   useEffect(() => {
@@ -22,12 +27,41 @@ export const TodaysNewsWrapper: React.FC = () => {
           newsService.fetchArticles({ limit: 12 }),
           newsService.getCategories()
         ]);
-        
         setArticles(articlesData);
         setCategories(categoriesData);
-      } catch (error) {
-        console.error('Error fetching news data:', error);
-      } finally {
+              } catch (error) {
+          console.error('Error fetching news data:', error);
+          // Set some default mock data to test the UI
+          const mockArticles: NewsArticle[] = [
+            {
+              id: '1',
+              mission_id: 'mission_1',
+              headline: 'Community Health Initiative Needs Tech Help',
+              subheadline: 'Patient tracking system urgently needed',
+              preview_text: 'Local health organization needs system design support for patient tracking',
+              full_text: 'A community health organization is looking for help with building a patient tracking system to serve 5000+ community members.',
+              author_name: 'Dr. Sarah Johnson',
+              author_avatar_url: '👩‍⚕️',
+              publication_name: 'Community Health Network',
+              category_slug: 'healthcare',
+              urgency_level: 'high',
+              tags: ['healthcare', 'databases', 'privacy', 'api'],
+              impact_stats: { people: 5000, metric: 'patients served' },
+              location: 'Seattle, WA',
+              grid_size: 'medium',
+              sort_weight: 100,
+              article_status: 'active',
+              view_count: 0,
+              contact_count: 0,
+              completion_count: 0,
+              published_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              created_at: new Date().toISOString()
+            }
+          ];
+          setArticles(mockArticles);
+          setCategories(['healthcare', 'education', 'environment']);
+        } finally {
         setLoading(false);
       }
     };
@@ -116,30 +150,57 @@ export const TodaysNewsWrapper: React.FC = () => {
     );
   }
 
+
+
   const heroToShow = emailToOpen ? convertArticleToHero(emailToOpen) : null;
+
+
 
   return (
     <>
-      <div style={{ 
-        minHeight: '100vh',
+      <div className="relative min-h-screen overflow-hidden" style={{ 
         background: 'var(--color-surface-primary)',
         padding: 'var(--space-8)'
       }}>
+                {/* Animated Globe Background */}
+        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+          <div style={{ 
+            position: 'absolute',
+            left: '50%',
+            top: '66.67vh', // Bottom third of viewport
+            transform: 'translate(-50%, -50%)',
+            width: '1800px', // Tripled from ~600px
+            height: '1800px',
+          }}>
+            <Globe className="absolute inset-0" />
+          </div>
+          <div className="absolute inset-0 h-full bg-[radial-gradient(circle_at_50%_200%,rgba(0,0,0,0.2),rgba(255,255,255,0))]" />
+        </div>
+        
         <div style={{ 
           maxWidth: '1200px', 
           margin: '0 auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 'var(--space-8)'
+          gap: 'var(--space-8)',
+          position: 'relative',
+          zIndex: 20
         }}>
           {/* Header */}
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{
-              fontSize: 'var(--text-4xl)',
-              fontWeight: 'var(--font-weight-bold)',
-              color: 'var(--color-text-primary)',
-              marginBottom: 'var(--space-4)'
-            }}>
+            <h1 
+              className={theme === 'dark' ? 'gradient-text-dark' : 'gradient-text-light'}
+              style={{
+                fontSize: '6rem',
+                fontWeight: '600',
+                lineHeight: '1.1',
+                marginBottom: 'var(--space-6)',
+                padding: '0 1rem',
+                textAlign: 'center',
+                overflow: 'visible',
+                display: 'block'
+              }}
+            >
               Today's Community News
             </h1>
             <p style={{
@@ -153,7 +214,7 @@ export const TodaysNewsWrapper: React.FC = () => {
           </div>
 
           {/* Category filters */}
-          <div style={{ 
+          <div className="relative backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-lg p-6" style={{ 
             display: 'flex', 
             flexDirection: 'column',
             gap: 'var(--space-4)'
@@ -191,21 +252,23 @@ export const TodaysNewsWrapper: React.FC = () => {
 
           {/* News Grid */}
           <div style={{ flex: 1 }}>
-            <BentoGrid
-              articles={articles}
-              onContact={handleContact}
-            >
-              {/* Fallback content when no articles */}
-              {articles.length === 0 && (
-                <div style={{ 
-                  textAlign: 'center', 
-                  padding: 'var(--space-12)',
-                  color: 'var(--color-text-secondary)'
-                }}>
-                  <p>No articles available for the selected categories</p>
-                </div>
-              )}
-            </BentoGrid>
+            <div className="relative backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-lg p-6">
+              <BentoGrid
+                articles={articles}
+                onContact={handleContact}
+              >
+                {/* Fallback content when no articles */}
+                {articles.length === 0 && (
+                  <div style={{ 
+                    textAlign: 'center', 
+                    padding: 'var(--space-12)',
+                    color: 'var(--color-text-secondary)'
+                  }}>
+                    <p>No articles available for the selected categories</p>
+                  </div>
+                )}
+              </BentoGrid>
+            </div>
           </div>
         </div>
       </div>
