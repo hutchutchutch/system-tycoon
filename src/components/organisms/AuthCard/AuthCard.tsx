@@ -209,6 +209,13 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
+      // Log more detailed error info
+      if (error instanceof Error) {
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+      } else {
+        console.error('Raw error object:', JSON.stringify(error, null, 2));
+      }
       // Error is handled by Redux slice
     }
   };
