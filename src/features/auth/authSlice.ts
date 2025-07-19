@@ -57,19 +57,20 @@ export const signUpWithEmail = createAsyncThunk(
     if (error) throw error;
     
     if (data.user) {
-      // Create profile record in profiles table - database defaults will handle most fields
+      // Profile creation is handled automatically by database trigger
+      // Wait a moment for the trigger to complete, then fetch the profile
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .insert([{
-          id: data.user.id,
-          username: username,
-        }])
-        .select()
+        .select('*')
+        .eq('id', data.user.id)
         .single();
       
       if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw here as the user was created successfully
+        console.error('Profile fetch error:', profileError);
+        // Profile creation is async via trigger, might not be ready yet
+        return { user: data.user, profile: null };
       }
       
       return { user: data.user, profile };
@@ -153,9 +154,56 @@ export const demoSignIn = createAsyncThunk(
       reputation_points: 0,
       career_title: 'Aspiring Developer',
       preferred_mentor_id: undefined,
+      onboarding_completed: false,
     };
     
     return { user: mockUser, profile: mockProfile };
+  }
+);
+
+export const updateOnboardingStatus = createAsyncThunk(
+  'auth/updateOnboardingStatus',
+  async (completed: boolean, { getState }) => {
+    const state = getState() as any;
+    const userId = state.auth.user?.id;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ onboarding_completed: completed })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    return data;
+  }
+);
+
+export const updatePreferredMentor = createAsyncThunk(
+  'auth/updatePreferredMentor',
+  async (mentorId: string, { getState }) => {
+    const state = getState() as any;
+    const userId = state.auth.user?.id;
+    
+    if (!userId) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update({ preferred_mentor_id: mentorId })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    
+    return data;
   }
 );
 
@@ -260,6 +308,28 @@ const authSlice = createSlice({
       .addCase(demoSignIn.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Demo sign in failed';
+      });
+    
+    // Update onboarding status
+    builder
+      .addCase(updateOnboardingStatus.fulfilled, (state, action) => {
+        if (state.profile) {
+          state.profile = action.payload;
+        }
+      })
+      .addCase(updateOnboardingStatus.rejected, (state, action) => {
+        state.error = action.error.message || 'Failed to update onboarding status';
+      });
+    
+    // Update preferred mentor
+    builder
+      .addCase(updatePreferredMentor.fulfilled, (state, action) => {
+        if (state.profile) {
+          state.profile = action.payload;
+        }
+      })
+      .addCase(updatePreferredMentor.rejected, (state, action) => {
+        state.error = action.error.message || 'Failed to update preferred mentor';
       });
   },
 });

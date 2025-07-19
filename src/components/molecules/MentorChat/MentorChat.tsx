@@ -7,6 +7,12 @@ import { mentorChatService, type MentorChatSession } from '../../../services/men
 import type { RootState } from '../../../store';
 import styles from './MentorChat.module.css';
 
+// Utility function to validate if a string is a valid UUID
+const isValidUUID = (str: string): boolean => {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  return uuidRegex.test(str);
+};
+
 export const MentorChat: React.FC<MentorChatProps> = ({
   missionStageId,
   missionTitle,
@@ -17,13 +23,24 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentInput, setCurrentInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedMentorId, setSelectedMentorId] = useState('linda-wu');
   const [showMentorSelector, setShowMentorSelector] = useState(false);
   const [conversationSessionId] = useState(() => mentorChatService.generateSessionId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Get current user from Redux store
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  // Get current user and profile from Redux store
+  const { user, profile, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  
+  // Use preferred mentor from profile, fallback to 'linda-wu'
+  const [selectedMentorId, setSelectedMentorId] = useState(() => {
+    return profile?.preferred_mentor_id || 'linda-wu';
+  });
+
+  // Update selected mentor when profile changes
+  useEffect(() => {
+    if (profile?.preferred_mentor_id && profile.preferred_mentor_id !== selectedMentorId) {
+      setSelectedMentorId(profile.preferred_mentor_id);
+    }
+  }, [profile?.preferred_mentor_id, selectedMentorId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -32,10 +49,10 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
   // Load chat history and add welcome message when component mounts or mentor changes
   useEffect(() => {
-    if (missionStageId && selectedMentorId && user && isAuthenticated) {
+    if (selectedMentorId && user && isAuthenticated) {
       loadChatHistory();
     }
-  }, [missionStageId, selectedMentorId, user, isAuthenticated]);
+  }, [selectedMentorId, user, isAuthenticated]);
 
   const loadChatHistory = async () => {
     try {
@@ -89,7 +106,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         userId: user.id,
         mentorId: selectedMentorId,
         conversationSessionId,
-        missionStageId,
+        // Only pass missionStageId if it's a valid UUID
+        missionStageId: missionStageId && isValidUUID(missionStageId) ? missionStageId : undefined,
         missionTitle,
         problemDescription,
       };

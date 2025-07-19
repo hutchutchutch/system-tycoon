@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { BentoGrid } from '../../components/molecules/BentoGrid';
 import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
-import { HeroContextCard } from '../../components/molecules/HeroContextCard';
 import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
 import { newsService } from '../../services/newsService';
 import type { NewsArticle, NewsHero } from '../../types/news.types';
@@ -197,39 +196,15 @@ export const NewsWrapper: React.FC<NewsWrapperProps> = ({ hero }) => {
         </div>
       </div>
 
-      {/* Email Composition Flow */}
-      {emailToOpen && heroToShow && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(4px)',
-          zIndex: 9999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '2rem'
-        }}>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1rem',
-            maxWidth: '800px',
-            width: '100%',
-            maxHeight: '90vh'
-          }}>
-            {/* Hero Context Card */}
-            <HeroContextCard hero={heroToShow} />
-            
-            {/* Email Composer */}
-            <EmailComposer
-              isOpen={!!emailToOpen}
-              onClose={handleCloseEmailComposer}
-              hero={heroToShow}
-              onSend={handleEmailSend}
-            />
-          </div>
-        </div>
+      {/* Email Composer */}
+      {heroToShow && (
+        <EmailComposer
+          isOpen={!!emailToOpen}
+          onClose={handleCloseEmailComposer}
+          hero={heroToShow}
+          theme="dark"
+          onSend={handleEmailSend}
+        />
       )}
     </>
   );

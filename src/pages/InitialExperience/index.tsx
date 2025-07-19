@@ -10,6 +10,7 @@ import { NewsWrapper } from './NewsWrapper';
 import { HomeWrapper } from './HomeWrapper';
 import { TodaysNewsWrapper } from './TodaysNewsWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
+import { MentorChat } from '../../components/molecules/MentorChat';
 import styles from './InitialExperience.module.css';
 
 const InitialExperienceContent: React.FC = () => {
@@ -271,6 +272,13 @@ const InitialExperienceContent: React.FC = () => {
       <ProductTour
         isActive={showProductTour}
         onComplete={handleTourComplete}
+      />
+      
+      {/* Mentor Chat - Always visible in bottom left */}
+      <MentorChat
+        missionStageId="initial-experience"
+        missionTitle="Getting Started"
+        problemDescription="Learn how to use the system and complete your first mission"
       />
     </div>
   );

@@ -13,6 +13,7 @@ export interface EmailComposerProps {
   hero: NewsHero;
   missionId?: string;
   stageId?: string;
+  theme?: 'light' | 'dark';
   onSend?: (emailData: {
     to: string;
     subject: string;
@@ -27,6 +28,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   hero,
   missionId,
   stageId,
+  theme = 'light',
   onSend
 }) => {
   const [subject, setSubject] = useState('');
@@ -154,7 +156,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   }, [subject, body, handleSaveToDrafts, onClose]);
 
   return (
-    <div data-theme="light">
+    <div data-theme={theme}>
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
@@ -223,10 +225,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             {isSending ? (
               <>
                 <div className={styles.spinner} />
-                Submitting...
+                Sending...
               </>
             ) : (
-              'Submit'
+              'Send'
             )}
           </Button>
         </div>

@@ -204,9 +204,7 @@ const BentoCardBase: React.FC<{
               variant="primary"
               size="sm"
               onClick={handleContactClick}
-              style={{
-                width: '100%'
-              }}
+              style={{ width: '100%' }}
             >
               Contact
             </Button>

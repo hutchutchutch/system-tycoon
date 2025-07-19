@@ -154,6 +154,13 @@ const designSlice = createSlice({
     addEdge: (state, action: PayloadAction<Connection>) => {
       const connection = action.payload;
       
+      console.log('[Redux] Adding edge:', {
+        source: connection.source,
+        target: connection.target,
+        sourceHandle: connection.sourceHandle,
+        targetHandle: connection.targetHandle
+      });
+      
       // Check if edge already exists
       const exists = state.edges.some(edge => 
         (edge.source === connection.source && edge.target === connection.target) ||
@@ -162,13 +169,13 @@ const designSlice = createSlice({
       
       if (!exists && connection.source && connection.target) {
         const newEdge: Edge = {
-          id: `edge-${connection.source}-${connection.target}`,
+          id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
           source: connection.source,
           target: connection.target,
           sourceHandle: connection.sourceHandle || undefined,
           targetHandle: connection.targetHandle || undefined,
           animated: true,
-          style: { stroke: '#ef4444', strokeWidth: 2 },
+          style: { stroke: '#475569', strokeWidth: 2 },
         };
         
         state.edges.push(newEdge);

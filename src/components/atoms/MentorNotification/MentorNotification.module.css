@@ -1,0 +1,276 @@
+/* MentorNotification Styles */
+
+.notification {
+  position: fixed;
+  width: 320px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1);
+  z-index: 100000;
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  backdrop-filter: blur(10px);
+  pointer-events: all;
+}
+
+.notification.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Default position (bottom-left, next to MentorChat) */
+.notification:not([style*="top"]):not([style*="bottom"]):not([style*="left"]):not([style*="right"]) {
+  bottom: 20px;
+  left: 100px; /* Offset from MentorChat icon */
+}
+
+/* Arrow styles */
+.arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-color: transparent;
+}
+
+.arrow--top {
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 8px 8px 0 8px;
+  border-top-color: rgba(59, 130, 246, 0.3);
+}
+
+.arrow--top::before {
+  content: '';
+  position: absolute;
+  bottom: 1px;
+  left: -7px;
+  border-style: solid;
+  border-width: 7px 7px 0 7px;
+  border-color: transparent;
+  border-top-color: #1e293b;
+}
+
+.arrow--bottom {
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 0 8px 8px 8px;
+  border-bottom-color: rgba(59, 130, 246, 0.3);
+}
+
+.arrow--bottom::before {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: -7px;
+  border-style: solid;
+  border-width: 0 7px 7px 7px;
+  border-color: transparent;
+  border-bottom-color: #1e293b;
+}
+
+.arrow--left {
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 0 8px 8px;
+  border-left-color: rgba(59, 130, 246, 0.3);
+}
+
+.arrow--left::before {
+  content: '';
+  position: absolute;
+  right: 1px;
+  top: -7px;
+  border-style: solid;
+  border-width: 7px 0 7px 7px;
+  border-color: transparent;
+  border-left-color: #1e293b;
+}
+
+.arrow--right {
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 8px 8px 8px 0;
+  border-right-color: rgba(59, 130, 246, 0.3);
+}
+
+.arrow--right::before {
+  content: '';
+  position: absolute;
+  left: 1px;
+  top: -7px;
+  border-style: solid;
+  border-width: 7px 7px 7px 0;
+  border-color: transparent;
+  border-right-color: #1e293b;
+}
+
+/* Close button */
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.closeButton:hover {
+  background: rgba(100, 116, 139, 0.2);
+  color: #e2e8f0;
+}
+
+/* Content */
+.content {
+  position: relative;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin: 0 0 8px 0;
+  padding-right: 24px; /* Space for close button */
+  line-height: 1.4;
+}
+
+.message {
+  font-size: 14px;
+  color: #cbd5e1;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+/* Action button */
+.actionButton {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.actionButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+}
+
+.actionButton:active {
+  transform: translateY(0);
+}
+
+/* Highlight overlay */
+.highlightOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 99999;
+  cursor: pointer;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.highlightCutout {
+  position: absolute;
+  border-radius: 8px;
+  box-shadow: 
+    0 0 0 9999px rgba(0, 0, 0, 0.5),
+    0 0 0 2px rgba(59, 130, 246, 0.5),
+    0 0 20px rgba(59, 130, 246, 0.3);
+  animation: pulseGlow 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 9999px rgba(0, 0, 0, 0.5),
+      0 0 0 2px rgba(59, 130, 246, 0.5),
+      0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 9999px rgba(0, 0, 0, 0.5),
+      0 0 0 3px rgba(59, 130, 246, 0.7),
+      0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* Highlighted element */
+.highlightedElement {
+  position: relative;
+  z-index: 100001 !important;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .notification {
+    width: calc(100vw - 40px);
+    max-width: 320px;
+    left: 20px !important;
+    right: 20px !important;
+  }
+  
+  .notification:not([style*="top"]):not([style*="bottom"]) {
+    left: 20px !important;
+  }
+}
+
+/* Animation for entrance */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Animation for exit */
+@keyframes slideOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+}

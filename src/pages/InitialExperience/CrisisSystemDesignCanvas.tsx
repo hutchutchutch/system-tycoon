@@ -14,6 +14,7 @@ import {
 } from '@xyflow/react';
 import type { Connection, Edge, Node, NodeTypes, EdgeTypes, NodeProps } from '@xyflow/react';
 import { ChevronDown, ChevronUp, Settings, Clock, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3 } from 'lucide-react';
+import { ConnectionDebugOverlay } from './ConnectionDebugOverlay';
 
 import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
@@ -28,7 +29,7 @@ import { supabase } from '../../services/supabase';
 // Redux imports following the established patterns
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { completeStep, updateMetrics } from '../../features/mission/missionSlice';
+import { completeStep, updateMetrics, setDatabaseMission, completeDatabaseStage, clearDatabaseMission } from '../../features/mission/missionSlice';
 import { 
   addNode, 
   setDraggedComponent,
@@ -83,53 +84,63 @@ const getIconComponent = (iconType: string, size: number = 20) => {
 };
 
 // Custom Node Component with proper handles
-const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data, selected }) => {
+const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data, selected, isConnectable, id }) => {
+  // Map categories to node type classes for styling
+  const getCategoryClass = (category?: string) => {
+    const categoryMap: Record<string, string> = {
+      'compute': 'compute-node',
+      'database': 'database-node',
+      'storage': 'storage-node',
+      'network': 'network-node',
+      'networking': 'network-node',
+      'security': 'security-node',
+      'stakeholder': 'user-node',
+      'monitoring': 'monitoring-node',
+      'analytics': 'analytics-node'
+    };
+    return categoryMap[category || ''] || 'default-node';
+  };
+
   return (
-    <div className={`${styles.customNode} ${selected ? styles.selected : ''}`}>
+    <div className={`${styles.customNode} ${styles[getCategoryClass(data.category)]} ${selected ? styles.selected : ''}`}>
       {/* Input handle (top) */}
       <Handle
         type="target"
         position={Position.Top}
-        id="input"
-        style={{
-          background: '#555',
-          width: 10,
-          height: 10,
-          border: '2px solid #fff',
-        }}
+        id={`${id}-input`}
+        className={styles.nodeHandle}
+        isConnectable={isConnectable}
       />
       
-      <div className={styles.nodeHeader}>
+      <div className={styles.nodeIcon}>
         {getIconComponent(data.icon)}
-        <h4 className={styles.nodeTitle}>{data.label}</h4>
       </div>
       
-      {data.description && (
-        <p className={styles.nodeDescription}>{data.description}</p>
-      )}
+      <div className={styles.nodeContent}>
+        <div className={styles.nodeTitle}>{data.label}</div>
+        {data.description && (
+          <div className={styles.nodeSubtitle}>{data.description}</div>
+        )}
+        {process.env.NODE_ENV === 'development' && (
+          <div style={{ fontSize: '10px', color: '#666', marginTop: '4px' }}>
+            ID: {id}
+          </div>
+        )}
+      </div>
       
       {/* Output handle (bottom) */}
       <Handle
         type="source"
         position={Position.Bottom}
-        id="output"
-        style={{
-          background: '#555',
-          width: 10,
-          height: 10,
-          border: '2px solid #fff',
-        }}
+        id={`${id}-output`}
+        className={styles.nodeHandle}
+        isConnectable={isConnectable}
       />
     </div>
   );
 });
 
 CustomNode.displayName = 'CustomNode';
-
-// Memoized node types (critical for React Flow performance)
-const nodeTypes = {
-  custom: CustomNode,
-};
 
 interface CrisisSystemDesignCanvasProps {
   missionSlug?: string;
@@ -162,6 +173,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     dataLost: 47,
     systemHealth: 'critical' as 'critical' | 'warning' | 'healthy'
   });
+
+  // Memoized node types (critical for React Flow performance)
+  const nodeTypes = useMemo(() => ({
+    custom: CustomNode,
+  }), []);
 
   // Validation hook for API-powered requirement checking
   const { isValidating, validateRequirements } = useRequirementValidation({
@@ -288,6 +304,26 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         console.log('Mission loaded successfully:', mission.title);
         console.log('Requirements:', mission.requirements);
         
+        // If we have stage data, dispatch it to Redux for GameHUD
+        if (stageData && stageData.mission) {
+          // Load all stages for this mission from database
+          const { data: allStages, error: stagesError } = await supabase
+            .from('mission_stages')
+            .select('id, stage_number, title, problem_description')
+            .eq('mission_id', stageData.mission.id)
+            .order('stage_number');
+
+          if (!stagesError && allStages) {
+            dispatch(setDatabaseMission({
+              id: stageData.mission.id,
+              title: stageData.mission.title,
+              description: stageData.mission.description,
+              slug: mission.slug,
+              stages: allStages
+            }));
+          }
+        }
+        
         // Set initial requirements for fallback missions
         if (mission.requirements) {
           setRequirements(mission.requirements.map(req => ({
@@ -368,7 +404,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Load mission stage data when emailId is provided
   useEffect(() => {
     loadMissionData();
-  }, [emailId, missionSlug]);
+    
+    // Cleanup when component unmounts
+    return () => {
+      dispatch(clearDatabaseMission());
+    };
+  }, [emailId, missionSlug, dispatch]);
 
   // Removed automatic validation - now using on-demand API validation
 
@@ -410,8 +451,33 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   
   const onConnect = useCallback((params: Connection) => {
+    console.log('🔗 Connection attempt:', {
+      source: params.source,
+      target: params.target,
+      sourceHandle: params.sourceHandle,
+      targetHandle: params.targetHandle
+    });
+    
+    // Ensure we have valid source and target
+    if (!params.source || !params.target) {
+      console.error('❌ Invalid connection - missing source or target');
+      return;
+    }
+    
+    // Prevent self-connections
+    if (params.source === params.target) {
+      console.warn('⚠️ Cannot connect node to itself');
+      return;
+    }
+    
+    // Log which node is being used as source
+    const sourceNode = nodes.find(n => n.id === params.source);
+    const targetNode = nodes.find(n => n.id === params.target);
+    console.log('📍 Connecting:', sourceNode?.data.label, '→', targetNode?.data.label);
+    console.log('📊 Node IDs:', { sourceId: params.source, targetId: params.target });
+    
     dispatch(addEdgeAction(params));
-  }, [dispatch]);
+  }, [dispatch, nodes]);
 
   const onDragOver = useCallback((event: React.DragEvent) => {
     event.preventDefault();
@@ -521,10 +587,32 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
             minZoom={0.2}
             maxZoom={2}
+            className={styles.reactFlow}
+            deleteKeyCode={["Backspace", "Delete"]}
+            panOnScroll={false}
+            zoomOnScroll={true}
+            zoomOnPinch={true}
+            zoomOnDoubleClick={false}
+            preventScrolling={true}
+            nodeOrigin={[0.5, 0.5]}
+            isValidConnection={(connection) => {
+              // Validate the connection
+              if (!connection.source || !connection.target) return false;
+              if (connection.source === connection.target) return false;
+              
+              // Check if edge already exists
+              const edgeExists = edges.some(edge => 
+                (edge.source === connection.source && edge.target === connection.target) ||
+                (edge.source === connection.target && edge.target === connection.source)
+              );
+              
+              return !edgeExists;
+            }}
           >
-            <Background gap={20} size={1} />
-            <Controls />
-            <MiniMap />
+            <Background color="transparent" gap={20} size={0} />
+            <Controls className={styles.reactFlowControls} />
+            <MiniMap className={styles.reactFlowMinimap} />
+            {process.env.NODE_ENV === 'development' && <ConnectionDebugOverlay />}
           </ReactFlow>
         </div>
 
@@ -592,6 +680,74 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               color: '#0369a1'
             }}>
               🔍 Validating your design...
+            </div>
+          )}
+          
+          {/* Test Controls - For Development */}
+          {process.env.NODE_ENV === 'development' && (mission.currentDatabaseMission || mission.currentMission) && (
+            <div style={{ 
+              padding: '1rem', 
+              backgroundColor: '#fef3c7', 
+              borderRadius: '8px', 
+              margin: '1rem 0',
+              borderLeft: '4px solid #f59e0b'
+            }}>
+              <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600' }}>
+                🧪 Test Controls
+              </h4>
+              {mission.currentDatabaseMission ? (
+                <>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', opacity: 0.8 }}>
+                    Database Mission: {mission.currentDatabaseMission.currentStageIndex + 1} / {mission.currentDatabaseMission.stages.length}
+                  </p>
+                  <button
+                    onClick={() => {
+                      const currentStage = mission.currentDatabaseMission?.stages[mission.currentDatabaseMission.currentStageIndex];
+                      if (currentStage) {
+                        dispatch(completeDatabaseStage(currentStage.id));
+                      }
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer'
+                    }}
+                    disabled={mission.currentDatabaseMission?.currentStageIndex >= mission.currentDatabaseMission?.stages.length}
+                  >
+                    Complete Current Stage
+                  </button>
+                </>
+              ) : mission.currentMission && (
+                <>
+                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', opacity: 0.8 }}>
+                    Hardcoded Mission: {mission.currentMission.currentStepIndex + 1} / {mission.currentMission.steps.length}
+                  </p>
+                  <button
+                    onClick={() => {
+                      const currentStep = mission.currentMission?.steps[mission.currentMission.currentStepIndex];
+                      if (currentStep) {
+                        dispatch(completeStep(currentStep.id));
+                      }
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      backgroundColor: '#10b981',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      fontSize: '0.75rem',
+                      cursor: 'pointer'
+                    }}
+                    disabled={mission.currentMission?.currentStepIndex >= mission.currentMission?.steps.length}
+                  >
+                    Complete Current Stage
+                  </button>
+                </>
+              )}
             </div>
           )}
         </div>

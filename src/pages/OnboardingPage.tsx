@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+import { useAppDispatch } from '../hooks/redux';
+import { updateOnboardingStatus, updatePreferredMentor } from '../features/auth/authSlice';
 import { useTheme } from '../contexts/ThemeContext';
 import { 
   OpeningImpactScreen, 
@@ -14,6 +16,7 @@ type OnboardingStep = 'opening' | 'transformation' | 'mentor-selection' | 'mento
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { theme, setTheme } = useTheme();
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('opening');
   const [selectedMentor, setSelectedMentor] = useState<MentorForUI | null>(null);
@@ -56,14 +59,32 @@ export const OnboardingPage: React.FC = () => {
     setCurrentStep('mentor-selection');
   };
 
-  const handleMentorSelected = (mentor: MentorForUI) => {
+  const handleMentorSelected = async (mentor: MentorForUI) => {
     setSelectedMentor(mentor);
-    // Skip the mentor-wisdom screen since details are shown in the selection screen
-    navigate('/auth');
+    
+    try {
+      // Save the mentor ID to the user's profile
+      await dispatch(updatePreferredMentor(mentor.id));
+      
+      // Mark onboarding as completed in the database
+      await dispatch(updateOnboardingStatus(true));
+      
+      // Navigate to the game since user is already authenticated
+      navigate('/game');
+    } catch (error) {
+      console.error('Error saving mentor selection:', error);
+      // Still navigate even if there's an error saving mentor preference
+      await dispatch(updateOnboardingStatus(true));
+      navigate('/game');
+    }
   };
 
-  const handleComplete = () => {
-    navigate('/auth');
+  const handleComplete = async () => {
+    // Mark onboarding as completed in the database
+    await dispatch(updateOnboardingStatus(true));
+    
+    // Navigate to the game since user is already authenticated
+    navigate('/game');
   };
 
   const renderCurrentStep = () => {

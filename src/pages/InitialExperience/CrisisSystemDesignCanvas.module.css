@@ -1,21 +1,15 @@
-/* CrisisSystemDesignCanvas - Modern System Design Interface with Design Tokens */
+/* CrisisSystemDesignCanvas - Dark Mode System Design Interface */
 
 .crisisCanvas {
   display: flex;
   width: 100%;
   height: 100%;
-  background: var(--color-neutral-50);
-  color: var(--color-neutral-900);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #f1f5f9;
   font-family: var(--font-sans);
   overflow: hidden;
   transition: all var(--duration-fast) var(--ease-out);
   position: relative;
-}
-
-/* Dark mode support */
-[data-theme="dark"] .crisisCanvas {
-  background: var(--color-neutral-50); /* This becomes dark in dark mode */
-  color: var(--color-neutral-800);
 }
 
 /* Loading State */
@@ -25,28 +19,29 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: var(--color-neutral-50);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 .loadingSpinner {
   padding: var(--space-8);
   border-radius: var(--radius-lg);
-  background: var(--color-white);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-neutral-200);
+  background: rgba(30, 41, 59, 0.95);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
   font-size: var(--text-lg);
-  color: var(--color-neutral-700);
+  color: #e2e8f0;
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  backdrop-filter: blur(10px);
 }
 
 .loadingSpinner::before {
   content: '';
   width: 20px;
   height: 20px;
-  border: 2px solid var(--color-neutral-300);
-  border-top: 2px solid var(--color-primary-500);
+  border: 2px solid rgba(148, 163, 184, 0.3);
+  border-top: 2px solid #3b82f6;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -65,34 +60,18 @@
   gap: var(--space-4);
   width: 100%;
   height: 100%;
-  background: var(--color-neutral-50);
-  color: var(--color-red-600);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ef4444;
   padding: var(--space-8);
   text-align: center;
 }
 
-[data-theme="dark"] .loadingContainer,
-[data-theme="dark"] .errorContainer {
-  background: var(--color-neutral-50);
-}
-
-[data-theme="dark"] .loadingSpinner {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
-  color: var(--color-neutral-800);
-}
-
-/* React Flow Viewport - Main Canvas (Full Width Now) */
+/* React Flow Container */
 .canvasContainer {
   width: 100%;
   height: 100%;
   position: relative;
-  background: var(--color-neutral-50);
-  transition: all var(--duration-normal) var(--ease-out);
-}
-
-[data-theme="dark"] .canvasContainer {
-  background: var(--color-neutral-50);
+  background: transparent;
 }
 
 .reactFlowWrapper {
@@ -100,141 +79,327 @@
   height: 100%;
 }
 
-/* React Flow Dark Mode Overrides */
-[data-theme="dark"] .react-flow {
-  background: var(--color-neutral-50);
+.reactFlow {
+  width: 100%;
+  height: 100%;
+  background: transparent;
 }
 
-[data-theme="dark"] .react-flow__node {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
-  color: var(--color-neutral-800);
+/* React Flow Controls */
+.reactFlowControls {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
-[data-theme="dark"] .react-flow__edge {
-  stroke: var(--color-neutral-400);
+.reactFlowControls button {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: none !important;
+  color: #e2e8f0 !important;
 }
 
-[data-theme="dark"] .react-flow__controls {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
+.reactFlowControls button:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
-[data-theme="dark"] .react-flow__minimap {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
+.reactFlowMinimap {
+  background: rgba(30, 41, 59, 0.9) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
 }
 
-/* Custom Node Styles - Enhanced for Better Visibility */
+/* Custom Node Base Styles */
 .customNode {
-  min-width: 120px;
+  min-width: 150px;
   min-height: 80px;
-  background: var(--color-white);
-  border: 2px solid var(--color-neutral-300);
-  border-radius: var(--radius-lg);
-  padding: var(--space-3);
-  box-shadow: var(--shadow-md);
-  transition: all var(--duration-fast) var(--ease-out);
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 2px solid rgba(71, 85, 105, 0.5);
+  color: white;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
   position: relative;
 }
 
 .customNode:hover {
-  border-color: var(--color-primary-400);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .customNode.selected {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(var(--color-primary-500-rgb), 0.1), var(--shadow-lg);
-  background: var(--color-primary-50);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme="dark"] .customNode {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-400);
-  color: var(--color-neutral-800);
-}
-
-[data-theme="dark"] .customNode.selected {
-  background: var(--color-primary-100);
-  border-color: var(--color-primary-400);
-}
-
-.nodeHeader {
+/* Node Icon */
+.nodeIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
+  justify-content: center;
+  color: #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+/* Node Content */
+.nodeContent {
   text-align: center;
 }
 
 .nodeTitle {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-800);
-  margin: 0;
-  line-height: 1.2;
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 2px;
+  color: #f1f5f9;
 }
 
-[data-theme="dark"] .nodeTitle {
-  color: var(--color-neutral-700);
-}
-
-.nodeDescription {
-  font-size: var(--text-xs);
-  color: var(--color-neutral-600);
-  margin: 0;
-  text-align: center;
-  line-height: 1.3;
+.nodeSubtitle {
+  font-size: 0.75rem;
+  color: rgba(226, 232, 240, 0.7);
   max-width: 140px;
+  line-height: 1.3;
 }
 
-[data-theme="dark"] .nodeDescription {
-  color: var(--color-neutral-500);
+/* Node Handles */
+.nodeHandle {
+  width: 12px !important;
+  height: 12px !important;
+  background: #64748b !important;
+  border: 2px solid #1e293b !important;
+  transition: all 0.3s ease !important;
+  cursor: crosshair !important;
+  z-index: 10 !important;
+  position: absolute !important;
 }
 
-/* Handle Enhancements */
-.customNode .react-flow__handle {
-  width: 12px;
-  height: 12px;
-  background: var(--color-primary-500);
-  border: 2px solid var(--color-white);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.customNode .react-flow__handle:hover {
-  transform: scale(1.2);
-  background: var(--color-primary-600);
-}
-
-.customNode .react-flow__handle.connecting {
-  background: var(--color-secondary-500);
+.nodeHandle:hover {
+  background: #3b82f6 !important;
   transform: scale(1.3);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
 }
 
-.customNode .react-flow__handle.valid {
-  background: var(--color-success-500);
+/* Handle states */
+:global(.react-flow__handle.connecting) {
+  background: #10b981 !important;
+  transform: scale(1.5) !important;
 }
 
-/* Floating Component Drawer Card - Top Side */
+:global(.react-flow__handle.valid) {
+  background: #22c55e !important;
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3) !important;
+}
+
+/* Ensure handles are above node content */
+.customNode {
+  position: relative;
+}
+
+.customNode :global(.react-flow__handle-top) {
+  top: -6px !important;
+}
+
+.customNode :global(.react-flow__handle-bottom) {
+  bottom: -6px !important;
+}
+
+/* Category-based Node Styles */
+
+/* Compute Nodes - Green */
+.compute-node {
+  border-color: #22c55e;
+}
+
+.compute-node .nodeIcon {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+}
+
+.compute-node:hover {
+  border-color: #16a34a;
+  box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+}
+
+.compute-node.selected {
+  background: rgba(34, 197, 94, 0.1);
+  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.5), 0 0 30px rgba(34, 197, 94, 0.3);
+}
+
+/* Database Nodes - Orange */
+.database-node {
+  border-color: #f59e0b;
+}
+
+.database-node .nodeIcon {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+}
+
+.database-node:hover {
+  border-color: #d97706;
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+}
+
+.database-node.selected {
+  background: rgba(245, 158, 11, 0.1);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.5), 0 0 30px rgba(245, 158, 11, 0.3);
+}
+
+/* Storage Nodes - Purple */
+.storage-node {
+  border-color: #a855f7;
+}
+
+.storage-node .nodeIcon {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+}
+
+.storage-node:hover {
+  border-color: #9333ea;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+}
+
+.storage-node.selected {
+  background: rgba(168, 85, 247, 0.1);
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.3);
+}
+
+/* Network Nodes - Yellow */
+.network-node {
+  border-color: #eab308;
+}
+
+.network-node .nodeIcon {
+  background: rgba(234, 179, 8, 0.2);
+  color: #facc15;
+}
+
+.network-node:hover {
+  border-color: #ca8a04;
+  box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
+}
+
+.network-node.selected {
+  background: rgba(234, 179, 8, 0.1);
+  box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.5), 0 0 30px rgba(234, 179, 8, 0.3);
+}
+
+/* Security Nodes - Violet */
+.security-node {
+  border-color: #8b5cf6;
+}
+
+.security-node .nodeIcon {
+  background: rgba(139, 92, 246, 0.2);
+  color: #a78bfa;
+}
+
+.security-node:hover {
+  border-color: #7c3aed;
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+.security-node.selected {
+  background: rgba(139, 92, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.5), 0 0 30px rgba(139, 92, 246, 0.3);
+}
+
+/* User/Stakeholder Nodes - Blue */
+.user-node {
+  border-color: #3b82f6;
+}
+
+.user-node .nodeIcon {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+.user-node:hover {
+  border-color: #2563eb;
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+.user-node.selected {
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 30px rgba(59, 130, 246, 0.3);
+}
+
+/* Monitoring Nodes - Cyan */
+.monitoring-node {
+  border-color: #06b6d4;
+}
+
+.monitoring-node .nodeIcon {
+  background: rgba(6, 182, 212, 0.2);
+  color: #22d3ee;
+}
+
+.monitoring-node:hover {
+  border-color: #0891b2;
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+}
+
+.monitoring-node.selected {
+  background: rgba(6, 182, 212, 0.1);
+  box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 30px rgba(6, 182, 212, 0.3);
+}
+
+/* Analytics Nodes - Pink */
+.analytics-node {
+  border-color: #ec4899;
+}
+
+.analytics-node .nodeIcon {
+  background: rgba(236, 72, 153, 0.2);
+  color: #f472b6;
+}
+
+.analytics-node:hover {
+  border-color: #db2777;
+  box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
+}
+
+.analytics-node.selected {
+  background: rgba(236, 72, 153, 0.1);
+  box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.5), 0 0 30px rgba(236, 72, 153, 0.3);
+}
+
+/* Default Node - Gray */
+.default-node {
+  border-color: #64748b;
+}
+
+.default-node .nodeIcon {
+  background: rgba(100, 116, 139, 0.2);
+  color: #94a3b8;
+}
+
+.default-node:hover {
+  border-color: #475569;
+  box-shadow: 0 0 30px rgba(100, 116, 139, 0.3);
+}
+
+/* Floating Component Drawer Card */
 .componentDrawerCard {
   position: absolute;
   top: var(--space-6);
   left: var(--space-6);
   width: 340px;
   height: 600px;
-  background: var(--color-white);
+  background: rgba(30, 41, 59, 0.95);
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-2xl);
-  border: 1px solid var(--color-neutral-200);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(71, 85, 105, 0.5);
   z-index: var(--z-20);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
   transition: all var(--duration-normal) var(--ease-out);
   display: flex;
   flex-direction: column;
@@ -245,15 +410,9 @@
   min-height: 64px;
 }
 
-[data-theme="dark"] .componentDrawerCard {
-  background: rgba(var(--color-neutral-100-rgb), 0.95);
-  border-color: var(--color-neutral-300);
-  box-shadow: var(--shadow-2xl);
-}
-
 .drawerHeader {
   padding: var(--space-4);
-  border-bottom: 1px solid var(--color-neutral-200);
+  border-bottom: 1px solid rgba(71, 85, 105, 0.5);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -261,25 +420,17 @@
   flex-shrink: 0;
 }
 
-[data-theme="dark"] .drawerHeader {
-  border-bottom-color: var(--color-neutral-300);
-}
-
 .drawerTitle {
   font-size: var(--text-lg);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-900);
+  color: #f1f5f9;
   margin: 0;
-}
-
-[data-theme="dark"] .drawerTitle {
-  color: var(--color-neutral-800);
 }
 
 .drawerToggle {
   background: none;
   border: none;
-  color: var(--color-neutral-600);
+  color: #94a3b8;
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-md);
@@ -290,17 +441,8 @@
 }
 
 .drawerToggle:hover {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-800);
-}
-
-[data-theme="dark"] .drawerToggle {
-  color: var(--color-neutral-500);
-}
-
-[data-theme="dark"] .drawerToggle:hover {
-  background: var(--color-neutral-200);
-  color: var(--color-neutral-700);
+  background: rgba(100, 116, 139, 0.2);
+  color: #e2e8f0;
 }
 
 .drawerContent {
@@ -318,8 +460,8 @@
 
 /* Stage Information */
 .stageInfo {
-  background: var(--color-primary-50);
-  border: 1px solid var(--color-primary-200);
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
   margin-bottom: var(--space-4);
@@ -328,7 +470,7 @@
 .stageTitle {
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: var(--color-primary-700);
+  color: #93bbfe;
   margin: 0 0 var(--space-2) 0;
   display: flex;
   align-items: center;
@@ -337,37 +479,19 @@
 
 .stageProblem {
   font-size: var(--text-sm);
-  color: var(--color-primary-600);
+  color: #bfdbfe;
   margin: 0;
   line-height: 1.5;
 }
 
-[data-theme="dark"] .stageInfo {
-  background: var(--color-primary-100);
-  border-color: var(--color-primary-300);
-}
-
-[data-theme="dark"] .stageTitle {
-  color: var(--color-primary-800);
-}
-
-[data-theme="dark"] .stageProblem {
-  color: var(--color-primary-700);
-}
-
 .drawerHint {
   font-size: var(--text-sm);
-  color: var(--color-neutral-600);
+  color: #94a3b8;
   margin: 0 0 var(--space-4) 0;
   padding: var(--space-3);
-  background: var(--color-neutral-50);
+  background: rgba(100, 116, 139, 0.1);
   border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary-500);
-}
-
-[data-theme="dark"] .drawerHint {
-  color: var(--color-neutral-500);
-  background: var(--color-neutral-200);
+  border-left: 3px solid #3b82f6;
 }
 
 /* Component Cards in Drawer */
@@ -376,17 +500,18 @@
   align-items: center;
   gap: var(--space-3);
   padding: var(--space-3);
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid rgba(71, 85, 105, 0.5);
   border-radius: var(--radius-lg);
-  background: var(--color-white);
+  background: rgba(30, 41, 59, 0.6);
   cursor: grab;
   transition: all var(--duration-fast) var(--ease-out);
   user-select: none;
 }
 
 .componentCard:hover {
-  border-color: var(--color-primary-400);
-  box-shadow: var(--shadow-md);
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
@@ -395,22 +520,9 @@
   transform: scale(0.98);
 }
 
-[data-theme="dark"] .componentCard {
-  background: var(--color-neutral-200);
-  border-color: var(--color-neutral-300);
-}
-
-[data-theme="dark"] .componentCard:hover {
-  border-color: var(--color-primary-400);
-}
-
 .componentIcon {
-  color: var(--color-primary-600);
+  color: #60a5fa;
   flex-shrink: 0;
-}
-
-[data-theme="dark"] .componentIcon {
-  color: var(--color-primary-500);
 }
 
 .componentInfo {
@@ -421,18 +533,14 @@
 .componentName {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-900);
+  color: #f1f5f9;
   margin: 0 0 var(--space-1) 0;
   line-height: 1.2;
 }
 
-[data-theme="dark"] .componentName {
-  color: var(--color-neutral-800);
-}
-
 .componentDescription {
   font-size: var(--text-xs);
-  color: var(--color-neutral-600);
+  color: #94a3b8;
   margin: 0;
   line-height: 1.3;
   display: -webkit-box;
@@ -441,11 +549,7 @@
   overflow: hidden;
 }
 
-[data-theme="dark"] .componentDescription {
-  color: var(--color-neutral-500);
-}
-
-/* Floating Requirements Card - Right Side */
+/* Floating Requirements Card */
 .requirementsCard {
   position: absolute;
   top: var(--space-6);
@@ -461,20 +565,15 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--color-white);
-  border: 1px solid var(--color-success-200);
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(34, 197, 94, 0.5);
   border-radius: var(--radius-xl);
   padding: var(--space-6);
-  box-shadow: var(--shadow-2xl);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
   z-index: var(--z-50);
   text-align: center;
   min-width: 320px;
-  backdrop-filter: blur(8px);
-}
-
-[data-theme="dark"] .successMessage {
-  background: var(--color-neutral-100);
-  border-color: var(--color-success-300);
+  backdrop-filter: blur(10px);
 }
 
 .successTitle {
@@ -484,23 +583,37 @@
   gap: var(--space-2);
   font-size: var(--text-xl);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-success-700);
+  color: #4ade80;
   margin: 0 0 var(--space-3) 0;
-}
-
-[data-theme="dark"] .successTitle {
-  color: var(--color-success-600);
 }
 
 .successDescription {
   font-size: var(--text-base);
-  color: var(--color-neutral-700);
+  color: #e2e8f0;
   margin: 0;
   line-height: 1.5;
 }
 
-[data-theme="dark"] .successDescription {
-  color: var(--color-neutral-600);
+/* React Flow Edge Styling */
+:global(.react-flow__edge-path) {
+  stroke: #475569 !important;
+  stroke-width: 2 !important;
+}
+
+:global(.react-flow__edge.selected .react-flow__edge-path) {
+  stroke: #3b82f6 !important;
+  stroke-width: 3 !important;
+}
+
+:global(.react-flow__edge-path:hover) {
+  stroke: #64748b !important;
+  stroke-width: 3 !important;
+}
+
+:global(.react-flow__connectionline) {
+  stroke: #3b82f6 !important;
+  stroke-width: 2 !important;
+  stroke-dasharray: 5, 5 !important;
 }
 
 /* Responsive Design */
@@ -540,26 +653,3 @@
     height: 60vh;
   }
 }
-
-/* React Flow Connection Line Styling */
-.react-flow__connectionline {
-  stroke: var(--color-primary-500);
-  stroke-width: 2px;
-  stroke-dasharray: 5,5;
-}
-
-/* Edge Styling */
-.react-flow__edge {
-  stroke: var(--color-neutral-400);
-  stroke-width: 2px;
-}
-
-.react-flow__edge.selected {
-  stroke: var(--color-primary-500);
-  stroke-width: 3px;
-}
-
-.react-flow__edge:hover {
-  stroke: var(--color-primary-600);
-  stroke-width: 3px;
-} 

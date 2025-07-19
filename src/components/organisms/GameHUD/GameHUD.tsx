@@ -1,6 +1,6 @@
 import React from 'react';
 import clsx from 'clsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/redux';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CAREER_TITLES } from '../../../constants';
@@ -13,8 +13,9 @@ interface GameHUDProps {
 
 export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile } = useAppSelector(state => state.auth);
-  const { crisisMetrics } = useAppSelector(state => state.mission);
+  const { currentMission, currentDatabaseMission, crisisMetrics } = useAppSelector(state => state.mission);
   const { theme, toggleTheme } = useTheme();
   
   if (!profile) {
@@ -32,6 +33,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Get data lost from mission state
   const dataLost = crisisMetrics?.totalDataLost || 0;
+
+  // Check if we're on the game route (where InitialExperience and system design canvas are)
+  const isOnGameRoute = location.pathname.startsWith('/game');
+  
+  // Prioritize database mission over hardcoded mission
+  const activeMission = currentDatabaseMission || currentMission;
+  const hasStages = currentDatabaseMission 
+    ? currentDatabaseMission.stages && currentDatabaseMission.stages.length > 0
+    : currentMission && currentMission.steps && currentMission.steps.length > 0;
+  
+  // Show mission stages if we have an active mission and we're on the game route
+  const showMissionStages = isOnGameRoute && activeMission && hasStages;
 
   return (
     <header className={clsx(styles.hud, className)}>
@@ -51,20 +64,71 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         </div>
       </div>
       
-      {/* Center Section - System Status */}
+      {/* Center Section - Mission Stages or System Status */}
       <div className={clsx(styles.section, styles['section--center'])}>
-        <div className={styles.systemStatus}>
-          <div className={styles.statusItem}>
-            <div className={clsx(styles.statusDot, styles['statusDot--online'])} />
-            <span className={styles.statusText}>System Online</span>
-          </div>
-          {dataLost > 0 && (
-            <div className={clsx(styles.statusItem, styles['statusItem--warning'])}>
-              <AlertTriangle size={14} />
-              <span className={styles.statusText}>Data Lost: {dataLost}</span>
+        {showMissionStages ? (
+          <div className={styles.missionStages}>
+            <span className={styles.stageLabel}>Stage:</span>
+            <div className={styles.stageIndicators}>
+              {currentDatabaseMission ? (
+                // Render database mission stages
+                currentDatabaseMission.stages.map((stage, index) => {
+                  const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
+                  const isCompleted = stage.completed || false;
+                  const isUpcoming = index > currentDatabaseMission.currentStageIndex;
+                  
+                  return (
+                    <div
+                      key={stage.id}
+                      className={clsx(styles.stageIndicator, {
+                        [styles['stageIndicator--current']]: isCurrentStage,
+                        [styles['stageIndicator--completed']]: isCompleted,
+                        [styles['stageIndicator--upcoming']]: isUpcoming,
+                      })}
+                      title={stage.title}
+                    >
+                      {stage.stage_number}
+                    </div>
+                  );
+                })
+              ) : (
+                // Render hardcoded mission steps (fallback)
+                currentMission?.steps.map((step, index) => {
+                  const isCurrentStage = index === currentMission.currentStepIndex;
+                  const isCompleted = step.completed;
+                  const isUpcoming = index > currentMission.currentStepIndex;
+                  
+                  return (
+                    <div
+                      key={step.id}
+                      className={clsx(styles.stageIndicator, {
+                        [styles['stageIndicator--current']]: isCurrentStage,
+                        [styles['stageIndicator--completed']]: isCompleted,
+                        [styles['stageIndicator--upcoming']]: isUpcoming,
+                      })}
+                      title={step.title}
+                    >
+                      {index + 1}
+                    </div>
+                  );
+                })
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className={styles.systemStatus}>
+            <div className={styles.statusItem}>
+              <div className={clsx(styles.statusDot, styles['statusDot--online'])} />
+              <span className={styles.statusText}>System Online</span>
+            </div>
+            {dataLost > 0 && (
+              <div className={clsx(styles.statusItem, styles['statusItem--warning'])}>
+                <AlertTriangle size={14} />
+                <span className={styles.statusText}>Data Lost: {dataLost}</span>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       
       {/* Right Section - Stats & Actions */}

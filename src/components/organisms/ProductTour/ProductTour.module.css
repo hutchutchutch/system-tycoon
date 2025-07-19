@@ -1,304 +1,104 @@
-/* ProductTour Component Styles */
+/* ProductTour Styles */
 
-.overlay {
+.productTour {
+  position: relative;
+  z-index: 100002; /* Above MentorNotification's overlay */
+}
+
+/* Tour Progress Indicator */
+.tourProgress {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(2px);
-  z-index: 99998;
-  pointer-events: none;
+  bottom: 100px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 100001;
+  animation: slideInUp 0.3s ease;
 }
 
-[data-theme="dark"] .overlay {
-  background: rgba(0, 0, 0, 0.8);
-}
-
-.highlight {
-  position: absolute;
-  background: transparent;
-  border: 3px solid var(--color-primary-500);
-  border-radius: var(--radius-lg);
-  box-shadow: 
-    0 0 0 4px rgba(59, 130, 246, 0.2),
-    0 0 20px rgba(59, 130, 246, 0.4),
-    inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
-  animation: tourPulse 2s ease-in-out infinite;
-  z-index: 99999;
-  pointer-events: none;
-}
-
-[data-theme="dark"] .highlight {
-  border-color: var(--color-primary-400);
-  box-shadow: 
-    0 0 0 4px rgba(96, 165, 250, 0.3),
-    0 0 20px rgba(96, 165, 250, 0.5),
-    inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
-}
-
-@keyframes tourPulse {
-  0%, 100% {
-    box-shadow: 
-      0 0 0 4px rgba(59, 130, 246, 0.2),
-      0 0 20px rgba(59, 130, 246, 0.4),
-      inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  50% {
-    box-shadow: 
-      0 0 0 8px rgba(59, 130, 246, 0.3),
-      0 0 30px rgba(59, 130, 246, 0.6),
-      inset 0 0 0 9999px rgba(0, 0, 0, -0.5);
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Tour Controls */
-.tourControls {
-  position: fixed;
-  top: 50%;
-  right: var(--space-6);
-  transform: translateY(-50%);
-  z-index: 99999;
-  background: var(--color-white);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-xl);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-2xl);
+/* Progress Steps */
+.progressSteps {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  min-width: 200px;
-  pointer-events: auto;
+  gap: 8px;
+  align-items: center;
 }
 
-[data-theme="dark"] .tourControls {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
+.progressStep {
+  width: 8px;
+  height: 8px;
+  background: rgba(100, 116, 139, 0.3);
+  border-radius: 50%;
+  transition: all 0.3s ease;
 }
 
-.stepIndicator {
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-neutral-600);
-  text-align: center;
-  padding: var(--space-2);
-  background: var(--color-neutral-50);
-  border-radius: var(--radius-md);
+.progressStep.active {
+  width: 24px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 4px;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
 }
 
-[data-theme="dark"] .stepIndicator {
-  background: var(--color-neutral-200);
-  color: var(--color-neutral-700);
+.progressStep.completed {
+  background: #22c55e;
 }
 
-.stepTitle {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-900);
-  text-align: center;
-  margin-bottom: var(--space-2);
-}
-
-[data-theme="dark"] .stepTitle {
-  color: var(--color-neutral-800);
-}
-
-.stepContent {
-  font-size: var(--text-sm);
-  color: var(--color-neutral-700);
-  line-height: var(--leading-relaxed);
-  text-align: left;
-  margin-bottom: var(--space-3);
-}
-
-[data-theme="dark"] .stepContent {
-  color: var(--color-neutral-600);
-}
-
-.controlButtons {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.nextButton,
-.prevButton,
+/* Skip Button */
 .skipButton {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius-md);
-  font-size: var(--text-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
-  border: 1px solid transparent;
-}
-
-.nextButton {
-  background: var(--color-primary-600);
-  color: var(--color-white);
-  border-color: var(--color-primary-600);
-}
-
-.nextButton:hover {
-  background: var(--color-primary-700);
-  border-color: var(--color-primary-700);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-}
-
-.prevButton {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-700);
-  border-color: var(--color-neutral-300);
-}
-
-.prevButton:hover {
-  background: var(--color-neutral-200);
-  border-color: var(--color-neutral-400);
-  transform: translateY(-1px);
-}
-
-[data-theme="dark"] .prevButton {
-  background: var(--color-neutral-200);
-  color: var(--color-neutral-800);
-  border-color: var(--color-neutral-400);
-}
-
-[data-theme="dark"] .prevButton:hover {
-  background: var(--color-neutral-300);
-  border-color: var(--color-neutral-500);
-}
-
-.skipButton {
-  background: transparent;
-  color: var(--color-neutral-500);
+  background: none;
   border: none;
-  font-size: var(--text-xs);
-  text-decoration: underline;
-  padding: var(--space-2);
+  color: #94a3b8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
 }
 
 .skipButton:hover {
-  color: var(--color-neutral-700);
-  background: var(--color-neutral-50);
+  background: rgba(100, 116, 139, 0.2);
+  color: #e2e8f0;
 }
 
-[data-theme="dark"] .skipButton:hover {
-  color: var(--color-neutral-600);
-  background: var(--color-neutral-200);
-}
-
-/* Tour MentorChat Positioning */
-.tourMentorChat {
-  position: fixed;
-  bottom: var(--space-5);
-  left: var(--space-5);
-  z-index: 99999;
-  pointer-events: auto;
-}
-
-/* Make sure the tour mentor chat is always expanded during tour */
-.tourMentorChat .mentorChat {
-  transform: none !important;
-  opacity: 1 !important;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .tourControls {
-    right: var(--space-4);
-    min-width: 160px;
-    padding: var(--space-3);
+/* Responsive */
+@media (max-width: 640px) {
+  .tourProgress {
+    bottom: 80px;
+    left: 10px;
+    right: 10px;
+    padding: 10px 14px;
   }
-
-  .stepIndicator {
-    font-size: var(--text-xs);
-    padding: var(--space-1) var(--space-2);
+  
+  .progressSteps {
+    gap: 6px;
   }
-
-  .nextButton,
-  .prevButton {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-xs);
+  
+  .progressStep {
+    width: 6px;
+    height: 6px;
   }
-
-  .tourMentorChat {
-    bottom: var(--space-4);
-    left: var(--space-4);
+  
+  .progressStep.active {
+    width: 20px;
+    height: 6px;
   }
 }
-
-@media (max-width: 480px) {
-  .tourControls {
-    position: fixed;
-    bottom: var(--space-4);
-    left: 50%;
-    right: auto;
-    top: auto;
-    transform: translateX(-50%);
-    min-width: calc(100vw - var(--space-8));
-    max-width: 300px;
-  }
-
-  .controlButtons {
-    flex-direction: row;
-    justify-content: space-between;
-  }
-
-  .nextButton,
-  .prevButton {
-    flex: 1;
-  }
-
-  .tourMentorChat {
-    bottom: 120px; /* Make room for controls */
-    left: var(--space-2);
-    right: var(--space-2);
-  }
-}
-
-/* Animation for tour entrance */
-.tourControls {
-  animation: slideInRight 0.3s ease-out;
-}
-
-.tourMentorChat {
-  animation: slideInLeft 0.3s ease-out;
-}
-
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%) translateY(-50%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0) translateY(-50%);
-    opacity: 1;
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Mobile responsive animations */
-@media (max-width: 480px) {
-  @keyframes slideInRight {
-    from {
-      transform: translateX(-50%) translateY(100%);
-      opacity: 0;
-    }
-    to {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-    }
-  }
-} 

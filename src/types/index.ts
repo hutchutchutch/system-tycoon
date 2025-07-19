@@ -17,6 +17,7 @@ export interface Profile {
   reputation_points: number;
   career_title: string;
   preferred_mentor_id?: string;
+  onboarding_completed: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -335,44 +336,3 @@ export interface ComponentSelection {
   collaborationSettings?: CollaborationSettings;
   selectedAt: number;
 }
-
-// Explicit type exports to ensure proper module resolution
-export type {
-  User,
-  Profile,
-  UserStats,
-  Scenario,
-  Requirement,
-  QuestionSet,
-  Question,
-  SuccessCriteria,
-  Component,
-  ComponentCategory,
-  ComponentProperties,
-  ComponentMastery,
-  MasteryLevel,
-  ScenarioProgress,
-  ProgressStatus,
-  ScenarioAttempt,
-  ArchitectureSnapshot,
-  ArchitectureNode,
-  ArchitectureEdge,
-  PerformanceMetrics,
-  GameState,
-  GameScreen,
-  MeetingPhaseState,
-  DesignPhaseState,
-  SimulationPhaseState,
-  SimulationPhase,
-  ComponentState,
-  Mentor,
-  Achievement,
-  AchievementCategory,
-  AchievementCriteria,
-  RewardType,
-  UserAchievement,
-  ComponentRequirement,
-  InitialNode,
-  CollaborationSettings,
-  ComponentSelection
-};

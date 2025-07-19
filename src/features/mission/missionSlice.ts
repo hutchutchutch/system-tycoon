@@ -15,6 +15,15 @@ export interface MissionStep {
   };
 }
 
+// Database mission stage interface
+export interface DatabaseMissionStage {
+  id: string;
+  stage_number: number;
+  title: string;
+  problem_description: string;
+  completed?: boolean;
+}
+
 export interface Mission {
   id: string;
   title: string;
@@ -26,8 +35,22 @@ export interface Mission {
   completedAt?: string;
 }
 
+// Database mission interface
+export interface DatabaseMission {
+  id: string;
+  title: string;
+  description: string;
+  slug: string;
+  stages: DatabaseMissionStage[];
+  currentStageIndex: number;
+  completed: boolean;
+  startedAt?: string;
+  completedAt?: string;
+}
+
 interface MissionState {
   currentMission: Mission | null;
+  currentDatabaseMission: DatabaseMission | null; // New field for database missions
   completedMissions: string[];
   unlockedComponents: string[];
   crisisMetrics: {
@@ -75,6 +98,7 @@ const healthCrisisMission: Mission = {
 
 const initialState: MissionState = {
   currentMission: null,
+  currentDatabaseMission: null,
   completedMissions: [],
   unlockedComponents: ['web_server', 'database'], // Start with basic components
   crisisMetrics: {
@@ -95,6 +119,55 @@ const missionSlice = createSlice({
           ...healthCrisisMission,
           startedAt: new Date().toISOString(),
         };
+      }
+    },
+
+    // New action for database missions
+    setDatabaseMission: (state, action: PayloadAction<{
+      id: string;
+      title: string;
+      description: string;
+      slug: string;
+      stages: DatabaseMissionStage[];
+    }>) => {
+      const { id, title, description, slug, stages } = action.payload;
+      state.currentDatabaseMission = {
+        id,
+        title,
+        description,
+        slug,
+        stages: stages.map(stage => ({
+          ...stage,
+          completed: false // Initialize as not completed
+        })),
+        currentStageIndex: 0,
+        completed: false,
+        startedAt: new Date().toISOString(),
+      };
+    },
+
+    // Complete database mission stage
+    completeDatabaseStage: (state, action: PayloadAction<string>) => {
+      if (!state.currentDatabaseMission) return;
+
+      const stageIndex = state.currentDatabaseMission.stages.findIndex(
+        (stage) => stage.id === action.payload
+      );
+
+      if (stageIndex !== -1) {
+        state.currentDatabaseMission.stages[stageIndex].completed = true;
+        
+        // Move to next stage
+        if (stageIndex === state.currentDatabaseMission.currentStageIndex) {
+          state.currentDatabaseMission.currentStageIndex++;
+        }
+
+        // Check if mission is complete
+        if (state.currentDatabaseMission.stages.every((stage) => stage.completed)) {
+          state.currentDatabaseMission.completed = true;
+          state.currentDatabaseMission.completedAt = new Date().toISOString();
+          state.completedMissions.push(state.currentDatabaseMission.id);
+        }
       }
     },
 
@@ -138,8 +211,21 @@ const missionSlice = createSlice({
         state.unlockedComponents.push(action.payload);
       }
     },
+
+    // Clear database mission when leaving the canvas
+    clearDatabaseMission: (state) => {
+      state.currentDatabaseMission = null;
+    },
   },
 });
 
-export const { startMission, completeStep, updateMetrics, unlockComponent } = missionSlice.actions;
+export const { 
+  startMission, 
+  setDatabaseMission, 
+  completeDatabaseStage, 
+  completeStep, 
+  updateMetrics, 
+  unlockComponent, 
+  clearDatabaseMission 
+} = missionSlice.actions;
 export default missionSlice.reducer;

@@ -1,17 +1,19 @@
 /* Requirements Component - Design System CSS Module */
 
 .requirements {
-  background: var(--color-white);
+  background: rgba(30, 41, 59, 0.95);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid rgba(71, 85, 105, 0.5);
   font-family: var(--font-sans);
   transition: all var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] .requirements {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(71, 85, 105, 0.5);
 }
 
 .requirements__header {
@@ -24,7 +26,7 @@
 .requirements__title {
   font-size: var(--text-lg);
   font-weight: var(--font-semibold);
-  color: var(--color-neutral-900);
+  color: #f1f5f9;
   margin: 0;
   display: flex;
   align-items: center;
@@ -32,21 +34,21 @@
 }
 
 [data-theme="dark"] .requirements__title {
-  color: var(--color-neutral-800);
+  color: #f1f5f9;
 }
 
 .requirements__counter {
   font-size: var(--text-sm);
-  color: var(--color-neutral-600);
-  background: var(--color-neutral-100);
+  color: #e2e8f0;
+  background: rgba(100, 116, 139, 0.2);
   padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-full);
   font-weight: var(--font-medium);
 }
 
 [data-theme="dark"] .requirements__counter {
-  color: var(--color-neutral-500);
-  background: var(--color-neutral-200);
+  color: #e2e8f0;
+  background: rgba(100, 116, 139, 0.2);
 }
 
 .requirements__list {
@@ -61,25 +63,25 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3);
-  background: var(--color-neutral-50);
+  background: rgba(30, 41, 59, 0.6);
   border-radius: var(--radius-md);
-  border: 1px solid var(--color-neutral-200);
+  border: 1px solid rgba(71, 85, 105, 0.5);
   transition: all var(--duration-fast) var(--ease-out);
 }
 
 [data-theme="dark"] .requirement {
-  background: var(--color-neutral-100);
-  border-color: var(--color-neutral-300);
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(71, 85, 105, 0.5);
 }
 
 .requirement--completed {
-  background: var(--color-green-50);
-  border-color: var(--color-green-200);
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 [data-theme="dark"] .requirement--completed {
-  background: var(--color-green-950);
-  border-color: var(--color-green-800);
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
 }
 
 .requirement__icon {
@@ -87,12 +89,12 @@
   width: 20px;
   height: 20px;
   margin-top: 2px;
-  color: var(--color-neutral-400);
+  color: #64748b;
   transition: all var(--duration-fast) var(--ease-out);
 }
 
 [data-theme="dark"] .requirement__icon {
-  color: var(--color-neutral-500);
+  color: #64748b;
 }
 
 .requirement--completed .requirement__icon {
@@ -110,21 +112,21 @@
 
 .requirement__description {
   font-size: var(--text-sm);
-  color: var(--color-neutral-700);
+  color: #e2e8f0;
   margin: 0;
   line-height: var(--leading-relaxed);
 }
 
 [data-theme="dark"] .requirement__description {
-  color: var(--color-neutral-600);
+  color: #e2e8f0;
 }
 
 .requirement--completed .requirement__description {
-  color: var(--color-green-700);
+  color: #4ade80;
 }
 
 [data-theme="dark"] .requirement--completed .requirement__description {
-  color: var(--color-green-200);
+  color: #4ade80;
 }
 
 .requirements__actions {
@@ -185,13 +187,13 @@
 .progressBar {
   width: 100%;
   height: 8px;
-  background: var(--color-neutral-200);
+  background: rgba(71, 85, 105, 0.3);
   border-radius: var(--radius-full);
   overflow: hidden;
 }
 
 [data-theme="dark"] .progressBar {
-  background: var(--color-neutral-700);
+  background: rgba(71, 85, 105, 0.3);
 }
 
 .progressBar__fill {
