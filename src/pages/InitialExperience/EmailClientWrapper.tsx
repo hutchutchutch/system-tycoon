@@ -52,16 +52,6 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [showEmailDetail, setShowEmailDetail] = useState(false);
   const [selectedTab, setSelectedTab] = useState('primary');
-  const [chatMessages, setChatMessages] = useState<GroupChatMessage[]>([]);
-  const [mentors, setMentors] = useState<Record<string, MentorInfo>>({});
-  const [fullMentors, setFullMentors] = useState<any[]>([]);
-  const [chatLoading, setChatLoading] = useState(false);
-  const [newMessage, setNewMessage] = useState('');
-  const [showMentorSuggestions, setShowMentorSuggestions] = useState(false);
-  const [mentorQuery, setMentorQuery] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(0);
-  const [selectedMentorIndex, setSelectedMentorIndex] = useState(0);
-  const [expandedMentor, setExpandedMentor] = useState<string | null>(null);
 
   useEffect(() => {
     const loadEmails = async () => {
@@ -82,59 +72,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
       }
     };
 
-    const loadChatData = async () => {
-      try {
-        setChatLoading(true);
-        
-        // Fetch group chat messages
-        const { data: messages, error: messagesError } = await supabase
-          .from('group_chat_messages')
-          .select('*')
-          .order('timestamp', { ascending: true });
-
-        if (messagesError) {
-          console.error('Error fetching chat messages:', messagesError);
-          return;
-        }
-
-        // Fetch mentor info with all fields for rich mentor cards
-        const { data: mentorData, error: mentorsError } = await supabase
-          .from('mentors')
-          .select('id, name, title, tags, tagline, quote, signature, personality, specialty, lore');
-
-        if (mentorsError) {
-          console.error('Error fetching mentors:', mentorsError);
-          return;
-        }
-
-        // Fetch full mentor data for recommendations
-        const { data: fullMentorData, error: fullMentorsError } = await supabase
-          .from('mentors')
-          .select('id, name, signature, specialty');
-
-        if (fullMentorsError) {
-          console.error('Error fetching full mentor data:', fullMentorsError);
-        }
-
-        // Create mentors lookup
-        const mentorsLookup = mentorData?.reduce((acc, mentor) => {
-          acc[mentor.id] = mentor;
-          return acc;
-        }, {} as Record<string, MentorInfo>) || {};
-
-        console.log('Loaded mentors:', mentorsLookup);
-        setChatMessages(messages || []);
-        setMentors(mentorsLookup);
-        setFullMentors(fullMentorData || []);
-      } catch (error) {
-        console.error('Error loading chat data:', error);
-      } finally {
-        setChatLoading(false);
-      }
-    };
-
     loadEmails();
-    loadChatData();
   }, []);
 
   const folders: EmailFolder[] = [
@@ -156,7 +94,6 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
       count: emails.filter(e => e.status === 'draft' || e.category === 'drafts').length, 
       icon: 'edit' 
     },
-    { id: 'mentorchat', name: 'Mentor Chat', count: 3, icon: 'message-circle' },
     { id: 'trash', name: 'Trash', count: 0, icon: 'trash' },
   ];
 
@@ -222,133 +159,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     setSelectedEmailId(null);
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      // Create a user message
-      const userMessage: GroupChatMessage = {
-        id: `user-${Date.now()}`,
-        sender_id: 'current-user',
-        sender_type: 'user',
-        message_content: newMessage.trim(),
-        timestamp: new Date().toISOString()
-      };
-      
-      // Add to chat messages
-      setChatMessages(prev => [...prev, userMessage]);
-      setNewMessage('');
-      
-      // Scroll to bottom after message is added
-      setTimeout(() => {
-        const messagesContainer = document.querySelector(`.${styles.chatMessages}`);
-        if (messagesContainer) {
-          messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-      }, 100);
-    }
-  };
-
-  const handleRecommendationClick = (message: string) => {
-    setNewMessage(message);
-  };
-
-  const handleReplyToMentor = (mentorName: string) => {
-    setNewMessage(`@${mentorName} `);
-    // Focus the input after setting the message
-    setTimeout(() => {
-      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        input.setSelectionRange(input.value.length, input.value.length);
-      }
-    }, 0);
-  };
-
-  const handleToggleMentorCard = (mentorId: string) => {
-    console.log('Toggling mentor card for:', mentorId);
-    console.log('Current expandedMentor:', expandedMentor);
-    console.log('Mentor data:', mentors[mentorId]);
-    setExpandedMentor(expandedMentor === mentorId ? null : mentorId);
-  };
-
-  const handleMessageChange = (value: string) => {
-    setNewMessage(value);
-    
-    // Check for @ mentions
-    const lastAtIndex = value.lastIndexOf('@');
-    if (lastAtIndex !== -1) {
-      const textAfterAt = value.slice(lastAtIndex + 1);
-      const spaceIndex = textAfterAt.indexOf(' ');
-      const query = spaceIndex === -1 ? textAfterAt : textAfterAt.slice(0, spaceIndex);
-      
-      if (spaceIndex === -1 && query.length >= 0) {
-        setMentorQuery(query.toLowerCase());
-        setShowMentorSuggestions(true);
-        setCursorPosition(lastAtIndex);
-        setSelectedMentorIndex(0); // Reset to first mentor when showing suggestions
-      } else {
-        setShowMentorSuggestions(false);
-      }
-    } else {
-      setShowMentorSuggestions(false);
-      setSelectedMentorIndex(0);
-    }
-  };
-
-  const handleMentorSelect = (mentorName: string) => {
-    const beforeAt = newMessage.slice(0, cursorPosition);
-    const afterQuery = newMessage.slice(cursorPosition + 1 + mentorQuery.length);
-    const newText = `${beforeAt}@${mentorName} ${afterQuery}`;
-    setNewMessage(newText);
-    setShowMentorSuggestions(false);
-    setSelectedMentorIndex(0);
-    
-    // Focus input and set cursor position
-    setTimeout(() => {
-      const input = document.querySelector('.chatTextInput') as HTMLInputElement;
-      if (input) {
-        input.focus();
-        const newCursorPos = beforeAt.length + mentorName.length + 2;
-        input.setSelectionRange(newCursorPos, newCursorPos);
-      }
-    }, 0);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (showMentorSuggestions && filteredMentors.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setSelectedMentorIndex(prev => 
-          prev < filteredMentors.length - 1 ? prev + 1 : 0
-        );
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setSelectedMentorIndex(prev => 
-          prev > 0 ? prev - 1 : filteredMentors.length - 1
-        );
-      } else if (e.key === 'Tab') {
-        e.preventDefault();
-        const selectedMentor = filteredMentors[selectedMentorIndex];
-        if (selectedMentor) {
-          handleMentorSelect(selectedMentor.name);
-        }
-      } else if (e.key === 'Escape') {
-        setShowMentorSuggestions(false);
-        setSelectedMentorIndex(0);
-      }
-    } else if (e.key === 'Enter') {
-      handleSendMessage();
-    }
-  };
-
   const selectedEmail = selectedEmailId ? emails.find(e => e.id === selectedEmailId) : null;
-
-  // Filter mentors for suggestions
-  const filteredMentors = React.useMemo(() => {
-    if (!mentorQuery) return Object.values(mentors);
-    return Object.values(mentors).filter(mentor =>
-      mentor.name.toLowerCase().includes(mentorQuery)
-    );
-  }, [mentors, mentorQuery]);
 
   // Filter emails
   const filteredEmails = React.useMemo(() => {
@@ -367,7 +178,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
         email.category !== 'drafts' && 
         email.category !== 'sent'
       );
-    } else if (selectedFolder !== 'mentorchat' && selectedFolder !== 'trash') {
+    } else if (selectedFolder !== 'trash') {
       filtered = filtered.filter(email => email.category === selectedFolder);
     }
 
@@ -382,7 +193,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
     }
 
     // Only apply tab filtering for inbox and other non-special folders
-    if (selectedFolder === 'inbox' || (selectedFolder !== 'sent' && selectedFolder !== 'drafts' && selectedFolder !== 'mentorchat' && selectedFolder !== 'trash')) {
+    if (selectedFolder === 'inbox' || (selectedFolder !== 'sent' && selectedFolder !== 'drafts' && selectedFolder !== 'trash')) {
       return filtered.filter(email => email.category === selectedTab);
     }
 
@@ -418,212 +229,12 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
           tabs={tabs}
           selectedTab={selectedTab}
           onTabSelect={handleTabSelect}
-          searchPlaceholder={selectedFolder === 'mentorchat' ? 'Search messages...' : 'Search emails...'}
+          searchPlaceholder="Search emails..."
         />
 
         {/* Scrollable Content */}
         <div className={styles.content}>
-          {selectedFolder === 'mentorchat' ? (
-            <div className={styles.chatInterface}>
-              <div className={styles.chatHeader}>
-                <h3>Mentor Group Chat</h3>
-                <span className={styles.chatOnline}>{Object.keys(mentors).length} mentors online</span>
-              </div>
-              
-              <div className={styles.chatMessages}>
-                {chatLoading ? (
-                  <div className={styles.chatLoading}>Loading messages...</div>
-                ) : chatMessages.length === 0 ? (
-                  <div className={styles.chatEmpty}>No messages yet</div>
-                ) : (
-                  chatMessages.map(message => {
-                    const isUserMessage = message.sender_type === 'user';
-                    const mentor = isUserMessage ? null : mentors[message.sender_id];
-                    
-                    return (
-                      <div key={message.id} className={`${styles.chatMessage} ${isUserMessage ? styles.userMessage : ''}`}>
-                        <div className={styles.chatAvatarSection}>
-                          <div 
-                            className={styles.chatAvatar}
-                            title={isUserMessage ? undefined : mentor?.name || 'AI Mentor'}
-                            onClick={!isUserMessage ? () => handleToggleMentorCard(message.sender_id) : undefined}
-                            style={!isUserMessage ? { cursor: 'pointer' } : undefined}
-                          >
-                            {isUserMessage 
-                              ? 'You'.substring(0, 2).toUpperCase()
-                              : mentor?.name?.substring(0, 2)?.toUpperCase() || 'AI'
-                            }
-                          </div>
-                          {!isUserMessage && (
-                            <div 
-                              className={styles.mentorName}
-                              onClick={() => handleToggleMentorCard(message.sender_id)}
-                              style={{ cursor: 'pointer' }}
-                            >
-                              {mentor?.name || 'AI Mentor'}
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className={styles.chatMessageContent}>
-                          {/* Expandable Mentor Card */}
-                          {!isUserMessage && expandedMentor === message.sender_id && (
-                            <div className={styles.mentorCardExpanded}>
-                              <div className={styles.mentorCardInfo}>
-                                <h3 className={styles.mentorCardName}>
-                                  {mentor?.name || 'AI Mentor'}
-                                </h3>
-                                <p className={styles.mentorCardTitle}>
-                                  {mentor?.title || 'AI Assistant'}
-                                </p>
-                                {mentor?.tagline && (
-                                  <p className={styles.mentorCardTagline}>
-                                    "{mentor.tagline}"
-                                  </p>
-                                )}
-                              </div>
-
-                              {mentor?.quote && (
-                                <div className={styles.mentorCardQuote}>
-                                  "{mentor.quote}"
-                                </div>
-                              )}
-
-                              {mentor?.signature && (
-                                <div className={styles.mentorCardSection}>
-                                  <h4 className={styles.mentorCardSectionTitle}>Legacy</h4>
-                                  <p className={styles.mentorCardText}>{mentor.signature.legacy}</p>
-                                  {mentor.signature.knownFor && (
-                                    <p className={styles.mentorCardKnownFor}>
-                                      <strong>Known for:</strong> {mentor.signature.knownFor}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-
-                              {mentor?.specialty && (
-                                <div className={styles.mentorCardSection}>
-                                  <h4 className={styles.mentorCardSectionTitle}>Expertise</h4>
-                                  {mentor.specialty.domains && mentor.specialty.domains.length > 0 && (
-                                    <div className={styles.mentorCardDomains}>
-                                      <strong>Domains:</strong> {mentor.specialty.domains.join(', ')}
-                                    </div>
-                                  )}
-                                  {mentor.specialty.tools && mentor.specialty.tools.length > 0 && (
-                                    <div className={styles.mentorCardTools}>
-                                      <strong>Tools:</strong> {mentor.specialty.tools.join(', ')}
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-
-                              {mentor?.personality && (
-                                <div className={styles.mentorCardPersonality}>
-                                  <h4 className={styles.mentorCardSectionTitle}>Personality</h4>
-                                  {mentor.personality.style && (
-                                    <p className={styles.mentorCardText}>{mentor.personality.style}</p>
-                                  )}
-                                  {mentor.personality.traits && (
-                                    <p className={styles.mentorCardTraits}>
-                                      <strong>Traits:</strong> {mentor.personality.traits}
-                                    </p>
-                                  )}
-                                </div>
-                              )}
-
-                              {mentor?.lore && (
-                                <div className={styles.mentorCardLore}>
-                                  <strong>Legend:</strong> {mentor.lore}
-                                </div>
-                              )}
-
-                              {mentor?.tags && mentor.tags.length > 0 && (
-                                <div className={styles.mentorCardTags}>
-                                  {mentor.tags.map((tag: string, index: number) => (
-                                    <span key={index} className={styles.mentorCardTag}>
-                                      {tag}
-                                    </span>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          
-                          <div className={styles.chatContent}>
-                            <div className={styles.chatText}>{message.message_content}</div>
-                            {!isUserMessage && (
-                              <button
-                                className={styles.chatReplyButton}
-                                onClick={() => handleReplyToMentor(mentor?.name || 'AI Mentor')}
-                                title={`Reply to ${mentor?.name || 'AI Mentor'}`}
-                              >
-                                <Reply size={14} />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-              
-              <div className={styles.chatInputSection}>
-                <div className={styles.chatInputContainer}>
-                  {showMentorSuggestions && filteredMentors.length > 0 && (
-                    <div className={styles.mentorSuggestions}>
-                      {filteredMentors.map((mentor, index) => (
-                        <div
-                          key={mentor.id}
-                          className={`${styles.mentorSuggestion} ${
-                            index === selectedMentorIndex ? styles.highlighted : ''
-                          }`}
-                          onClick={() => handleMentorSelect(mentor.name)}
-                        >
-                          <div className={styles.mentorSuggestionAvatar}>
-                            {mentor.name.substring(0, 2).toUpperCase()}
-                          </div>
-                          <div className={styles.mentorSuggestionInfo}>
-                            <div className={styles.mentorSuggestionName}>{mentor.name}</div>
-                            <div className={styles.mentorSuggestionTitle}>{mentor.title}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <div className={styles.chatInput}>
-                    <input
-                      type="text"
-                      value={newMessage}
-                      onChange={(e) => handleMessageChange(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Type your message... (use @ to mention mentors)"
-                      className={`${styles.chatTextInput} chatTextInput`}
-                      onBlur={() => {
-                        // Delay hiding suggestions to allow click events
-                        setTimeout(() => {
-                          setShowMentorSuggestions(false);
-                          setSelectedMentorIndex(0);
-                        }, 200);
-                      }}
-                    />
-                    <button 
-                      className={styles.chatSendButton}
-                      onClick={handleSendMessage}
-                    >
-                      Send
-                    </button>
-                  </div>
-                </div>
-                
-                <MessageRecommendations
-                  mentors={fullMentors}
-                  onRecommendationClick={handleRecommendationClick}
-                />
-              </div>
-            </div>
-          ) : showEmailDetail && selectedEmail ? (
+          {showEmailDetail && selectedEmail ? (
             <div className={styles.emailDetail}>
               <div className={styles.emailDetailHeader}>
                 <button 

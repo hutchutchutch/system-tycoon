@@ -19,6 +19,7 @@ export interface BrowserWindowProps {
   onTabClose: (tabId: string) => void;
   onNewTab?: () => void;
   bookmarks?: Bookmark[];
+  onEmailClick?: () => void;
   className?: string;
   children?: React.ReactNode;
 } 

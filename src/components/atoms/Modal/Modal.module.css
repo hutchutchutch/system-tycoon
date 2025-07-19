@@ -3,7 +3,7 @@
   inset: 0;
   background: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(4px);
-  z-index: var(--z-40);
+  z-index: 9998; /* Ensure overlay is above everything else */
 }
 
 .modal {
@@ -15,7 +15,7 @@
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-2xl);
-  z-index: var(--z-50);
+  z-index: 9999; /* Ensure modal is above overlay */
   max-height: 90vh;
   overflow-y: auto;
   display: flex;

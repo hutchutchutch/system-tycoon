@@ -162,37 +162,7 @@
   color: var(--color-neutral-100);
 }
 
-/* Keep Email bookmark light */
-.bookmark[title*="Email"],
-.bookmark[aria-label*="Email"],
-.bookmark:has-text("Email"),
-.bookmark--email {
-  background-color: var(--color-white) !important;
-  color: var(--color-gray-700) !important;
-  border: 1px solid var(--color-gray-300) !important;
-}
-
-.bookmark[title*="Email"]:hover,
-.bookmark[aria-label*="Email"]:hover,
-.bookmark:has-text("Email"):hover,
-.bookmark--email:hover {
-  background-color: var(--color-gray-200) !important;
-  color: var(--color-gray-900) !important;
-  border-color: var(--color-gray-400) !important;
-}
-
-/* Additional Email button selector - check text content */
-.bookmark:contains("Email") {
-  background-color: var(--color-white) !important;
-  color: var(--color-gray-700) !important;
-  border: 1px solid var(--color-gray-300) !important;
-}
-
-.bookmark:contains("Email"):hover {
-  background-color: var(--color-gray-200) !important;
-  color: var(--color-gray-900) !important;
-  border-color: var(--color-gray-400) !important;
-}
+/* Email bookmark styles removed - email button now only in address bar */
 
 .bookmarkTitle {
   overflow: hidden;

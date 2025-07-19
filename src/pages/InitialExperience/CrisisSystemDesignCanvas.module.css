@@ -496,6 +496,7 @@
 
 /* Component Cards in Drawer */
 .componentCard {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -547,6 +548,34 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.infoButton {
+  position: absolute;
+  top: var(--spacing-xs);
+  right: var(--spacing-xs);
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  transition: all var(--duration-fast) var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.componentCard:hover .infoButton {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.infoButton:hover {
+  background-color: rgba(100, 116, 139, 0.2);
+  color: #3b82f6;
 }
 
 /* Floating Requirements Card */

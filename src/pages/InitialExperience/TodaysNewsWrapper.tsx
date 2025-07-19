@@ -200,7 +200,7 @@ export const TodaysNewsWrapper: React.FC = () => {
                 display: 'block'
               }}
             >
-              Today's Community News
+              Good People News
             </h1>
             <p style={{
               fontSize: 'var(--text-lg)',

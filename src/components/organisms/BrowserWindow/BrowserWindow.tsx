@@ -12,6 +12,7 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
   onTabClose,
   onNewTab,
   bookmarks = [],
+  onEmailClick,
   className,
   children,
 }) => {
@@ -69,13 +70,17 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
               <BrowserAddressBar
                 url={activeTabData.url}
                 secure={activeTabData.url.startsWith('https://')}
+                onEmailClick={onEmailClick}
               />
             )}
           </div>
         </div>
       </div>
 
-      <div className={styles.content}>
+      <div className={clsx(
+        styles.content,
+        activeTabData?.component?.name === 'EmailClientWrapper' && styles['content--emailClient']
+      )}>
         {ActiveComponent ? (
           <ActiveComponent 
             {...(activeTabData && Object.fromEntries(

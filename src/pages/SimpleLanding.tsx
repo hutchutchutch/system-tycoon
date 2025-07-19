@@ -59,12 +59,14 @@ function CTANode({ data }: NodeProps) {
   };
 
   return (
-    <div style={{
+    <div className="nodrag nopan" style={{
       background: 'transparent',
       border: 'none',
       textAlign: 'center',
+      pointerEvents: 'auto',
     }}>
       <button 
+        className="nodrag nopan"
         onClick={handleStartOnboarding}
         style={{
           position: 'relative',
@@ -78,7 +80,9 @@ function CTANode({ data }: NodeProps) {
           cursor: 'pointer',
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
           transition: 'all 0.3s',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          pointerEvents: 'auto',
+          zIndex: 10
         }}
         onMouseOver={(e) => {
           e.currentTarget.style.transform = 'scale(1.05)';

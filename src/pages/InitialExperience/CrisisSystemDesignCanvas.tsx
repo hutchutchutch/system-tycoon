@@ -13,13 +13,14 @@ import {
   useReactFlow
 } from '@xyflow/react';
 import type { Connection, Edge, Node, NodeTypes, EdgeTypes, NodeProps } from '@xyflow/react';
-import { ChevronDown, ChevronUp, Settings, Clock, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Settings, Clock, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
 import { ConnectionDebugOverlay } from './ConnectionDebugOverlay';
 
 import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
 import { MentorChat } from '../../components/molecules/MentorChat/MentorChat';
+import { ComponentDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
 import type { ValidationResponse } from '../../services/missionService';
@@ -174,10 +175,70 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     systemHealth: 'critical' as 'critical' | 'warning' | 'healthy'
   });
 
+  // Component detail modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedComponent, setSelectedComponent] = useState<ComponentDetail | null>(null);
+  const [allComponentDetails, setAllComponentDetails] = useState<ComponentDetail[]>([]);
+
   // Memoized node types (critical for React Flow performance)
   const nodeTypes = useMemo(() => ({
     custom: CustomNode,
   }), []);
+
+  // Fetch detailed component information from Supabase
+  const fetchComponentDetails = async (componentId: string): Promise<ComponentDetail | null> => {
+    try {
+      const { data, error } = await supabase
+        .from('components')
+        .select('id, name, category, icon_name, short_description, detailed_description, compatible_with')
+        .eq('id', componentId)
+        .single();
+
+      if (error) {
+        console.error('Failed to fetch component details:', error);
+        return null;
+      }
+
+      return data as ComponentDetail;
+    } catch (error) {
+      console.error('Error fetching component details:', error);
+      return null;
+    }
+  };
+
+  // Fetch all available components for compatibility resolution
+  const fetchAllComponentDetails = async (): Promise<ComponentDetail[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('components')
+        .select('id, name, category, icon_name, short_description, detailed_description, compatible_with');
+
+      if (error) {
+        console.error('Failed to fetch all components:', error);
+        return [];
+      }
+
+      return data as ComponentDetail[];
+    } catch (error) {
+      console.error('Error fetching all components:', error);
+      return [];
+    }
+  };
+
+  // Handle opening the component detail modal
+  const handleComponentInfoClick = async (componentId: string) => {
+    const componentDetail = await fetchComponentDetails(componentId);
+    if (componentDetail) {
+      setSelectedComponent(componentDetail);
+      setIsModalOpen(true);
+    }
+  };
+
+  // Handle closing the modal
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedComponent(null);
+  };
 
   // Validation hook for API-powered requirement checking
   const { isValidating, validateRequirements } = useRequirementValidation({
@@ -410,6 +471,16 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       dispatch(clearDatabaseMission());
     };
   }, [emailId, missionSlug, dispatch]);
+
+  // Load all component details for compatibility resolution
+  useEffect(() => {
+    const loadAllComponents = async () => {
+      const components = await fetchAllComponentDetails();
+      setAllComponentDetails(components);
+    };
+    
+    loadAllComponents();
+  }, []);
 
   // Removed automatic validation - now using on-demand API validation
 
@@ -658,6 +729,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
                   <h4 className={styles.componentName}>{component.name}</h4>
                   <p className={styles.componentDescription}>{component.description}</p>
                 </div>
+                <button
+                  className={styles.infoButton}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    handleComponentInfoClick(component.id);
+                  }}
+                  aria-label={`Show details for ${component.name}`}
+                  title={`View detailed information about ${component.name}`}
+                >
+                  <Info size={16} />
+                </button>
               </div>
             ))}
           </div>
@@ -772,6 +855,14 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           problemDescription={missionStageData?.problem_description}
         />
       </div>
+
+      {/* Component Detail Modal */}
+      <ComponentDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        component={selectedComponent}
+        availableComponents={allComponentDetails}
+      />
     </div>
   );
 };

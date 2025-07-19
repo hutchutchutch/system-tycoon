@@ -29,39 +29,40 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
       
       if (mentorsData.length === 0) {
         // Fallback to mock data if no mentors from database
+        // Using IDs that match the MENTORS constant in src/constants/mentors.ts
         const mockMentors: MentorForUI[] = [
           {
-            id: '1',
-            name: 'Dr. Sarah Chen',
-            title: 'Cloud Infrastructure Expert',
-            company: 'AWS',
-            contribution: 'Built scalable systems for healthcare and education',
-            avatar: '👩‍💻',
-            expertise: ['AWS', 'Azure', 'Cloud Architecture'],
-            message: 'Former AWS Solutions Architect with 15+ years building scalable systems.',
-            toastMessage: 'Dr. Chen will guide you through cloud architecture best practices.'
+            id: 'linda-wu',
+            name: 'Dr. Linda Wu',
+            title: 'Senior Systems Architect',
+            company: 'Tech Solutions Inc',
+            contribution: 'Built foundational architecture patterns for scalable systems',
+            avatar: '👩‍🏫',
+            expertise: ['System Design', 'Architecture Patterns', 'Scalability'],
+            message: 'Patient teacher who explains the "why" behind architectural decisions. Let\'s think about this step by step and build a solid foundation.',
+            toastMessage: 'Dr. Wu will guide you through foundational architecture patterns and scalability principles.'
           },
           {
-            id: '2',
-            name: 'Marcus Rodriguez',
-            title: 'Full-Stack Development Lead',
-            company: 'Tech Startup',
-            contribution: 'Helped dozens of startups build their first products',
-            avatar: '👨‍💼',
-            expertise: ['React', 'Node.js', 'Full-Stack'],
-            message: 'Tech lead who has helped dozens of startups build their first products from idea to launch.',
-            toastMessage: 'Marcus will help you master full-stack development practices.'
+            id: 'jordan-rivera',
+            name: 'Jordan Rivera',
+            title: 'Startup CTO',
+            company: 'TechFlow Ventures',
+            contribution: 'Helped dozens of startups build their first products from idea to scale',
+            avatar: '🚀',
+            expertise: ['MVP Development', 'Rapid Scaling', 'Startup Architecture'],
+            message: 'Pragmatic approach focused on getting to market fast while building for scale. For an MVP, I\'d recommend starting simple and iterating.',
+            toastMessage: 'Jordan will help you master pragmatic development and rapid scaling strategies.'
           },
           {
-            id: '3',
-            name: 'Dr. Amara Okafor',
-            title: 'Data & AI Strategist',
-            company: 'Google AI',
-            contribution: 'Applied ML to solve real-world social challenges',
-            avatar: '👩‍🔬',
-            expertise: ['Machine Learning', 'Data Analytics', 'AI Strategy'],
-            message: 'Former Google AI researcher focused on applying ML to solve real-world social challenges.',
-            toastMessage: 'Dr. Okafor will guide you through data science and AI applications.'
+            id: 'maya-patel',
+            name: 'Maya Patel',
+            title: 'Cloud Solutions Architect',
+            company: 'CloudFirst Technologies',
+            contribution: 'Pioneered modern cloud architectures and microservices patterns',
+            avatar: '☁️',
+            expertise: ['Cloud Platforms', 'Microservices', 'Distributed Systems'],
+            message: 'Forward-thinking approach using cutting-edge cloud solutions. In the cloud, we can leverage managed services to focus on what matters.',
+            toastMessage: 'Maya will guide you through modern cloud architectures and distributed system patterns.'
           }
         ];
         setMentors(mockMentors);
@@ -75,37 +76,37 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
       // Fallback to mock data if there's an error
       const mockMentors: MentorForUI[] = [
         {
-          id: '1',
-          name: 'Dr. Sarah Chen',
-          title: 'Cloud Infrastructure Expert',
-          company: 'AWS',
-          contribution: 'Built scalable systems for healthcare and education',
-          avatar: '👩‍💻',
-          expertise: ['AWS', 'Azure', 'Cloud Architecture'],
-          message: 'Former AWS Solutions Architect with 15+ years building scalable systems.',
-          toastMessage: 'Dr. Chen will guide you through cloud architecture best practices.'
+          id: 'linda-wu',
+          name: 'Dr. Linda Wu',
+          title: 'Senior Systems Architect',
+          company: 'Tech Solutions Inc',
+          contribution: 'Built foundational architecture patterns for scalable systems',
+          avatar: '👩‍🏫',
+          expertise: ['System Design', 'Architecture Patterns', 'Scalability'],
+          message: 'Patient teacher who explains the "why" behind architectural decisions. Let\'s think about this step by step and build a solid foundation.',
+          toastMessage: 'Dr. Wu will guide you through foundational architecture patterns and scalability principles.'
         },
         {
-          id: '2',
-          name: 'Marcus Rodriguez',
-          title: 'Full-Stack Development Lead',
-          company: 'Tech Startup',
-          contribution: 'Helped dozens of startups build their first products',
-          avatar: '👨‍💼',
-          expertise: ['React', 'Node.js', 'Full-Stack'],
-          message: 'Tech lead who has helped dozens of startups build their first products from idea to launch.',
-          toastMessage: 'Marcus will help you master full-stack development practices.'
+          id: 'jordan-rivera',
+          name: 'Jordan Rivera',
+          title: 'Startup CTO',
+          company: 'TechFlow Ventures',
+          contribution: 'Helped dozens of startups build their first products from idea to scale',
+          avatar: '🚀',
+          expertise: ['MVP Development', 'Rapid Scaling', 'Startup Architecture'],
+          message: 'Pragmatic approach focused on getting to market fast while building for scale. For an MVP, I\'d recommend starting simple and iterating.',
+          toastMessage: 'Jordan will help you master pragmatic development and rapid scaling strategies.'
         },
         {
-          id: '3',
-          name: 'Dr. Amara Okafor',
-          title: 'Data & AI Strategist',
-          company: 'Google AI',
-          contribution: 'Applied ML to solve real-world social challenges',
-          avatar: '👩‍🔬',
-          expertise: ['Machine Learning', 'Data Analytics', 'AI Strategy'],
-          message: 'Former Google AI researcher focused on applying ML to solve real-world social challenges.',
-          toastMessage: 'Dr. Okafor will guide you through data science and AI applications.'
+          id: 'maya-patel',
+          name: 'Maya Patel',
+          title: 'Cloud Solutions Architect',
+          company: 'CloudFirst Technologies',
+          contribution: 'Pioneered modern cloud architectures and microservices patterns',
+          avatar: '☁️',
+          expertise: ['Cloud Platforms', 'Microservices', 'Distributed Systems'],
+          message: 'Forward-thinking approach using cutting-edge cloud solutions. In the cloud, we can leverage managed services to focus on what matters.',
+          toastMessage: 'Maya will guide you through modern cloud architectures and distributed system patterns.'
         }
       ];
       setMentors(mockMentors);

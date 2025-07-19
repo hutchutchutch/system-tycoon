@@ -26,46 +26,9 @@ const InitialExperienceContent: React.FC = () => {
   const [missionComplete, setMissionComplete] = useState(false);
   const [emailNotificationShown, setEmailNotificationShown] = useState(false);
   const [showProductTour, setShowProductTour] = useState(false);
-  const [bookmarks, setBookmarks] = useState([
-    {
-      id: 'email',
-      title: 'Email',
-      url: 'https://promail.com/inbox',
-      icon: 'mail',
-      hasNotification: false,
-      onClick: () => handleEmailBookmarkClick()
-    }
+  const [bookmarks, setBookmarks] = useState<any[]>([
+    // Email button removed from bookmarks - now only in address bar
   ]);
-
-  // Email notification after 3 seconds on news page
-  useEffect(() => {
-    if (activeTab === 'todays-news' && !emailNotificationShown) {
-      const timer = setTimeout(() => {
-        // Play notification sound
-        try {
-          const audio = new Audio('/notification.mp3');
-          audio.volume = 0.3;
-          audio.play().catch(() => {
-            // Fallback - browser might block autoplay
-            console.log('Notification sound blocked by browser');
-          });
-        } catch (error) {
-          console.log('Could not play notification sound');
-        }
-
-        // Update email bookmark to show notification
-        setBookmarks(prev => prev.map(bookmark => 
-          bookmark.id === 'email' 
-            ? { ...bookmark, hasNotification: true }
-            : bookmark
-        ));
-        
-        setEmailNotificationShown(true);
-      }, 3000); // 3 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, [activeTab, emailNotificationShown]);
 
   // Check for crisis parameter and automatically open system design canvas
   useEffect(() => {
@@ -129,15 +92,8 @@ const InitialExperienceContent: React.FC = () => {
     }
   }, [tabs]);
 
-  const handleEmailBookmarkClick = useCallback(() => {
-    console.log('Email bookmark clicked!');
-    
-    // Remove notification when clicking email
-    setBookmarks(prev => prev.map(bookmark => 
-      bookmark.id === 'email' 
-        ? { ...bookmark, hasNotification: false }
-        : bookmark
-    ));
+  const handleEmailClick = useCallback(() => {
+    console.log('Email button clicked!');
 
     openNewTab({
       id: 'email',
@@ -181,16 +137,7 @@ const InitialExperienceContent: React.FC = () => {
     });
   }, [openNewTab]);
 
-  const handleEmailIconClick = useCallback(() => {
-    console.log('Email clicked!');
-    openNewTab({
-      id: 'email',
-      title: 'ProMail - Inbox',
-      url: 'https://promail.com/inbox',
-      component: EmailClientWrapper,
-      closable: true,
-    });
-  }, [openNewTab]);
+  // Using handleEmailClick for both address bar and home page email icon
 
   const handleOpenSystemDesignTab = useCallback((emailId?: string) => {
     const newTab = {
@@ -257,7 +204,7 @@ const InitialExperienceContent: React.FC = () => {
           onProfileClick: tab.id === 'home' ? handleProfileIconClick : undefined,
           onHelpClick: tab.id === 'home' ? handleHelpIconClick : undefined,
           onNewsClick: tab.id === 'home' ? handleNewsIconClick : undefined,
-          onEmailClick: tab.id === 'home' ? handleEmailIconClick : undefined,
+          onEmailClick: tab.id === 'home' ? handleEmailClick : undefined,
           // Pass handlers for system design and mission completion
           onOpenSystemDesign: tab.id === 'email' ? handleOpenSystemDesignTab : undefined,
           onMissionComplete: tab.id === 'system-design' ? handleMissionComplete : undefined,
@@ -266,6 +213,7 @@ const InitialExperienceContent: React.FC = () => {
         onTabChange={handleTabChange}
         onTabClose={handleTabClose}
         onNewTab={handleNewTab}
+        onEmailClick={handleEmailClick}
       />
       
       {/* Product Tour */}

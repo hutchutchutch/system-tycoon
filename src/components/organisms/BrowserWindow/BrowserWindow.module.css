@@ -169,6 +169,15 @@
   z-index: 0;
 }
 
+/* Email client specific styling - no grid background */
+.content--emailClient {
+  background: var(--color-neutral-100);
+}
+
+.content--emailClient::before {
+  display: none;
+}
+
 [data-theme="dark"] .content {
   background: #000000;
 }

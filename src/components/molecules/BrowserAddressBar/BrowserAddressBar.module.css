@@ -321,9 +321,9 @@
 }
 
 .emailButton:hover {
-  background: var(--color-neutral-900);
-  color: var(--color-white);
-  border-color: var(--color-neutral-700);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-900);
+  border-color: var(--color-white);
 }
 
 .emailButton:active {

@@ -85,7 +85,16 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     }
   };
 
-  const selectedMentor = MENTORS[selectedMentorId];
+  const selectedMentor = MENTORS[selectedMentorId] || {
+    id: selectedMentorId,
+    name: 'AI Mentor',
+    title: 'System Design Assistant',
+    specialization: 'General system design and architecture guidance',
+    guidanceStyle: 'Adaptive and helpful',
+    bestForLevels: [1, 2, 3, 4, 5],
+    signatureAdvice: 'Let me help you with that...',
+    unlockLevel: 1,
+  };
 
   const handleSendMessage = useCallback(async () => {
     if (!currentInput.trim() || isLoading || !user || !isAuthenticated) return;
