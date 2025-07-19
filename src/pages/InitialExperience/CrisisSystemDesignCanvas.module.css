@@ -77,12 +77,22 @@
 .reactFlowWrapper {
   width: 100%;
   height: 100%;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 .reactFlow {
   width: 100%;
   height: 100%;
   background: transparent;
+}
+
+/* React Flow Background Pattern */
+.reactFlow :global(.react-flow__background) {
+  opacity: 0.3;
+}
+
+.reactFlow :global(.react-flow__background-pattern-dots) {
+  fill: rgba(148, 163, 184, 0.5);
 }
 
 /* React Flow Controls */
@@ -182,14 +192,12 @@
 
 .nodeHandle:hover {
   background: #3b82f6 !important;
-  transform: scale(1.3);
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
 }
 
 /* Handle states */
 :global(.react-flow__handle.connecting) {
   background: #10b981 !important;
-  transform: scale(1.5) !important;
 }
 
 :global(.react-flow__handle.valid) {

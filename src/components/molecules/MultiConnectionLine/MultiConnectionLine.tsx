@@ -1,78 +1,67 @@
 import React from 'react';
-import { useReactFlow, useNodes, getSimpleBezierPath } from '@xyflow/react';
+import { getSimpleBezierPath } from '@xyflow/react';
 import type { ConnectionLineComponentProps } from '@xyflow/react';
 import styles from './MultiConnectionLine.module.css';
 
 export const MultiConnectionLine: React.FC<ConnectionLineComponentProps> = ({ 
+  fromX,
+  fromY,
   toX, 
-  toY 
+  toY,
+  fromNode,
+  fromHandle,
+  fromPosition,
+  connectionStatus
 }) => {
-  const { getInternalNode } = useReactFlow();
-  const nodes = useNodes();
-  
-  // Get all selected nodes
-  const selectedNodes = nodes.filter((node) => node.selected);
-  
-  // If no nodes are selected, don't render anything
-  if (selectedNodes.length === 0) {
+  // If we don't have the required connection information, don't render anything
+  if (fromX === undefined || fromY === undefined || toX === undefined || toY === undefined) {
     return null;
   }
-  
-  // Get all source handles from selected nodes
-  const handleBounds = selectedNodes.flatMap((userNode) => {
-    const node = getInternalNode(userNode.id);
-    
-    // Check if the node has source handles
-    if (!node || !node.internals.handleBounds?.source) {
-      return [];
-    }
-    
-    // Map each source handle
-    return node.internals.handleBounds.source.map((bounds) => ({
-      nodeId: node.id,
-      positionAbsolute: node.internals.positionAbsolute,
-      bounds,
-    }));
+
+  // Create bezier path from the clicked handle to the cursor
+  const [d] = getSimpleBezierPath({
+    sourceX: fromX,
+    sourceY: fromY,
+    targetX: toX,
+    targetY: toY,
+    sourcePosition: fromPosition,
   });
-  
-  // Draw a connection line from each source handle to the cursor
+
+  // Determine connection line color based on validation status
+  const getConnectionClass = () => {
+    if (connectionStatus === 'valid') return styles.connectionPathValid;
+    if (connectionStatus === 'invalid') return styles.connectionPathInvalid;
+    return styles.connectionPath;
+  };
+
   return (
     <g>
-      {handleBounds.map(({ nodeId, positionAbsolute, bounds }, index) => {
-        // Calculate the center position of the handle
-        const fromHandleX = bounds.x + bounds.width / 2;
-        const fromHandleY = bounds.y + bounds.height / 2;
-        
-        // Calculate absolute position
-        const fromX = positionAbsolute.x + fromHandleX;
-        const fromY = positionAbsolute.y + fromHandleY;
-        
-        // Create bezier path
-        const [d] = getSimpleBezierPath({
-          sourceX: fromX,
-          sourceY: fromY,
-          targetX: toX,
-          targetY: toY,
-        });
-        
-        return (
-          <g key={`${nodeId}-${bounds.id || index}`}>
-            {/* Connection path */}
-            <path 
-              d={d} 
-              className={styles.connectionPath}
-            />
-          </g>
-        );
-      })}
+      {/* Connection path from the clicked handle to cursor */}
+      <path 
+        d={d} 
+        className={getConnectionClass()}
+      />
       
-      {/* Cursor indicator - only show once */}
+      {/* Cursor indicator */}
       <circle 
         cx={toX} 
         cy={toY} 
         r={4} 
         className={styles.cursorIndicator}
       />
+      
+      {/* Debug info for development */}
+      {process.env.NODE_ENV === 'development' && fromNode && fromHandle && (
+        <text
+          x={toX + 10}
+          y={toY - 10}
+          fontSize="10"
+          fill="white"
+          style={{ pointerEvents: 'none' }}
+        >
+          {fromNode.id}:{fromHandle.id || 'default'}
+        </text>
+      )}
     </g>
   );
 };

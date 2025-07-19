@@ -680,7 +680,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               return !edgeExists;
             }}
           >
-            <Background color="transparent" gap={20} size={0} />
+            <Background variant="dots" gap={20} size={1} />
             <Controls className={styles.reactFlowControls} />
             <MiniMap className={styles.reactFlowMinimap} />
             {process.env.NODE_ENV === 'development' && <ConnectionDebugOverlay />}
@@ -763,74 +763,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               color: '#0369a1'
             }}>
               🔍 Validating your design...
-            </div>
-          )}
-          
-          {/* Test Controls - For Development */}
-          {process.env.NODE_ENV === 'development' && (mission.currentDatabaseMission || mission.currentMission) && (
-            <div style={{ 
-              padding: '1rem', 
-              backgroundColor: '#fef3c7', 
-              borderRadius: '8px', 
-              margin: '1rem 0',
-              borderLeft: '4px solid #f59e0b'
-            }}>
-              <h4 style={{ margin: '0 0 0.5rem 0', fontSize: '0.875rem', fontWeight: '600' }}>
-                🧪 Test Controls
-              </h4>
-              {mission.currentDatabaseMission ? (
-                <>
-                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', opacity: 0.8 }}>
-                    Database Mission: {mission.currentDatabaseMission.currentStageIndex + 1} / {mission.currentDatabaseMission.stages.length}
-                  </p>
-                  <button
-                    onClick={() => {
-                      const currentStage = mission.currentDatabaseMission?.stages[mission.currentDatabaseMission.currentStageIndex];
-                      if (currentStage) {
-                        dispatch(completeDatabaseStage(currentStage.id));
-                      }
-                    }}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      backgroundColor: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer'
-                    }}
-                    disabled={mission.currentDatabaseMission?.currentStageIndex >= mission.currentDatabaseMission?.stages.length}
-                  >
-                    Complete Current Stage
-                  </button>
-                </>
-              ) : mission.currentMission && (
-                <>
-                  <p style={{ margin: '0 0 0.5rem 0', fontSize: '0.75rem', opacity: 0.8 }}>
-                    Hardcoded Mission: {mission.currentMission.currentStepIndex + 1} / {mission.currentMission.steps.length}
-                  </p>
-                  <button
-                    onClick={() => {
-                      const currentStep = mission.currentMission?.steps[mission.currentMission.currentStepIndex];
-                      if (currentStep) {
-                        dispatch(completeStep(currentStep.id));
-                      }
-                    }}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      backgroundColor: '#10b981',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      fontSize: '0.75rem',
-                      cursor: 'pointer'
-                    }}
-                    disabled={mission.currentMission?.currentStepIndex >= mission.currentMission?.steps.length}
-                  >
-                    Complete Current Stage
-                  </button>
-                </>
-              )}
             </div>
           )}
         </div>

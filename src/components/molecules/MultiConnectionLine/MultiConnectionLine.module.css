@@ -16,6 +16,24 @@
   animation: dashdraw 0.5s linear infinite;
 }
 
+.connectionPathValid {
+  stroke: var(--color-success, #22c55e);
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  fill: none;
+  opacity: 0.8;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+.connectionPathInvalid {
+  stroke: var(--color-error, #ef4444);
+  stroke-width: 2;
+  stroke-dasharray: 5, 5;
+  fill: none;
+  opacity: 0.8;
+  animation: dashdraw 0.5s linear infinite;
+}
+
 .cursorIndicator {
   fill: var(--bg-primary, #fff);
   stroke: var(--text-primary, #333);
