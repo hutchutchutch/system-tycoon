@@ -53,20 +53,42 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
   }, []);
 
   const handleDragStart = useCallback((event: React.DragEvent<HTMLDivElement>) => {
-    if (isDrawerComponent) {
-      // For drawer components, we don't drag the high-level component itself
+    if (isDrawerComponent && drawerComponent) {
+      // For drawer components from database, set up drag data
+      event.dataTransfer.setData('application/reactflow', drawerComponent.category);
+      event.dataTransfer.setData('application/component', JSON.stringify({
+        id: drawerComponent.id,
+        name: drawerComponent.name,
+        type: drawerComponent.category,
+        category: drawerComponent.category,
+        cost: 50, // Default cost
+        capacity: 1000, // Default capacity  
+        description: drawerComponent.shortDescription,
+        icon: drawerComponent.icon,
+        color: drawerComponent.color
+      }));
+      event.dataTransfer.effectAllowed = 'move';
+      
+      console.log('Dragging drawer component:', drawerComponent.name);
+      
+      // Call parent handler
+      onDragStart?.(event, drawerComponent);
+      return;
+    }
+
+    if (!data) {
       event.preventDefault();
       return;
     }
 
-    // Set the component data for the drag operation
+    // Set the component data for the drag operation (legacy support)
     event.dataTransfer.setData('application/reactflow', data?.type || '');
     event.dataTransfer.setData('application/component', JSON.stringify(component));
     event.dataTransfer.effectAllowed = 'move';
     
     // Call parent handler
     onDragStart?.(event, component);
-  }, [component, data, isDrawerComponent, onDragStart]);
+  }, [component, data, isDrawerComponent, drawerComponent, onDragStart]);
 
   const handleDragEnd = useCallback(() => {
     onDragEnd?.();
@@ -178,8 +200,8 @@ export const ComponentCard: React.FC<ComponentCardProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={onClick}
-      // HTML Drag and Drop API - only draggable for old-style components on canvas
-      draggable={variant === 'drawer' && !isDrawerComponent && !data?.locked}
+      // HTML Drag and Drop API - allow dragging for drawer components from database
+      draggable={(variant === 'drawer' && isDrawerComponent) || (variant === 'drawer' && !isDrawerComponent && !data?.locked)}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       role={variant === 'canvas' || onClick ? 'button' : undefined}

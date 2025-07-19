@@ -1,6 +1,7 @@
 import React from 'react';
 import clsx from 'clsx';
 import { CheckCircle, Circle, Play, ClipboardList } from 'lucide-react';
+import { Button } from '../../atoms/Button';
 import styles from './Requirements.module.css';
 
 interface Requirement {
@@ -11,13 +12,13 @@ interface Requirement {
 
 interface RequirementsProps {
   requirements: Requirement[];
-  onRunTest: () => void;
+  onTestSystem: () => void;
   className?: string;
 }
 
 export const Requirements: React.FC<RequirementsProps> = ({ 
   requirements, 
-  onRunTest, 
+  onTestSystem, 
   className = '' 
 }) => {
   const completedCount = requirements.filter(req => req.completed).length;
@@ -74,14 +75,16 @@ export const Requirements: React.FC<RequirementsProps> = ({
       </div>
       
       <div className={styles.requirements__actions}>
-        <button 
-          className={styles.runTestButton}
-          onClick={onRunTest}
+        <Button 
+          variant="primary"
+          size="md"
+          onClick={onTestSystem}
           disabled={!allCompleted}
+          className={styles.testSystemButton}
         >
           <Play size={16} />
-          Run Test
-        </button>
+          Test System
+        </Button>
       </div>
     </div>
   );

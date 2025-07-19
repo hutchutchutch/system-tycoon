@@ -3,13 +3,18 @@ export interface MentorChatProps {
   missionTitle?: string;
   problemDescription?: string;
   className?: string;
+  // Canvas state for real-time context
+  canvasNodes?: any[];
+  canvasEdges?: any[];
+  requirements?: any[];
+  availableComponents?: any[];
 }
 
 export interface ChatMessage {
   id: string;
   content: string;
   timestamp: Date;
-  sender: 'user' | 'mentor';
+  sender: 'user' | 'mentor' | 'system';
   mentorId?: string;
 }
 

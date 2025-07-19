@@ -14,6 +14,7 @@ import { TodaysNewsWrapper } from './pages/InitialExperience/TodaysNewsWrapper';
 
 import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
 import { CrisisSystemDesignCanvas } from './pages/InitialExperience/CrisisSystemDesignCanvas';
+import { BlankSystemDesignPage } from './pages/BlankSystemDesignPage';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
 import { SystemDesignPage } from './pages/game/SystemDesignPage';
@@ -88,6 +89,20 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <CrisisSystemDesignCanvas />,
+          },
+        ],
+      },
+      {
+        path: 'design-canvas',
+        element: (
+          <ProtectedRoute>
+            <GameLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <BlankSystemDesignPage />,
           },
         ],
       },

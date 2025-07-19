@@ -160,8 +160,9 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       <Modal
         isOpen={isOpen}
         onClose={handleClose}
-        size="large"
+        size="medium"
         className={styles.emailComposer}
+        showCloseButton={false}
       >
         <div className={styles.header}>
           <h2 className={styles.title}>New Message</h2>

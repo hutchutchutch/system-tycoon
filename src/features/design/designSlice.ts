@@ -178,14 +178,20 @@ const designSlice = createSlice({
       );
       
       if (!exists && connection.source && connection.target) {
+        // Check if this is a crisis edge (user nodes to system)
+        const isCrisisEdge = connection.source.startsWith('users-') || connection.source === 'families';
+        
         const newEdge: Edge = {
           id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
           source: connection.source,
           target: connection.target,
           sourceHandle: connection.sourceHandle || undefined,
           targetHandle: connection.targetHandle || undefined,
-          animated: true,
-          style: { stroke: '#475569', strokeWidth: 2 },
+          animated: isCrisisEdge,
+          style: isCrisisEdge 
+            ? { stroke: '#ef4444', strokeWidth: 3 } 
+            : { stroke: '#475569', strokeWidth: 2 },
+          className: isCrisisEdge ? 'crisis-edge' : undefined,
         };
         
         state.edges.push(newEdge);

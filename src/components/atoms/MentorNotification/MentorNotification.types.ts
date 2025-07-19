@@ -9,6 +9,13 @@ export interface MentorNotificationProps {
   showArrow?: boolean;
   autoHideDuration?: number; // milliseconds, 0 for no auto-hide
   className?: string;
+  // Multi-step flow props
+  onShowRequirements?: () => void;
+  onShowComponentDrawer?: () => void;
+  onHideRequirements?: () => void;
+  onHideComponentDrawer?: () => void;
+  missionStageId?: string;
+  conversationSessionId?: string;
 }
 
 export interface HighlightOverlayProps {

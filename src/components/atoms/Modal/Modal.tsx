@@ -1,5 +1,4 @@
 import React, { useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import styles from './Modal.module.css';
 
@@ -48,22 +47,15 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   const content = (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <>
-          <motion.div
+          <div
             className={styles.overlay}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             onClick={handleOverlayClick}
           />
-          <motion.div
+          <div
             className={`${styles.modal} ${styles[`modal--${size}`]} ${className}`}
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             onClick={(e) => e.stopPropagation()}
           >
             {showCloseButton && onClose && (
@@ -83,10 +75,10 @@ export const Modal: React.FC<ModalProps> = ({
               </button>
             )}
             {children}
-          </motion.div>
+          </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 
   // Use portal to render modal at document root

@@ -7,6 +7,10 @@
   max-width: 100%;
 }
 
+[data-theme="dark"] .wrapper {
+  background-color: var(--color-obsidian-950);
+}
+
 .main {
   flex: 1;
   display: flex;
@@ -22,6 +26,10 @@
   background-color: var(--color-white);
   min-height: 0;
   min-width: 0; /* Allow shrinking */
+}
+
+[data-theme="dark"] .content {
+  background-color: var(--color-obsidian-950);
 }
 
 /* Loading State */
@@ -651,12 +659,21 @@
   padding: 20px;
   height: 100%;
   overflow-y: auto;
+  background-color: var(--color-white);
+}
+
+[data-theme="dark"] .emailDetail {
+  background-color: var(--color-obsidian-950);
 }
 
 .emailDetailHeader {
   border-bottom: 1px solid var(--color-gray-200);
   padding-bottom: 16px;
   margin-bottom: 16px;
+}
+
+[data-theme="dark"] .emailDetailHeader {
+  border-bottom-color: var(--color-obsidian-800);
 }
 
 .emailDetailBack {
@@ -669,9 +686,17 @@
   padding: 4px 0;
 }
 
+[data-theme="dark"] .emailDetailBack {
+  color: var(--color-primary-400);
+}
+
 .emailDetailBack:hover {
   color: var(--color-primary-700);
   text-decoration: underline;
+}
+
+[data-theme="dark"] .emailDetailBack:hover {
+  color: var(--color-primary-300);
 }
 
 .emailDetailSubject {
@@ -681,6 +706,10 @@
   color: var(--color-gray-900);
 }
 
+[data-theme="dark"] .emailDetailSubject {
+  color: var(--color-obsidian-300);
+}
+
 .emailDetailMeta {
   color: var(--color-gray-600);
   font-size: 14px;
@@ -688,10 +717,38 @@
   margin-bottom: 24px;
 }
 
+[data-theme="dark"] .emailDetailMeta {
+  color: var(--color-obsidian-300);
+}
+
 .emailDetailContent {
   color: var(--color-gray-800);
   line-height: 1.6;
   font-size: 15px;
+}
+
+[data-theme="dark"] .emailDetailContent {
+  color: var(--color-obsidian-300);
+  background-color: var(--color-obsidian-950);
+}
+
+[data-theme="dark"] .emailDetailContent strong {
+  color: var(--color-obsidian-300);
+  font-weight: 600;
+}
+
+[data-theme="dark"] .emailDetailContent em {
+  color: var(--color-obsidian-300);
+}
+
+.emailDivider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid var(--color-neutral-300);
+}
+
+[data-theme="dark"] .emailDivider {
+  border-top-color: var(--color-obsidian-700);
 }
 
 /* Mission Action Section */
@@ -704,10 +761,19 @@
   text-align: center;
 }
 
+[data-theme="dark"] .missionActionSection {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(30, 41, 59, 0.6) 100%);
+  border-color: var(--color-obsidian-700);
+}
+
 .divider {
   margin: 24px 0;
   border: none;
   border-top: 2px solid #e0e0e0;
+}
+
+[data-theme="dark"] .divider {
+  border-top-color: var(--color-obsidian-700);
 }
 
 .missionActionTitle {
@@ -717,11 +783,19 @@
   margin-bottom: 8px;
 }
 
+[data-theme="dark"] .missionActionTitle {
+  color: var(--color-neutral-100);
+}
+
 .missionActionDescription {
   font-size: 14px;
   color: var(--color-gray-600);
   margin-bottom: 16px;
   line-height: 1.5;
+}
+
+[data-theme="dark"] .missionActionDescription {
+  color: var(--color-neutral-300);
 }
 
 .openSystemDesignButton {
@@ -763,6 +837,15 @@
   background-color: var(--color-warning-50);
   border: 1px solid var(--color-warning-200);
   border-radius: 8px;
+}
+
+[data-theme="dark"] .systemDesignPrompt {
+  background-color: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+[data-theme="dark"] .systemDesignPrompt p {
+  color: var(--color-neutral-200);
 }
 
 .systemDesignButton {

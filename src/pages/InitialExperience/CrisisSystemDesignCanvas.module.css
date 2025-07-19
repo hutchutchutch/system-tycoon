@@ -1,23 +1,50 @@
 /* CrisisSystemDesignCanvas - Dark Mode System Design Interface */
 
-/* Problem Card Container */
-.problemCardContainer {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: var(--spacing-xl);
-  background: linear-gradient(135deg, var(--surface-primary) 0%, var(--surface-secondary) 100%);
+/* Canvas container styling */
+.canvas {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
-.centeredProblemCard {
-  animation: fadeInUp 0.6s ease-out;
+/* Requirements on the right side */
+.floatingRequirements {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 280px;
+  width: 280px;
+  pointer-events: auto;
+}
+
+.bottomRequirements {
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: slideUpFromBottom 0.6s ease-out;
+  backdrop-filter: blur(10px);
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -235,12 +262,12 @@
   position: relative;
 }
 
-.customNode :global(.react-flow__handle-top) {
-  top: -6px !important;
+.customNode :global(.react-flow__handle-left) {
+  left: -6px !important;
 }
 
-.customNode :global(.react-flow__handle-bottom) {
-  bottom: -6px !important;
+.customNode :global(.react-flow__handle-right) {
+  right: -6px !important;
 }
 
 /* User Node Styles */
@@ -314,12 +341,28 @@
 }
 
 /* User Node Handle positioning */
-.userNode :global(.react-flow__handle-top) {
-  top: -8px !important;
+.userNode :global(.react-flow__handle-right) {
+  right: -8px !important;
 }
 
-.userNode :global(.react-flow__handle-bottom) {
-  bottom: -8px !important;
+/* Broken Node Styling */
+.brokenNode {
+  border: 3px solid #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3), 0 4px 20px rgba(239, 68, 68, 0.2) !important;
+  animation: brokenPulse 2s ease-in-out infinite;
+}
+
+.brokenNode .nodeTitle {
+  color: #ef4444;
+}
+
+@keyframes brokenPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3), 0 4px 20px rgba(239, 68, 68, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.5), 0 4px 25px rgba(239, 68, 68, 0.4);
+  }
 }
 
 /* Category-based Node Styles */
@@ -757,6 +800,33 @@
   stroke-dasharray: 5, 5 !important;
 }
 
+/* Crisis Edge Animation */
+:global(.crisis-edge .react-flow__edge-path) {
+  stroke: #ef4444 !important;
+  stroke-width: 3 !important;
+  animation: crisisFlow 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));
+}
+
+@keyframes crisisFlow {
+  0%, 100% {
+    stroke-dasharray: 10, 5;
+    stroke-dashoffset: 0;
+    opacity: 0.8;
+  }
+  50% {
+    stroke-dasharray: 10, 5;
+    stroke-dashoffset: -15;
+    opacity: 1;
+  }
+}
+
+/* Enhanced Crisis Edge on Hover */
+:global(.crisis-edge:hover .react-flow__edge-path) {
+  stroke-width: 4 !important;
+  filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.7));
+}
+
 /* Responsive Design */
 @media (max-width: 1024px) {
   .componentDrawerCard {
@@ -793,4 +863,241 @@
   .canvasContainer {
     height: 60vh;
   }
+}
+
+/* Input Modal Overlay Styles for BlankSystemDesignPage */
+.inputModalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: var(--spacing-lg);
+}
+
+.inputModalContent {
+  max-width: 600px;
+  width: 100%;
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--color-border-primary);
+}
+
+.modalHeader {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.iconContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: var(--spacing-xl);
+}
+
+.buildingIcon {
+  color: var(--color-primary-600);
+}
+
+.ideaIcon {
+  color: var(--color-accent-warning);
+  margin-left: var(--spacing-sm);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+.modalTitle {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-800));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.modalSubtitle {
+  font-size: var(--text-lg);
+  color: var(--color-text-secondary);
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.inputSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.projectInput {
+  font-size: var(--text-lg) !important;
+  padding: var(--spacing-lg) !important;
+  border-radius: var(--radius-lg) !important;
+  background: var(--color-surface-secondary) !important;
+  border: 2px solid var(--color-border-secondary) !important;
+  transition: all var(--transition-normal) !important;
+  width: 100%;
+}
+
+.projectInput:focus {
+  border-color: var(--color-primary-500) !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
+.startButton {
+  font-size: var(--text-lg);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--color-primary-600), var(--color-primary-700));
+  color: white;
+  border: none;
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  width: 100%;
+}
+
+.startButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--color-primary-700), var(--color-primary-800));
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.startButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.exampleProjects {
+  margin-top: var(--spacing-xl);
+}
+
+.examplesLabel {
+  font-size: var(--text-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-md);
+  font-weight: var(--font-weight-medium);
+  text-align: center;
+}
+
+.exampleChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  justify-content: center;
+}
+
+.exampleChip {
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--radius-full);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.exampleChip:hover {
+  background: var(--color-primary-50);
+  border-color: var(--color-primary-200);
+  color: var(--color-primary-700);
+  transform: translateY(-1px);
+}
+
+.projectTitleOverlay {
+  position: absolute;
+  top: var(--spacing-lg);
+  left: var(--spacing-lg);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  background: var(--color-surface-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-md) var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-primary);
+}
+
+.projectTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.changeProjectButton {
+  white-space: nowrap;
+}
+
+/* Component positioning utilities */
+.componentDrawerPosition {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 100%;
+  z-index: 900;
+}
+
+/* Component Drawer styles - Floating overlay */
+.componentDrawer {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  width: 320px;
+  max-height: calc(100vh - 80px);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  z-index: 1000;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.drawerContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Remove the canvas margin adjustment since drawer is now floating */
+.canvasContainer .reactFlowWrapper {
+  margin-left: 0;
 }

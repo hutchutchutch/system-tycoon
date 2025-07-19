@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { X, ChevronRight } from 'lucide-react';
+import { useSelector } from 'react-redux';
 import type { MentorNotificationProps, HighlightOverlayProps } from './MentorNotification.types';
+import type { RootState } from '../../../store';
+import { supabase } from '../../../services/supabase';
 import styles from './MentorNotification.module.css';
 
 // Highlight overlay component that creates a spotlight effect on target elements
@@ -55,6 +58,35 @@ const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
   );
 };
 
+// Function to save notification as system message to database
+const saveNotificationAsSystemMessage = async (
+  userId: string,
+  mentorId: string,
+  conversationSessionId: string,
+  message: string,
+  missionStageId?: string
+) => {
+  try {
+    const { error } = await supabase
+      .from('mentor_chat_messages')
+      .insert({
+        user_id: userId,
+        mentor_id: mentorId,
+        conversation_session_id: conversationSessionId,
+        message_content: message,
+        sender_type: 'system',
+        mission_stage_id: missionStageId,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error('Failed to save notification as system message:', error);
+    }
+  } catch (error) {
+    console.error('Error saving notification:', error);
+  }
+};
+
 export const MentorNotification: React.FC<MentorNotificationProps> = ({
   title,
   message,
@@ -65,12 +97,40 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   position = 'bottom',
   showArrow = true,
   autoHideDuration = 0,
-  className = ''
+  className = '',
+  // New props for multi-step flow
+  onShowRequirements,
+  onShowComponentDrawer,
+  onHideRequirements,
+  onHideComponentDrawer,
+  missionStageId,
+  conversationSessionId
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [highlightBounds, setHighlightBounds] = useState<DOMRect | null>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
+  // Get current user and profile from Redux store
+  const { user, profile } = useSelector((state: RootState) => state.auth);
+  
+  // Use preferred mentor from profile, fallback to 'linda-wu'
+  const selectedMentorId = profile?.preferred_mentor_id || 'linda-wu';
+
+  // Save notification as system message when component mounts
+  useEffect(() => {
+    if (user && conversationSessionId) {
+      const fullMessage = `${title}\n\n${message}`;
+      saveNotificationAsSystemMessage(
+        user.id,
+        selectedMentorId,
+        conversationSessionId,
+        fullMessage,
+        missionStageId
+      );
+    }
+  }, [user, selectedMentorId, conversationSessionId, title, message, missionStageId]);
+
+  // Auto-hide functionality
   useEffect(() => {
     if (autoHideDuration > 0) {
       const timer = setTimeout(() => {
@@ -105,6 +165,24 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   };
 
   const handleAction = () => {
+    // Handle multi-step flow actions
+    if (actionLabel === 'What do I need to do?') {
+      onShowRequirements?.();
+      onAction?.();
+      // Don't close - let parent handle step progression
+      return;
+    } else if (actionLabel === 'How do I do this?') {
+      onShowComponentDrawer?.();
+      onAction?.();
+      // Don't close - let parent handle step progression  
+      return;
+    } else if (actionLabel === 'Got it!') {
+      onAction?.();
+      handleClose();
+      return;
+    }
+    
+    // For other actions, proceed with normal close behavior
     onAction?.();
     handleClose();
   };

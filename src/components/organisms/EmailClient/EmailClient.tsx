@@ -293,6 +293,14 @@ export const EmailClient: React.FC<EmailClientProps> = ({
               <div className={styles.emailDetailContent}>
                 {selectedEmailDetail.content}
                 
+                {/* Handle collaboration invitations */}
+                {selectedEmailDetail.body && selectedEmailDetail.body.includes('Open System Builder') && (
+                  <div 
+                    className={styles.emailHtmlContent}
+                    dangerouslySetInnerHTML={{ __html: selectedEmailDetail.body }}
+                  />
+                )}
+                
                 {selectedEmailDetail.content?.includes('/?crisis=true') && (
                   <div className={styles.systemDesignPrompt}>
                     <p>This email mentions a crisis situation that requires immediate system design attention.</p>

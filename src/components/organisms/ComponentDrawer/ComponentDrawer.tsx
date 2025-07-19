@@ -100,6 +100,29 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
     onOfferingDragStart?.(offering, component);
   }, [checkSelectionRules, onOfferingDragStart]);
 
+  // Handle dragging of drawer components directly
+  const handleComponentDragStart = useCallback((
+    event: React.DragEvent<HTMLDivElement>,
+    component: DrawerComponent
+  ) => {
+    // Set drag data for the component
+    event.dataTransfer.setData('application/reactflow', component.category);
+    event.dataTransfer.setData('application/component', JSON.stringify({
+      id: component.id,
+      name: component.name,
+      type: component.category,
+      category: component.category,
+      cost: 50, // Default cost
+      capacity: 1000, // Default capacity
+      description: component.shortDescription,
+      icon: component.icon,
+      color: component.color
+    }));
+    event.dataTransfer.effectAllowed = 'move';
+    
+    console.log('Dragging component:', component.name);
+  }, []);
+
   const renderOffering = (
     offering: ComponentOffering, 
     component: DrawerComponent,
@@ -298,6 +321,8 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
                           variant="drawer"
                           isExpanded={expandedComponent === component.id}
                           onClick={() => handleComponentClick(component)}
+                          onDragStart={(event) => handleComponentDragStart(event as React.DragEvent<HTMLDivElement>, component)}
+                          onDragEnd={onOfferingDragEnd}
                         />
                         {expandedComponent === component.id && renderDetailedView(component)}
                       </div>

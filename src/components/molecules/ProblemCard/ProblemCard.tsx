@@ -1,6 +1,7 @@
 import React from 'react';
-import { AlertTriangle, Clock, Users } from 'lucide-react';
+import { AlertTriangle, Clock, Users, ArrowRight } from 'lucide-react';
 import { Card } from '../../atoms/Card';
+import { Button } from '../../atoms/Button';
 import styles from './ProblemCard.module.css';
 
 export interface ProblemCardProps {
@@ -10,6 +11,7 @@ export interface ProblemCardProps {
   affectedCount?: number;
   timeframe?: string;
   onStartDesign?: () => void;
+  onNext?: () => void;
   className?: string;
 }
 
@@ -20,6 +22,7 @@ export const ProblemCard: React.FC<ProblemCardProps> = ({
   affectedCount,
   timeframe,
   onStartDesign,
+  onNext,
   className
 }) => {
   const getUrgencyIcon = () => {
@@ -66,14 +69,29 @@ export const ProblemCard: React.FC<ProblemCardProps> = ({
         </div>
       </div>
       
-      {onStartDesign && (
+      {(onStartDesign || onNext) && (
         <div className={styles.actions}>
-          <button 
-            className={styles.startButton}
-            onClick={onStartDesign}
-          >
-            Start System Design
-          </button>
+          {onStartDesign && (
+            <Button
+              variant="primary"
+              size="md"
+              className={styles.actionButton}
+              onClick={onStartDesign}
+            >
+              Start System Design
+            </Button>
+          )}
+          {onNext && (
+            <Button
+              variant="secondary"
+              size="md"
+              className={styles.actionButton}
+              onClick={onNext}
+            >
+              Next
+              <ArrowRight size={16} />
+            </Button>
+          )}
         </div>
       )}
     </Card>

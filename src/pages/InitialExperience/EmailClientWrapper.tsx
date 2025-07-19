@@ -221,7 +221,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div className={styles.wrapper} data-theme="dark">
       {/* Fixed Sidebar */}
       <EmailSidebar
         folders={folders}
@@ -269,7 +269,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
                       .replace(/\n/g, '<br />')
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                       .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                      .replace(/---/g, '<hr style="margin: 20px 0; border: none; border-top: 1px solid #ddd;" />')
+                      .replace(/---/g, '<hr class="' + styles.emailDivider + '" />')
                   }}
                 />
                 

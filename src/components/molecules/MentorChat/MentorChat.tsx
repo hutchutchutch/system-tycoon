@@ -5,7 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { MENTORS } from '../../../constants/mentors';
 import { ProductTour } from '../../organisms/ProductTour';
 import type { MentorChatProps, ChatMessage } from './MentorChat.types';
-import { mentorChatService, type MentorChatSession } from '../../../services/mentorChatService';
+import { mentorChatService, type MentorChatSession, collectPageContext } from '../../../services/mentorChatService';
 import type { RootState } from '../../../store';
 import styles from './MentorChat.module.css';
 
@@ -19,7 +19,11 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   missionStageId,
   missionTitle,
   problemDescription,
-  className = ''
+  className = '',
+  canvasNodes = [],
+  canvasEdges = [],
+  requirements = [],
+  availableComponents = []
 }) => {
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
@@ -253,6 +257,64 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     setIsLoading(true);
 
     try {
+      // Enhanced canvas state for mentor context
+      const enhancedCanvasState = {
+        nodes: canvasNodes.map(node => ({
+          id: node.id,
+          type: node.type || 'custom',
+          position: node.position,
+          data: {
+            label: node.data?.label || node.data?.name,
+            category: node.data?.category,
+            description: node.data?.description,
+            icon: node.data?.icon,
+            userCount: node.data?.userCount,
+            status: node.data?.status
+          },
+          handles: {
+            input: `${node.id}-input`,
+            output: `${node.id}-output`
+          },
+          isConnectable: true,
+          nodeType: 'canvas_component'
+        })),
+        edges: canvasEdges.map(edge => ({
+          id: edge.id,
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceHandle,
+          targetHandle: edge.targetHandle,
+          type: 'canvas_connection',
+          sourceNode: canvasNodes.find(n => n.id === edge.source)?.data?.label || edge.source,
+          targetNode: canvasNodes.find(n => n.id === edge.target)?.data?.label || edge.target
+        })),
+        connectionSummary: {
+          totalNodes: canvasNodes.length,
+          totalConnections: canvasEdges.length,
+          nodesByCategory: canvasNodes.reduce((acc, node) => {
+            const category = node.data?.category || 'unknown';
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>),
+          connectionPairs: canvasEdges.map(edge => {
+            const sourceNode = canvasNodes.find(n => n.id === edge.source);
+            const targetNode = canvasNodes.find(n => n.id === edge.target);
+            return `${sourceNode?.data?.label || edge.source} → ${targetNode?.data?.label || edge.target}`;
+          })
+        }
+      };
+
+      // Collect context data based on current page
+      const contextData = collectPageContext(location.pathname, {
+        missionStage: missionStageId ? { id: missionStageId, title: missionTitle, description: problemDescription } : undefined,
+        mission: missionTitle ? { title: missionTitle, description: problemDescription } : undefined,
+        requirements: requirements,
+        components: availableComponents,
+        canvasState: enhancedCanvasState,
+        currentNodes: enhancedCanvasState.nodes,
+        currentEdges: enhancedCanvasState.edges
+      });
+
       const session: MentorChatSession = {
         userId: user.id,
         mentorId: selectedMentorId,
@@ -261,6 +323,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         missionStageId: missionStageId && isValidUUID(missionStageId) ? missionStageId : undefined,
         missionTitle,
         problemDescription,
+        contextData,
       };
 
       const mentorResponse = await mentorChatService.sendMessage(session, userMessage.content);
@@ -287,7 +350,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription]);
+  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription, location.pathname]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

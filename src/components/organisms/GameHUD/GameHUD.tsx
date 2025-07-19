@@ -4,7 +4,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/redux';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CAREER_TITLES } from '../../../constants';
-import { User, Trophy, Star, Sun, Moon, AlertTriangle, Mail, Globe, FileText, Clock } from 'lucide-react';
+import { User, Trophy, Star, Sun, Moon, AlertTriangle, Mail, Globe, FileText, Clock, Users } from 'lucide-react';
+import { InviteCollaboratorModal } from '../InviteCollaboratorModal';
 import styles from './GameHUD.module.css';
 
 interface GameHUDProps {
@@ -22,6 +23,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
   
+  // Invite modal state
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  
   // Timer state
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -29,6 +33,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Check if we're on the crisis system design canvas
   const isOnCrisisCanvas = location.pathname.includes('/crisis/') || location.pathname.includes('/game/email/');
+  
+  // Extract stage ID from URL if on crisis canvas
+  const getStageIdFromPath = () => {
+    const match = location.pathname.match(/\/crisis\/([^/?]+)/);
+    return match ? match[1] : null;
+  };
+  
+  const stageId = getStageIdFromPath();
+  const missionId = currentDatabaseMission?.id || currentMission?.id;
   
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -92,6 +105,16 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     action();
     setIsAvatarMenuOpen(false);
   };
+
+  const handleUserProfileClick = () => {
+    if (isOnCrisisCanvas && stageId && missionId) {
+      // Open invite modal when on crisis canvas
+      setIsInviteModalOpen(true);
+    } else {
+      // Default behavior - could open user profile
+      console.log('User profile clicked');
+    }
+  };
   
   // Format timer display
   const formatTimer = (seconds: number) => {
@@ -120,7 +143,12 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const isOnGameRoute = location.pathname.startsWith('/game');
   
   // Check if we're on the Today's News screen
-  const isOnTodaysNews = location.pathname === '/browser/news';
+  const isOnTodaysNews = location.pathname === '/browser/news' || location.pathname === '/game';
+  
+  // Check if we're on a system design page (CrisisSystemDesignCanvas or SystemDesignPage)
+  const isOnSystemDesignPage = location.pathname.includes('/crisis/') || 
+                               location.pathname.includes('/system-design') ||
+                               location.pathname.includes('/email/');
   
   // Prioritize database mission over hardcoded mission
   const activeMission = currentDatabaseMission || currentMission;
@@ -128,193 +156,222 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     ? currentDatabaseMission.stages && currentDatabaseMission.stages.length > 0
     : currentMission && currentMission.steps && currentMission.steps.length > 0;
   
-  // Show mission stages if we have an active mission and we're on the game route
-  const showMissionStages = isOnGameRoute && activeMission && hasStages && !isOnTodaysNews;
+  // Show mission stages ONLY if we're on a system design page
+  const showMissionStages = isOnSystemDesignPage && activeMission && hasStages;
 
   return (
-    <header className={clsx(styles.hud, className)}>
-      {/* Left Section - User Profile */}
-      <div className={clsx(styles.section, styles['section--left'])}>
-        <div className={styles.profile} ref={avatarRef}>
-          <div 
-            className={clsx(styles.avatar, isAvatarMenuOpen && styles.avatarActive)} 
-            onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            aria-label="Open user menu"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleAvatarClick();
-              }
-            }}
-          >
-            <span className={styles.avatarText}>
-              {username[0]?.toUpperCase() || 'U'}
-            </span>
-            <div className={styles.statusIndicator} />
-          </div>
-          <div 
-            className={styles.userInfo}
-            onClick={handleAvatarClick}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                handleAvatarClick();
-              }
-            }}
-          >
-            <div className={styles.username}>{username}</div>
-            <div className={styles.careerTitle}>{careerTitle}</div>
-          </div>
-          
-          {/* Avatar Dropdown Menu */}
-          {isAvatarMenuOpen && (
-            <div className={styles.avatarDropdown}>
-              <div className={styles.dropdownHeader}>Browser Options</div>
+    <>
+      <header className={clsx(styles.hud, className)}>
+        {/* Left Section - User Profile */}
+        <div className={clsx(styles.section, styles['section--left'])}>
+          <div className={styles.profile} ref={avatarRef}>
+            <div 
+              className={clsx(styles.avatar, isAvatarMenuOpen && styles.avatarActive)} 
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              aria-label="Open user menu"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleAvatarClick();
+                }
+              }}
+            >
+              <span className={styles.avatarText}>
+                {username[0]?.toUpperCase() || 'U'}
+              </span>
+              <div className={styles.statusIndicator} />
+            </div>
+            <div 
+              className={styles.userInfo}
+              onClick={handleAvatarClick}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleAvatarClick();
+                }
+              }}
+            >
+              <div className={styles.username}>{username}</div>
+              <div className={styles.careerTitle}>{careerTitle}</div>
+            </div>
+            
+            {/* Avatar Dropdown Menu */}
+            {isAvatarMenuOpen && (
+              <div className={styles.avatarDropdown}>
+                <div className={styles.dropdownHeader}>Browser Options</div>
 
-              <button
-                className={styles.dropdownItem}
-                onClick={() => handleDropdownItemClick(() => {
-                  navigate('/browser/news');
-                })}
-              >
-                <FileText size={14} />
-                <span>Today's News</span>
-              </button>
-              <div className={styles.dropdownDivider} />
-              <button
-                className={styles.dropdownItem}
-                onClick={() => handleDropdownItemClick(() => {
-                  navigate('/email');
-                })}
-              >
-                <Mail size={14} />
-                <span>Email Client</span>
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Center Section - Timer, Mission Stages, Today's News Message, or System Status */}
-      <div className={clsx(styles.section, styles['section--center'])}>
-        {isTimerActive && timerSeconds > 0 ? (
-          <div className={clsx(styles.timer, timerSeconds <= 30 && styles['timer--warning'])}>
-            <Clock size={16} className={styles.timerIcon} />
-            <span className={styles.timerText}>Time Remaining: {formatTimer(timerSeconds)}</span>
-          </div>
-        ) : isOnTodaysNews ? (
-          <div className={styles.todaysNewsMessage}>
-            <span className={styles.newsMessageText}>People need help! Choose your Mission</span>
-          </div>
-        ) : showMissionStages ? (
-          <div className={styles.missionStages}>
-            <span className={styles.stageLabel}>Stage:</span>
-            <div className={styles.stageIndicators}>
-              {currentDatabaseMission ? (
-                // Render database mission stages
-                currentDatabaseMission.stages.map((stage, index) => {
-                  const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
-                  const isCompleted = stage.completed || false;
-                  const isUpcoming = index > currentDatabaseMission.currentStageIndex;
-                  
-                  return (
-                    <div
-                      key={stage.id}
-                      className={clsx(styles.stageIndicator, {
-                        [styles['stageIndicator--current']]: isCurrentStage,
-                        [styles['stageIndicator--completed']]: isCompleted,
-                        [styles['stageIndicator--upcoming']]: isUpcoming,
-                      })}
-                      title={stage.title}
-                    >
-                      {stage.stage_number}
-                    </div>
-                  );
-                })
-              ) : (
-                // Render hardcoded mission steps (fallback)
-                currentMission?.steps.map((step, index) => {
-                  const isCurrentStage = index === currentMission.currentStepIndex;
-                  const isCompleted = step.completed;
-                  const isUpcoming = index > currentMission.currentStepIndex;
-                  
-                  return (
-                    <div
-                      key={step.id}
-                      className={clsx(styles.stageIndicator, {
-                        [styles['stageIndicator--current']]: isCurrentStage,
-                        [styles['stageIndicator--completed']]: isCompleted,
-                        [styles['stageIndicator--upcoming']]: isUpcoming,
-                      })}
-                      title={step.title}
-                    >
-                      {index + 1}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className={styles.systemStatus}>
-            <div className={styles.statusItem}>
-              <div className={clsx(styles.statusDot, styles['statusDot--online'])} />
-              <span className={styles.statusText}>System Online</span>
-            </div>
-            {dataLost > 0 && (
-              <div className={clsx(styles.statusItem, styles['statusItem--warning'])}>
-                <AlertTriangle size={14} />
-                <span className={styles.statusText}>Data Lost: {dataLost}</span>
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => handleDropdownItemClick(() => {
+                    navigate('/browser/news');
+                  })}
+                >
+                  <FileText size={14} />
+                  <span>Today's News</span>
+                </button>
+                <div className={styles.dropdownDivider} />
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => handleDropdownItemClick(() => {
+                    navigate('/design-canvas');
+                  })}
+                >
+                  <Globe size={14} />
+                  <span>System Design Canvas</span>
+                </button>
+                <div className={styles.dropdownDivider} />
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => handleDropdownItemClick(() => {
+                    navigate('/email');
+                  })}
+                >
+                  <Mail size={14} />
+                  <span>Email Client</span>
+                </button>
               </div>
             )}
           </div>
-        )}
-      </div>
-      
-      {/* Right Section - Stats & Actions */}
-      <div className={clsx(styles.section, styles['section--right'])}>
-        <div className={styles.stats}>
-          <div className={styles.stat}>
-            <div className={styles.statIcon}>
-              <Trophy size={16} />
+        </div>
+        
+        {/* Center Section - Timer, Mission Stages, Today's News Message, or System Status */}
+        <div className={clsx(styles.section, styles['section--center'])}>
+          {isTimerActive && timerSeconds > 0 ? (
+            <div className={clsx(styles.timer, timerSeconds <= 30 && styles['timer--warning'])}>
+              <Clock size={16} className={styles.timerIcon} />
+              <span className={styles.timerText}>Time Remaining: {formatTimer(timerSeconds)}</span>
             </div>
-            <div className={styles.statContent}>
-              <div className={styles.statLabel}>Level</div>
-              <div className={styles.statValue}>{currentLevel}</div>
+          ) : isOnTodaysNews ? (
+            <div className={styles.todaysNewsMessage}>
+              <span className={styles.newsMessageText}>People need help! Choose your Mission</span>
             </div>
-          </div>
-          
-          <div className={styles.stat}>
-            <div className={styles.statIcon}>
-              <Star size={16} />
+          ) : showMissionStages ? (
+            <div className={styles.missionStages}>
+              <span className={styles.stageLabel}>Stage:</span>
+              <div className={styles.stageIndicators}>
+                {currentDatabaseMission ? (
+                  // Render database mission stages
+                  currentDatabaseMission.stages.map((stage, index) => {
+                    const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
+                    const isCompleted = stage.completed || false;
+                    const isUpcoming = index > currentDatabaseMission.currentStageIndex;
+                    
+                    return (
+                      <div
+                        key={stage.id}
+                        className={clsx(styles.stageIndicator, {
+                          [styles['stageIndicator--current']]: isCurrentStage,
+                          [styles['stageIndicator--completed']]: isCompleted,
+                          [styles['stageIndicator--upcoming']]: isUpcoming,
+                        })}
+                        title={stage.title}
+                      >
+                        {stage.stage_number}
+                      </div>
+                    );
+                  })
+                ) : (
+                  // Render hardcoded mission steps (fallback)
+                  currentMission?.steps.map((step, index) => {
+                    const isCurrentStage = index === currentMission.currentStepIndex;
+                    const isCompleted = step.completed;
+                    const isUpcoming = index > currentMission.currentStepIndex;
+                    
+                    return (
+                      <div
+                        key={step.id}
+                        className={clsx(styles.stageIndicator, {
+                          [styles['stageIndicator--current']]: isCurrentStage,
+                          [styles['stageIndicator--completed']]: isCompleted,
+                          [styles['stageIndicator--upcoming']]: isUpcoming,
+                        })}
+                        title={step.title}
+                      >
+                        {index + 1}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
-            <div className={styles.statContent}>
-              <div className={styles.statLabel}>Reputation</div>
-              <div className={styles.statValue}>
-                {reputationPoints.toLocaleString()}
+          ) : (
+            <div className={styles.systemStatus}>
+              <div className={styles.statusItem}>
+                <div className={clsx(styles.statusDot, styles['statusDot--online'])} />
+                <span className={styles.statusText}>System Online</span>
+              </div>
+              {dataLost > 0 && (
+                <div className={clsx(styles.statusItem, styles['statusItem--warning'])}>
+                  <AlertTriangle size={14} />
+                  <span className={styles.statusText}>Data Lost: {dataLost}</span>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Right Section - Stats & Actions */}
+        <div className={clsx(styles.section, styles['section--right'])}>
+          <div className={styles.stats}>
+            <div className={styles.stat}>
+              <div className={styles.statIcon}>
+                <Trophy size={16} />
+              </div>
+              <div className={styles.statContent}>
+                <div className={styles.statLabel}>Level</div>
+                <div className={styles.statValue}>{currentLevel}</div>
+              </div>
+            </div>
+            
+            <div className={styles.stat}>
+              <div className={styles.statIcon}>
+                <Star size={16} />
+              </div>
+              <div className={styles.statContent}>
+                <div className={styles.statLabel}>Reputation</div>
+                <div className={styles.statValue}>
+                  {reputationPoints.toLocaleString()}
+                </div>
               </div>
             </div>
           </div>
+          
+          <div className={styles.actions}>
+            <button 
+              className={clsx(styles.actionButton, styles['actionButton--theme'])} 
+              onClick={toggleTheme}
+              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
+            </button>
+            <button 
+              className={clsx(styles.actionButton, {
+                [styles['actionButton--collaborate']]: isOnCrisisCanvas
+              })} 
+              onClick={handleUserProfileClick}
+              aria-label={isOnCrisisCanvas ? "Invite collaborator" : "User profile"}
+              title={isOnCrisisCanvas ? "Invite collaborator" : "User profile"}
+            >
+              {isOnCrisisCanvas ? <Users size={16} /> : <User size={16} />}
+            </button>
+          </div>
         </div>
-        
-        <div className={styles.actions}>
-          <button 
-            className={clsx(styles.actionButton, styles['actionButton--theme'])} 
-            onClick={toggleTheme}
-            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-          >
-            {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
-          </button>
-          <button className={styles.actionButton} aria-label="User profile">
-            <User size={16} />
-          </button>
-        </div>
-      </div>
-    </header>
+      </header>
+      
+      {/* Invite Collaborator Modal */}
+      {isInviteModalOpen && stageId && missionId && (
+        <InviteCollaboratorModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          stageId={stageId}
+          missionId={missionId}
+        />
+      )}
+    </>
   );
 };

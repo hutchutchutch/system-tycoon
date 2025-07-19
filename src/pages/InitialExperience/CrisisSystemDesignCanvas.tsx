@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { 
   ReactFlow, 
   ReactFlowProvider,
@@ -13,12 +13,15 @@ import {
 } from '@xyflow/react';
 import type { Connection, Node, NodeProps } from '@xyflow/react';
 import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
-import { ConnectionDebugOverlay } from './ConnectionDebugOverlay';
+
 
 // import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
+import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
-import { ProblemCard } from '../../components/molecules/ProblemCard/ProblemCard';
+import { MentorNotification } from '../../components/atoms/MentorNotification/MentorNotification';
+import { MentorChat } from '../../components/molecules/MentorChat/MentorChat';
+import { CursorManager } from '../../components/organisms/CursorManager/CursorManager';
 
 import { ComponentDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
@@ -26,6 +29,7 @@ import { useRequirementValidation } from '../../hooks/useRequirementValidation';
 import type { ValidationResponse } from '../../services/missionService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { supabase } from '../../services/supabase';
+import { realtimeCollaborationService } from '../../services/realtimeCollaboration';
 
 // Redux imports following the established patterns
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
@@ -40,6 +44,17 @@ import {
   selectEdges,
   addEdge as addEdgeAction 
 } from '../../features/design/designSlice';
+import {
+  setActiveCanvas,
+  updateCanvasState,
+  loadCanvasState,
+  selectCanvasState,
+  selectSavingStatus,
+  selectCanvasSaveError,
+  serializeNode,
+  serializeEdge
+} from '../../store/slices/canvasSlice';
+import { useLoadCanvasStateQuery, useSaveCanvasStateMutation } from '../../store/api/canvasApi';
 
 import '@xyflow/react/dist/style.css';
 import styles from './CrisisSystemDesignCanvas.module.css';
@@ -111,15 +126,6 @@ const UserNode: React.FC<NodeProps<Node<UserNodeData>>> = React.memo(({ data, se
         backgroundColor: userColor + '15'
       }}
     >
-      {/* Input handle (top) */}
-      <Handle
-        type="target"
-        position={Position.Top}
-        id={`${id}-input`}
-        className={styles.nodeHandle}
-        isConnectable={isConnectable}
-      />
-      
       <div className={styles.userNodeIcon} style={{ color: userColor }}>
         <Users size={24} />
       </div>
@@ -131,10 +137,10 @@ const UserNode: React.FC<NodeProps<Node<UserNodeData>>> = React.memo(({ data, se
         <div className={styles.userNodeLabel}>{data.label}</div>
       </div>
       
-      {/* Output handle (bottom) */}
+      {/* Output handle (right side only) */}
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={Position.Right}
         id={`${id}-output`}
         className={styles.nodeHandle}
         isConnectable={isConnectable}
@@ -163,12 +169,15 @@ const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data
     return categoryMap[category || ''] || 'default-node';
   };
 
+  // Check if node is broken
+  const isBroken = (data as any).status === 'broken';
+
   return (
-    <div className={`${styles.customNode} ${styles[getCategoryClass(data.category)]} ${selected ? styles.selected : ''}`}>
-      {/* Input handle (top) */}
+    <div className={`${styles.customNode} ${styles[getCategoryClass(data.category)]} ${selected ? styles.selected : ''} ${isBroken ? styles.brokenNode : ''}`}>
+      {/* Input handle (left side) */}
       <Handle
         type="target"
-        position={Position.Top}
+        position={Position.Left}
         id={`${id}-input`}
         className={styles.nodeHandle}
         isConnectable={isConnectable}
@@ -190,10 +199,10 @@ const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data
         )}
       </div>
       
-      {/* Output handle (bottom) */}
+      {/* Output handle (right side) */}
       <Handle
         type="source"
-        position={Position.Bottom}
+        position={Position.Right}
         id={`${id}-output`}
         className={styles.nodeHandle}
         isConnectable={isConnectable}
@@ -204,6 +213,41 @@ const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data
 
 CustomNode.displayName = 'CustomNode';
 
+// User node breakdown logic - breaks down total users into denominations
+const createUserNodeBreakdown = (totalUsers: number) => {
+  const denominations = [100000, 10000, 1000, 500, 100, 10, 1];
+  const breakdown: Array<{
+    id: string;
+    name: string;
+    label: string;
+    description: string;
+    userCount: number;
+  }> = [];
+  
+  let remaining = totalUsers;
+  
+  for (const denom of denominations) {
+    const count = Math.floor(remaining / denom);
+    for (let i = 0; i < count; i++) {
+      const userType = denom >= 10000 ? 'Large Organizations' : 
+                       denom >= 1000 ? 'Organizations' : 
+                       denom >= 100 ? 'Community Groups' : 
+                       denom >= 10 ? 'Family Groups' : 'Individuals';
+      
+      breakdown.push({
+        id: `users-${denom}-${i}`,
+        name: `${userType}`,
+        label: `${denom} Users`,
+        description: `${denom} users (${userType.toLowerCase()}) trying to access the system`,
+        userCount: denom
+      });
+    }
+    remaining -= count * denom;
+  }
+  
+  return breakdown;
+};
+
 interface CrisisSystemDesignCanvasProps {
   missionSlug?: string;
   // emailId is now obtained from route params, not props
@@ -213,9 +257,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   missionSlug = 'health-tracker-crisis'
 }) => {
   const { emailId } = useParams<{ emailId: string }>();
+  const [searchParams] = useSearchParams();
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
+  const user = useAppSelector(state => state.auth?.user);
   const nodes = useAppSelector(state => state.design?.nodes || []);
   const edges = useAppSelector(state => state.design?.edges || []);
   const draggedComponent = useAppSelector(state => state.design?.draggedComponent);
@@ -223,12 +269,31 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const { screenToFlowPosition } = useReactFlow();
   
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
-  const [showingProblemCard, setShowingProblemCard] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeMission, setActiveMission] = useState<MissionData | null>(null);
   const [missionStageData, setMissionStageData] = useState<MissionStageData | null>(null);
+  
+  // Collaboration state
+  const sessionId = searchParams.get('session');
+  const [isCollaborative, setIsCollaborative] = useState(false);
+  const [collaborationSession, setCollaborationSession] = useState<any>(null);
+  const [collaborators, setCollaborators] = useState<any[]>([]);
+  const [cursors, setCursors] = useState<Record<string, { x: number; y: number; timestamp: number }>>({});
+  const collaborationChannelRef = useRef<any>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  
+  // Canvas state from Redux (after missionStageData is available)
+  const canvasState = useAppSelector(state => 
+    missionStageData?.id ? selectCanvasState(missionStageData.id)(state) : null
+  );
+  const savingStatus = useAppSelector(selectSavingStatus);
+  const saveError = useAppSelector(selectCanvasSaveError);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
+  const [notificationStep, setNotificationStep] = useState<number>(0); // 0: none, 1: issue analysis, 2: requirements explanation, 3: component drawer guidance
+  const [showRequirements, setShowRequirements] = useState(false);
+  const [showComponentDrawer, setShowComponentDrawer] = useState(false);
+  const [conversationSessionId] = useState(() => `design-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
     familiesHelped: 0,
@@ -247,6 +312,111 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     custom: CustomNode,
     user: UserNode,
   }), []);
+
+  // Transform mission components for the component drawer
+  const drawerComponents = useMemo(() => {
+    if (!activeMission) return [];
+    
+    return activeMission.components.map(comp => ({
+      id: comp.id,
+      name: comp.name,
+      icon: comp.icon_name,
+      color: comp.color || '#3B82F6', // Use database color or default
+      shortDescription: comp.short_description,
+      category: comp.category
+    }));
+  }, [activeMission]);
+
+  // Legacy availableComponents for React Flow compatibility
+  const availableComponents = useMemo(() => {
+    if (!activeMission) return [];
+    
+    return activeMission.components.map(comp => ({
+      id: comp.id,
+      name: comp.name,
+      type: comp.category,
+      category: comp.category,
+      cost: 50, // Default cost, could be from component_offerings
+      capacity: 1000,
+      description: comp.short_description,
+      icon: comp.icon_name
+    }));
+  }, [activeMission]);
+
+  // Component drawer state
+  const [drawerSearchQuery, setDrawerSearchQuery] = useState('');
+
+  // React Flow event handlers
+  const onConnect = useCallback((params: Connection) => {
+    console.log('🔗 Connection attempt:', {
+      source: params.source,
+      target: params.target,
+      sourceHandle: params.sourceHandle,
+      targetHandle: params.targetHandle
+    });
+    
+    // Ensure we have valid source and target
+    if (!params.source || !params.target) {
+      console.error('❌ Invalid connection - missing source or target');
+      return;
+    }
+    
+    // Prevent self-connections
+    if (params.source === params.target) {
+      console.warn('⚠️ Cannot connect node to itself');
+      return;
+    }
+    
+    // Log which node is being used as source
+    const sourceNode = nodes.find(n => n.id === params.source);
+    const targetNode = nodes.find(n => n.id === params.target);
+    console.log('📍 Connecting:', sourceNode?.data.label, '→', targetNode?.data.label);
+    console.log('📊 Node IDs:', { sourceId: params.source, targetId: params.target });
+    
+    dispatch(addEdgeAction(params));
+  }, [dispatch, nodes]);
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+
+    // Check if we have a dragged component from data transfer
+    const componentData = event.dataTransfer.getData('application/component');
+    const componentType = event.dataTransfer.getData('application/reactflow');
+    
+    if (!componentData && !componentType) return;
+
+    let component: any;
+    
+    if (componentData) {
+      component = JSON.parse(componentData);
+    } else if (componentType) {
+      // Fallback to finding component by type
+      const foundComponent = availableComponents.find(c => c.type === componentType);
+      if (!foundComponent) return;
+      component = foundComponent;
+    } else {
+      return;
+    }
+
+    const position = screenToFlowPosition({
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    dispatch(addNode({ component, position }));
+  }, [screenToFlowPosition, dispatch, availableComponents]);
+
+  const onDragStart = (event: React.DragEvent, component: any) => {
+    dispatch(setDraggedComponent(component));
+    event.dataTransfer.setData('application/reactflow', component.type);
+    event.dataTransfer.setData('application/component', JSON.stringify(component));
+    event.dataTransfer.effectAllowed = 'move';
+  };
 
   // Fetch detailed component information from Supabase
   const fetchComponentDetails = async (componentId: string): Promise<ComponentDetail | null> => {
@@ -393,6 +563,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         return;
       }
 
+      // Calculate center position for better layout
+      const centerX = 400;
+      const centerY = 300;
+
       if (stageData?.initial_system_state) {
         const { nodes: initialNodes = [], edges: initialEdges = [] } = stageData.initial_system_state;
         
@@ -401,77 +575,84 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           edges: initialEdges.length 
         });
 
-        // Calculate center position for better layout
-        const centerX = 400;
-        const centerY = 300;
+        // Break down user count into multiple nodes with different capacities
+        const totalUsers = 200;
+        const userNodes = createUserNodeBreakdown(totalUsers);
+        
+        userNodes.forEach((userNode, index) => {
+          const yOffset = (index - (userNodes.length - 1) / 2) * 140; // Increased spacing
+          dispatch(addNode({
+            component: {
+              id: userNode.id,
+              name: userNode.name,
+              type: 'user',
+              category: 'stakeholder',
+              cost: 0,
+              capacity: userNode.userCount,
+              description: userNode.description,
+              icon: 'users'
+            },
+            position: { x: centerX - 350, y: centerY + yOffset }, // Moved further left
+            nodeType: 'user',
+            nodeData: {
+              id: userNode.id,
+              name: userNode.name,
+              type: 'user',
+              category: 'stakeholder',
+              cost: 0,
+              capacity: userNode.userCount,
+              description: userNode.description,
+              label: userNode.label,
+              icon: 'users',
+              userCount: userNode.userCount
+            }
+          }));
+        });
 
-        // Set the initial nodes and edges using Redux
+        // Set the initial nodes from database
         if (initialNodes.length > 0) {
           initialNodes.forEach((node: any, index: number) => {
-            // Position nodes in a layout
-            let position = node.position;
+            // Position nodes in a layout - system nodes go to the right
+            let position = node.position || { x: centerX + 250, y: centerY };
             
-            // If no position, calculate based on node type
-            if (!position) {
-              if (node.type === 'user' || node.data?.category === 'stakeholder') {
-                // Position user nodes above the center
-                position = { x: centerX - 150 + (index * 150), y: centerY - 200 };
-              } else {
-                // Center the main system node
-                position = { x: centerX, y: centerY };
-              }
-            }
-
-            // Check if this is a user node
-            if (node.type === 'user' || node.data?.category === 'stakeholder') {
-              // Add user node directly to state (bypass component logic)
-              const userNode = {
+            // Regular component node - mark as broken
+            dispatch(addNode({
+              component: {
                 id: node.id,
-                type: 'user',
-                position: position,
-                data: {
-                  label: node.data?.label || 'Users',
-                  icon: 'users',
-                  category: 'stakeholder',
-                  userCount: node.data?.userCount || 200,
-                  ...node.data
-                }
-              };
-              // We need to dispatch a custom action for user nodes
-              dispatch(addNode({
-                component: {
-                  id: node.id,
-                  name: node.data?.label || 'Users',
-                  type: 'user',
-                  category: 'stakeholder',
-                  cost: 0,
-                  capacity: node.data?.userCount || 200,
-                  description: node.data?.description || 'Affected families',
-                  icon: 'users'
-                },
-                position: position,
-                nodeType: 'user',
-                nodeData: {
-                  ...userNode.data,
-                  userCount: node.data?.userCount || 200
-                }
-              }));
-            } else {
-              // Regular component node - center it
-              dispatch(addNode({
-                component: {
-                  id: node.id,
-                  name: node.data?.label || 'Current System',
-                  type: node.type || 'custom',
-                  category: node.data?.category || 'compute',
-                  cost: 0,
-                  capacity: 1000,
-                  description: node.data?.description || 'Current laptop running everything',
-                  icon: node.data?.icon || 'server'
-                },
-                position: position
-              }));
-            }
+                name: node.data?.label || 'Current System',
+                type: node.type || 'custom',
+                category: node.data?.category || 'compute',
+                cost: 0,
+                capacity: 1000,
+                description: node.data?.description || 'Current laptop running everything',
+                icon: node.data?.icon || 'server'
+              },
+              position: position,
+              nodeData: {
+                id: node.id,
+                name: node.data?.label || 'Current System',
+                type: node.type || 'custom',
+                category: node.data?.category || 'compute',
+                cost: 0,
+                capacity: 1000,
+                description: node.data?.description || 'Current laptop running everything',
+                label: node.data?.label || 'Current System',
+                icon: node.data?.icon || 'server',
+                status: 'broken' // Mark as broken to show red outline
+              }
+            }));
+          });
+        }
+
+        // Add edges from all user nodes to system node (horizontal layout)
+        if (initialNodes.length > 0) {
+          userNodes.forEach((userNode) => {
+            dispatch(addEdgeAction({
+              source: userNode.id,
+              target: initialNodes[0].id,
+              sourceHandle: `${userNode.id}-output`,
+              targetHandle: `${initialNodes[0].id}-input`
+            }));
           });
         }
 
@@ -488,10 +669,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       } else {
         console.log('No initial system state found for stage:', stageId);
         // If no initial state, create default nodes
+        
         const defaultSystemNode = {
           id: 'current-system',
           type: 'custom',
-          position: { x: centerX, y: centerY },
+          position: { x: centerX + 250, y: centerY },
           data: {
             label: "Alex's Laptop",
             icon: 'server',
@@ -500,19 +682,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           }
         };
 
-        const defaultUserNode = {
-          id: 'families',
-          type: 'user',
-          position: { x: centerX, y: centerY - 200 },
-          data: {
-            label: 'Affected Families',
-            icon: 'users',
-            category: 'stakeholder',
-            userCount: 200
-          }
-        };
-
-        // Add default nodes
+        // Add system node
         dispatch(addNode({
           component: {
             id: defaultSystemNode.id,
@@ -524,38 +694,127 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             description: defaultSystemNode.data.description,
             icon: defaultSystemNode.data.icon
           },
-          position: defaultSystemNode.position
-        }));
-
-        dispatch(addNode({
-          component: {
-            id: defaultUserNode.id,
-            name: defaultUserNode.data.label,
-            type: 'user',
-            category: 'stakeholder',
-            cost: 0,
-            capacity: defaultUserNode.data.userCount,
-            description: 'Families trying to report symptoms',
-            icon: 'users'
-          },
-          position: defaultUserNode.position,
-          nodeType: 'user',
+          position: defaultSystemNode.position,
           nodeData: {
-            ...defaultUserNode.data,
-            userCount: defaultUserNode.data.userCount
+            id: defaultSystemNode.id,
+            name: defaultSystemNode.data.label,
+            type: 'custom',
+            category: defaultSystemNode.data.category,
+            cost: 0,
+            capacity: 1000,
+            description: defaultSystemNode.data.description,
+            label: defaultSystemNode.data.label,
+            icon: defaultSystemNode.data.icon,
+            status: 'broken' // Mark as broken
           }
         }));
 
-        // Add edge between them
-        dispatch(addEdgeAction({
-          source: 'families',
-          target: 'current-system',
-          sourceHandle: 'families-output',
-          targetHandle: 'current-system-input'
-        }));
+        // Create multiple user nodes with breakdown logic
+        const totalUsers = 200;
+        const userNodes = createUserNodeBreakdown(totalUsers);
+        
+        userNodes.forEach((userNode, index) => {
+          const yOffset = (index - (userNodes.length - 1) / 2) * 140;
+          dispatch(addNode({
+            component: {
+              id: userNode.id,
+              name: userNode.name,
+              type: 'user',
+              category: 'stakeholder',
+              cost: 0,
+              capacity: userNode.userCount,
+              description: userNode.description,
+              icon: 'users'
+            },
+            position: { x: centerX - 350, y: centerY + yOffset },
+            nodeType: 'user',
+            nodeData: {
+              id: userNode.id,
+              name: userNode.name,
+              type: 'user',
+              category: 'stakeholder',
+              cost: 0,
+              capacity: userNode.userCount,
+              description: userNode.description,
+              label: userNode.label,
+              icon: 'users',
+              userCount: userNode.userCount
+            }
+          }));
+        });
+
+        // Add edges from all user nodes to system
+        userNodes.forEach((userNode) => {
+          dispatch(addEdgeAction({
+            source: userNode.id,
+            target: 'current-system',
+            sourceHandle: `${userNode.id}-output`,
+            targetHandle: 'current-system-input'
+          }));
+        });
       }
     } catch (error) {
       console.error('Failed to load initial system state:', error);
+    }
+  };
+
+  // Fetch components from database based on mission stage requirements
+  const fetchRequiredComponents = async (stageId: string) => {
+    try {
+      // Get the stage's required components
+      const { data: stageData, error: stageError } = await supabase
+        .from('mission_stages')
+        .select('required_components, optional_components')
+        .eq('id', stageId)
+        .single();
+
+      if (stageError) {
+        console.error('Failed to fetch stage components:', stageError);
+        return getDefaultComponents();
+      }
+
+      const requiredComponentIds = stageData.required_components || [];
+      const optionalComponentIds = stageData.optional_components || [];
+      const allComponentIds = [...new Set([...requiredComponentIds, ...optionalComponentIds])];
+
+      if (allComponentIds.length === 0) {
+        console.log('No components specified for stage, using defaults');
+        return getDefaultComponents();
+      }
+
+      // Fetch the actual component data from the components table
+      const { data: components, error: componentsError } = await supabase
+        .from('components')
+        .select('id, name, category, icon_name, color, short_description, detailed_description, concepts, use_cases, compatible_with, unlock_level, sort_order')
+        .in('id', allComponentIds)
+        .order('sort_order', { ascending: true });
+
+      if (componentsError) {
+        console.error('Failed to fetch components:', componentsError);
+        return getDefaultComponents();
+      }
+
+      console.log(`Loaded ${components.length} components for stage:`, components.map(c => c.name));
+      console.log('Required component IDs:', requiredComponentIds);
+      console.log('Optional component IDs:', optionalComponentIds);
+      
+      return components.map(comp => ({
+        id: comp.id,
+        name: comp.name,
+        category: comp.category,
+        icon_name: comp.icon_name,
+        color: comp.color,
+        short_description: comp.short_description,
+        detailed_description: comp.detailed_description,
+        concepts: comp.concepts,
+        use_cases: comp.use_cases,
+        compatible_with: comp.compatible_with,
+        unlock_level: comp.unlock_level || 1,
+        required: requiredComponentIds.includes(comp.id) // Mark if this component is required vs optional
+      }));
+    } catch (error) {
+      console.error('Error fetching required components:', error);
+      return getDefaultComponents();
     }
   };
 
@@ -581,7 +840,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             description: stageData.mission.description,
             crisis_description: stageData.mission.crisis_description,
             stages: [stageData],
-            components: getDefaultComponents(),
+            components: await fetchRequiredComponents(stageData.id),
             requirements: stageData.system_requirements
           };
           
@@ -658,7 +917,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       name: 'Compute Server',
       category: 'compute',
       icon_name: 'server',
+      color: '#3B82F6',
       short_description: 'Runs your application code',
+      detailed_description: 'A virtual or physical server that executes your application code and handles user requests.',
+      concepts: ['virtualization', 'compute resources', 'scaling'],
+      use_cases: ['web applications', 'API backends', 'microservices'],
+      compatible_with: ['data_store', 'load_balancer'],
       unlock_level: 1,
       required: true
     },
@@ -667,7 +931,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       name: 'Database',
       category: 'database',
       icon_name: 'database',
+      color: '#2563EB',
       short_description: 'Stores and manages application data',
+      detailed_description: 'A persistent storage system for your application data with ACID properties.',
+      concepts: ['data persistence', 'ACID properties', 'indexing'],
+      use_cases: ['user data', 'application state', 'analytics'],
+      compatible_with: ['compute_server', 'backup_service'],
       unlock_level: 1,
       required: true
     },
@@ -676,7 +945,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       name: 'File Storage',
       category: 'storage',
       icon_name: 'hard-drive',
+      color: '#8B5CF6',
       short_description: 'Stores files and media',
+      detailed_description: 'Object storage for files, images, videos, and other unstructured data.',
+      concepts: ['object storage', 'CDN integration', 'backup'],
+      use_cases: ['user uploads', 'static assets', 'media storage'],
+      compatible_with: ['compute_server', 'cdn'],
       unlock_level: 1,
       required: false
     }
@@ -709,6 +983,42 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   ];
 
+  // Generate categories based on available components
+  const componentCategories = useMemo(() => {
+    if (!activeMission || !activeMission.components) return [];
+    
+    const categories = new Set(activeMission.components.map(comp => comp.category));
+    console.log('Available component categories:', Array.from(categories));
+    
+    return Array.from(categories).map(categoryId => {
+      const iconMap: Record<string, string> = {
+        compute: 'server',
+        database: 'database', 
+        storage: 'hard-drive',
+        network: 'globe',
+        security: 'shield',
+        analytics: 'bar-chart-3',
+        integration: 'zap'
+      };
+      
+      const nameMap: Record<string, string> = {
+        compute: 'Compute',
+        database: 'Database',
+        storage: 'Storage', 
+        network: 'Networking',
+        security: 'Security',
+        analytics: 'Analytics',
+        integration: 'Integration'
+      };
+      
+      return {
+        id: categoryId,
+        name: nameMap[categoryId] || categoryId.charAt(0).toUpperCase() + categoryId.slice(1),
+        icon: iconMap[categoryId] || 'box'
+      };
+    });
+  }, [activeMission]);
+
   // Load mission stage data when emailId is provided
   useEffect(() => {
     loadMissionData();
@@ -732,99 +1042,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Removed automatic validation - now using on-demand API validation
 
   // Handle starting the design process
-  const handleStartDesign = useCallback(() => {
-    setShowingProblemCard(false);
-  }, []);
-
-  // Transform mission components for the component drawer
-  const availableComponents = useMemo(() => {
-    if (!activeMission) return [];
-    
-    return activeMission.components.map(comp => ({
-      id: comp.id,
-      name: comp.name,
-      type: comp.category,
-      category: comp.category,
-      cost: 50, // Default cost, could be from component_offerings
-      capacity: 1000,
-      description: comp.short_description,
-      icon: comp.icon_name
-    }));
-  }, [activeMission]);
-
-
-  
-  const onConnect = useCallback((params: Connection) => {
-    console.log('🔗 Connection attempt:', {
-      source: params.source,
-      target: params.target,
-      sourceHandle: params.sourceHandle,
-      targetHandle: params.targetHandle
-    });
-    
-    // Ensure we have valid source and target
-    if (!params.source || !params.target) {
-      console.error('❌ Invalid connection - missing source or target');
-      return;
-    }
-    
-    // Prevent self-connections
-    if (params.source === params.target) {
-      console.warn('⚠️ Cannot connect node to itself');
-      return;
-    }
-    
-    // Log which node is being used as source
-    const sourceNode = nodes.find(n => n.id === params.source);
-    const targetNode = nodes.find(n => n.id === params.target);
-    console.log('📍 Connecting:', sourceNode?.data.label, '→', targetNode?.data.label);
-    console.log('📊 Node IDs:', { sourceId: params.source, targetId: params.target });
-    
-    dispatch(addEdgeAction(params));
-  }, [dispatch, nodes]);
-
-  const onDragOver = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback((event: React.DragEvent) => {
-    event.preventDefault();
-
-    // Check if we have a dragged component from data transfer
-    const componentData = event.dataTransfer.getData('application/component');
-    const componentType = event.dataTransfer.getData('application/reactflow');
-    
-    if (!componentData && !componentType) return;
-
-    let component: any;
-    
-    if (componentData) {
-      component = JSON.parse(componentData);
-    } else if (componentType) {
-      // Fallback to finding component by type
-      const foundComponent = availableComponents.find(c => c.type === componentType);
-      if (!foundComponent) return;
-      component = foundComponent;
-    } else {
-      return;
-    }
-
-    const position = screenToFlowPosition({
-      x: event.clientX,
-      y: event.clientY,
-    });
-
-    dispatch(addNode({ component, position }));
-  }, [screenToFlowPosition, dispatch, availableComponents]);
-
-  const onDragStart = (event: React.DragEvent, component: any) => {
-    dispatch(setDraggedComponent(component));
-    event.dataTransfer.setData('application/reactflow', component.type);
-    event.dataTransfer.setData('application/component', JSON.stringify(component));
-    event.dataTransfer.effectAllowed = 'move';
-  };
-
   const handleRunTest = useCallback(async () => {
     if (!missionStageData?.id) {
       console.warn('No stage ID available for validation');
@@ -834,63 +1051,311 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     await validateRequirements(nodes, edges);
   }, [validateRequirements, nodes, edges, missionStageData?.id]);
 
+  // Handle closing mentor notification
+  const handleCloseMentorNotification = useCallback(() => {
+    setNotificationStep(0);
+  }, []);
+
+  // Handle mentor notification step progression
+  const handleMentorAction = useCallback(() => {
+    if (notificationStep === 1) {
+      // Move from issue analysis to requirements explanation and show requirements
+      setShowRequirements(true);
+      setNotificationStep(2);
+    } else if (notificationStep === 2) {
+      // Show component drawer and move to drag/connect guidance
+      setShowComponentDrawer(true);
+      setNotificationStep(3);
+    } else if (notificationStep === 3) {
+      // End the flow
+      setNotificationStep(0);
+    }
+  }, [notificationStep]);
+
+  // Callback functions for multi-step flow
+  const handleShowRequirements = useCallback(() => {
+    setShowRequirements(true);
+    // Don't change step - let the main flow handle it
+  }, []);
+
+  const handleShowComponentDrawer = useCallback(() => {
+    setShowComponentDrawer(true);
+    // Don't change step - let the main flow handle it
+  }, []);
+
+  const handleHideRequirements = useCallback(() => {
+    setShowRequirements(false);
+  }, []);
+
+  const handleHideComponentDrawer = useCallback(() => {
+    setShowComponentDrawer(false);
+  }, []);
+
+  // Track if notification flow has been started to prevent restart
+  const [notificationFlowStarted, setNotificationFlowStarted] = useState(false);
+
+  // Show mentor notification for specific email ID
+  useEffect(() => {
+    if (emailId === '4c9569fb-89a4-4439-80c4-8e3944990d7c' && !notificationFlowStarted) {
+      // Small delay to let the UI load first
+      const timer = setTimeout(() => {
+        setNotificationStep(1);
+        setNotificationFlowStarted(true);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [emailId, notificationFlowStarted]);
+
+  // Start mentor notification flow when mission stage loads
+  useEffect(() => {
+    if (missionStageData && !notificationFlowStarted) {
+      // Start the notification flow automatically
+      const timer = setTimeout(() => {
+        setNotificationStep(1);
+        setNotificationFlowStarted(true);
+      }, 2000); // 2 second delay for dramatic effect
+      
+      return () => clearTimeout(timer);
+    }
+  }, [missionStageData, notificationFlowStarted]); // Removed notificationStep dependency
+
   const toggleDrawer = () => {
     setIsDrawerCollapsed(!isDrawerCollapsed);
   };
 
+  // RTK Query for loading canvas state (after state declarations)
+  const {
+    data: savedCanvasData,
+    isLoading: isLoadingCanvas,
+    error: canvasLoadError
+  } = useLoadCanvasStateQuery(
+    user?.id && missionStageData?.id 
+      ? { userId: user.id, stageId: missionStageData.id }
+      : skipToken
+  );
+  
+  // RTK Query mutation for saving canvas state
+  const [saveCanvasStateMutation, { isLoading: isSaving }] = useSaveCanvasStateMutation();
+
+  // Redux-based canvas state management following established patterns
+  const initializeCanvasForStage = useCallback(() => {
+    if (!missionStageData?.id) return;
+    
+    // Set this as the active canvas
+    dispatch(setActiveCanvas({ stageId: missionStageData.id }));
+    
+    // If we have saved canvas data, load it into Redux state
+    if (savedCanvasData?.canvasState) {
+      console.log('Loading saved canvas state');
+      dispatch(loadCanvasState({
+        stageId: missionStageData.id,
+        nodes: savedCanvasData.canvasState.nodes,
+        edges: savedCanvasData.canvasState.edges,
+        viewport: savedCanvasData.canvasState.viewport
+      }));
+    }
+  }, [dispatch, missionStageData?.id, savedCanvasData]);
+
+  // Auto-save canvas state when nodes/edges change
+  const persistCanvasState = useCallback(async () => {
+    if (!user?.id || !missionStageData?.id || nodes.length === 0) return;
+    
+    const canvasStateData = {
+      nodes: nodes.map(serializeNode),
+      edges: edges.map(serializeEdge),
+      viewport: { x: 0, y: 0, zoom: 0.6 },
+      timestamp: new Date().toISOString()
+    };
+    
+    try {
+      // Save to local storage/Redux
+      await saveCanvasStateMutation({
+        userId: user.id,
+        missionId: missionStageData.mission.id,
+        stageId: missionStageData.id,
+        canvasState: canvasStateData
+      }).unwrap();
+      
+      // If in collaborative mode, update the session
+      if (isCollaborative && sessionId) {
+        await realtimeCollaborationService.updateCanvasState(sessionId, nodes, edges);
+      }
+      
+      console.log('Canvas state saved successfully');
+    } catch (error) {
+      console.error('Failed to save canvas state:', error);
+    }
+  }, [user?.id, missionStageData, nodes, edges, saveCanvasStateMutation, isCollaborative, sessionId]);
+
+  // Initialize canvas when stage data is available
+  useEffect(() => {
+    if (user && missionStageData && !isLoadingCanvas) {
+      initializeCanvasForStage();
+    }
+  }, [user, missionStageData, isLoadingCanvas, initializeCanvasForStage]);
+
+  // Auto-save with debouncing when nodes/edges change
+  useEffect(() => {
+    if (!user || !missionStageData || nodes.length === 0) return;
+    
+    // Debounce the save operation to avoid excessive API calls
+    const timeoutId = setTimeout(() => {
+      persistCanvasState();
+    }, 2000); // Save after 2 seconds of inactivity
+    
+    return () => clearTimeout(timeoutId);
+  }, [nodes, edges, user, missionStageData, persistCanvasState]);
+
+  // Handle collaboration session
+  useEffect(() => {
+    if (!sessionId || !user) return;
+
+    const initializeCollaboration = async () => {
+      try {
+        // Join the session
+        const session = await realtimeCollaborationService.joinSession(sessionId);
+        setCollaborationSession(session);
+        setIsCollaborative(true);
+
+        // Subscribe to real-time updates
+        const subscription = supabase
+          .channel(`design_session:${sessionId}`)
+          .on('postgres_changes', {
+            event: '*',
+            schema: 'public',
+            table: 'design_sessions',
+            filter: `id=eq.${sessionId}`
+          }, (payload) => {
+            // Update canvas state when session changes
+            if (payload.new && 'canvas_state' in payload.new && payload.new.canvas_state) {
+              const { nodes: newNodes, edges: newEdges } = payload.new.canvas_state as { nodes: any[], edges: any[] };
+              dispatch(onNodesChange(newNodes));
+              dispatch(onEdgesChange(newEdges));
+            }
+          })
+          .on('presence', { event: 'sync' }, () => {
+            // Handle collaborator presence
+            const state = subscription.presenceState();
+            const collaboratorList = Object.values(state).flat();
+            setCollaborators(collaboratorList);
+            
+            // Update cursors
+            const newCursors: Record<string, { x: number; y: number; timestamp: number }> = {};
+            collaboratorList.forEach((collab: any) => {
+              if (collab.userId !== user.id && collab.cursor) {
+                newCursors[collab.userId] = {
+                  ...collab.cursor,
+                  timestamp: Date.now()
+                };
+              }
+            });
+            setCursors(newCursors);
+          })
+          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+            console.log('User joined:', newPresences);
+          })
+          .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+            console.log('User left:', leftPresences);
+          })
+          .subscribe(async (status) => {
+            if (status === 'SUBSCRIBED') {
+              // Send initial presence
+              await subscription.track({
+                userId: user.id,
+                username: user.email?.split('@')[0] || 'Anonymous',
+                cursor: { x: 0, y: 0 }
+              });
+            }
+          });
+
+        // Store subscription reference
+        collaborationChannelRef.current = subscription;
+
+        return () => {
+          subscription.unsubscribe();
+        };
+      } catch (error) {
+        console.error('Failed to join collaboration session:', error);
+        setError('Failed to join collaboration session');
+      }
+    };
+
+    initializeCollaboration();
+  }, [sessionId, user, dispatch]);
+
+  // Track mouse movement for collaborative cursor
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (!isCollaborative || !collaborationChannelRef.current) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    // Throttle cursor updates
+    if (collaborationChannelRef.current) {
+      collaborationChannelRef.current.track({
+        userId: user?.id,
+        username: user?.email?.split('@')[0] || 'Anonymous',
+        cursor: { x, y }
+      });
+    }
+  }, [isCollaborative, user]);
+
   if (loading) {
     return (
-      <div className={styles.crisisCanvas}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.loadingSpinner}>Loading mission data...</div>
-        </div>
+      <div className={styles.loadingContainer}>
+        <div className={styles.loadingSpinner} />
+        <p>Loading mission data...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className={styles.crisisCanvas}>
-        <div className={styles.errorContainer}>
-          <AlertTriangle size={24} />
-          <p>Failed to load mission: {error}</p>
-        </div>
+      <div className={styles.errorContainer}>
+        <p className={styles.errorMessage}>{error}</p>
       </div>
     );
   }
 
-  if (!activeMission) {
-    return (
-      <div className={styles.crisisCanvas}>
-        <div className={styles.errorContainer}>
-          <AlertTriangle size={24} />
-          <p>Mission not found.</p>
-        </div>
-      </div>
-    );
-  }
+  const miniMapNodeColor = (node: Node) => {
+    const type = node.data?.componentType || node.type;
+    return componentTypeColors[type as keyof typeof componentTypeColors] || componentTypeColors.default;
+  };
+
+  const componentTypeColors = {
+    api: '#3B82F6',
+    database: '#2563EB',
+    queue: '#8B5CF6',
+    cache: '#EC4899',
+    service: '#10B981',
+    load_balancer: '#F59E0B',
+    cdn: '#6366F1',
+    default: '#6B7280'
+  };
 
   return (
     <div className={styles.crisisCanvas}>
-      {showingProblemCard && missionStageData ? (
-        /* Show Problem Card initially */
-        <div className={styles.problemCardContainer}>
-          <ProblemCard
-            title={missionStageData.title}
-            problem={missionStageData.problem_description}
-            urgency="critical"
-            affectedCount={200}
-            timeframe="Urgent - System Failing"
-            onStartDesign={handleStartDesign}
-            className={styles.centeredProblemCard}
-          />
-        </div>
-      ) : (
-        /* Show System Design Interface */
-        <>
-          {/* React Flow Canvas - Full Width */}
-          <div className={styles.canvasContainer}>
-            <div className={styles.reactFlowWrapper}>
+      {/* React Flow Canvas - Always visible */}
+      <div className={styles.canvasContainer}>
+        {/* Component Drawer - Shows when needed */}
+        {showComponentDrawer && (
+          <div className={styles.componentDrawer}>
+            <ComponentDrawer
+              components={drawerComponents}
+              categories={componentCategories}
+              searchQuery={drawerSearchQuery}
+              onSearchChange={setDrawerSearchQuery}
+              onComponentSelect={(component) => {
+                console.log('Component selected:', component);
+                // Could add component to canvas here
+              }}
+              className={styles.drawerContainer}
+            />
+          </div>
+        )}
+
+            <div className={styles.reactFlowWrapper} onMouseMove={handleMouseMove} ref={canvasRef}>
               <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -904,11 +1369,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             multiSelectionKeyCode={["Meta", "Control"]}
             fitView
             fitViewOptions={{
-              padding: 0.2,
-              includeHiddenNodes: false
+              padding: 0.5,
+              includeHiddenNodes: false,
+              maxZoom: 0.8
             }}
             colorMode={theme}
-            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+            defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
             minZoom={0.2}
             maxZoom={2}
             className={styles.reactFlow}
@@ -919,130 +1385,102 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             zoomOnDoubleClick={false}
             preventScrolling={false}
             nodeOrigin={[0.5, 0.5]}
-            panOnDrag={true}
-            selectionOnDrag={false}
             elementsSelectable={true}
-            nodesDraggable={true}
-            nodesConnectable={true}
-            isValidConnection={(connection) => {
-              // Validate the connection
-              if (!connection.source || !connection.target) return false;
-              if (connection.source === connection.target) return false;
-              
-              // Check if edge already exists
-              const edgeExists = edges.some(edge => 
-                (edge.source === connection.source && edge.target === connection.target) ||
-                (edge.source === connection.target && edge.target === connection.source)
-              );
-              
-              return !edgeExists;
-            }}
+            selectNodesOnDrag={false}
           >
-            <Background 
-              variant={BackgroundVariant.Lines} 
-              gap={16} 
+            <Background
+              variant={BackgroundVariant.Dots}
+              gap={16}
+              size={1}
               color={theme === 'dark' ? '#1a1a1a' : '#e0e0e0'}
-              lineWidth={0.5}
             />
-            <Controls className={styles.reactFlowControls} />
-            <MiniMap className={styles.reactFlowMinimap} />
-            {process.env.NODE_ENV === 'development' && <ConnectionDebugOverlay />}
+            <Controls
+              position="bottom-right"
+              showInteractive={false}
+            />
           </ReactFlow>
-        </div>
-
-        {/* Floating Component Drawer Card - Top Side */}
-        <div className={`${styles.componentDrawerCard} ${isDrawerCollapsed ? styles['componentDrawerCard--collapsed'] : ''}`}>
-          <div className={styles.drawerHeader}>
-            <h3 className={styles.drawerTitle}>Available Components</h3>
-            <button 
-              className={styles.drawerToggle}
-              onClick={toggleDrawer}
-              aria-label={isDrawerCollapsed ? "Expand drawer" : "Collapse drawer"}
-            >
-              {isDrawerCollapsed ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
-            </button>
-          </div>
           
-          <div className={styles.drawerContent}>
-            <p className={styles.drawerHint}>
-              Drag components to the canvas to fix {activeMission?.title}!
-            </p>
-            
-            {availableComponents.map((component) => (
-              <div
-                key={component.id}
-                className={styles.componentCard}
-                draggable
-                onDragStart={(e) => onDragStart(e, component)}
-              >
-                {getIconComponent(component.icon, 24)}
-                <div className={styles.componentInfo}>
-                  <h4 className={styles.componentName}>{component.name}</h4>
-                  <p className={styles.componentDescription}>{component.description}</p>
-                </div>
-                <button
-                  className={styles.infoButton}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    handleComponentInfoClick(component.id);
-                  }}
-                  aria-label={`Show details for ${component.name}`}
-                  title={`View detailed information about ${component.name}`}
-                >
-                  <Info size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Floating Requirements Card - Right Side */}
-        <div className={styles.requirementsCard}>
-          <Requirements 
-            requirements={requirements}
-            onRunTest={handleRunTest}
-          />
-          {isValidating && (
-            <div style={{ 
-              padding: '1rem', 
-              backgroundColor: '#f0f9ff', 
-              borderRadius: '8px', 
-              margin: '1rem 0',
-              textAlign: 'center',
-              fontSize: '0.875rem',
-              color: '#0369a1'
-            }}>
-              🔍 Validating your design...
-            </div>
+          {/* Render collaborator cursors */}
+          {isCollaborative && canvasRef.current && (
+            <CursorManager
+              cursors={cursors}
+              participants={Object.fromEntries(
+                collaborators.map((c: any) => [c.userId, { 
+                  id: c.userId,
+                  name: c.username,
+                  color: '#' + Math.floor(Math.random()*16777215).toString(16),
+                  last_seen: Date.now(),
+                  status: 'active' as const
+                }])
+              )}
+              canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
+            />
           )}
         </div>
 
-        {/* Success Message */}
-        {/* {showSuccessMessage && ( // This state is removed */}
-        {/*   <div className={styles.successMessage}> */}
-        {/*     <h3 className={styles.successTitle}> */}
-        {/*       <AlertTriangle size={24} /> */}
-        {/*       Crisis Resolved! */}
-        {/*     </h3> */}
-        {/*     <p className={styles.successDescription}> */}
-        {/*       {activeMission?.title} is now stable and helping families in need! */}
-        {/*     </p> */}
-        {/*   </div> */}
-        {/* )} */}
-        
-
+        {/* Floating Requirements on the right side */}
+        {missionStageData && showRequirements && (
+          <div className={styles.floatingRequirements}>
+            <Requirements
+              requirements={requirements}
+              onTestSystem={handleRunTest}
+              className={styles.bottomRequirements}
+            />
           </div>
+        )}
 
-          {/* Component Detail Modal */}
-          <ComponentDetailModal
-            isOpen={isModalOpen}
-            onClose={handleCloseModal}
-            component={selectedComponent}
-            availableComponents={allComponentDetails}
+        {/* Mentor Notification - Multi-step Flow */}
+        {notificationStep > 0 && missionStageData && (
+          <MentorNotification
+            title={
+              notificationStep === 1 ? "System Analysis" : 
+              notificationStep === 2 ? "Requirements Needed" :
+              "Drag & Connect Guide"
+            }
+            message={
+              notificationStep === 1
+                ? `${missionStageData.title}: ${missionStageData.problem_description} Ahhh the classic overloaded server problem. This guy thought he could just run a website from his local computer and everything would be fine.`
+                : notificationStep === 2
+                ? "To fix this system, you need to implement 3 specific architecture requirements: 1) Separate the web server from the database, 2) Connect the web server to the database properly, and 3) Ensure proper data flow between components. I've shown the requirements on the right - now let me show you how to implement them."
+                : "Perfect! Now you can see the available components on the left. To build your architecture: 1) Drag components like 'Web Server' and 'Database' from the drawer onto the canvas, 2) Click and drag from the small circular handles on each component to connect them together, 3) Make sure to connect users → web server → database for proper data flow."
+            }
+            onClose={handleCloseMentorNotification}
+            actionLabel={
+              notificationStep === 1 ? "What do I need to do?" : 
+              notificationStep === 2 ? "How do I do this?" :
+              "Got it!"
+            }
+            onAction={handleMentorAction}
+            onShowRequirements={handleShowRequirements}
+            onShowComponentDrawer={handleShowComponentDrawer}
+            onHideRequirements={handleHideRequirements}
+            onHideComponentDrawer={handleHideComponentDrawer}
+            missionStageId={missionStageData?.id}
+            conversationSessionId={conversationSessionId}
+            position="bottom"
+            autoHideDuration={0}
           />
-        </>
-      )}
+        )}
+
+        {/* Mentor Chat */}
+        <MentorChat 
+          missionStageId={emailId}
+          missionTitle={missionStageData?.title}
+          problemDescription={missionStageData?.problem_description}
+          canvasNodes={nodes}
+          canvasEdges={edges}
+          requirements={requirements}
+          availableComponents={availableComponents}
+        />
+
+        {/* Component Detail Modal */}
+        <ComponentDetailModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          component={selectedComponent}
+          availableComponents={allComponentDetails}
+        />
+      </div>
     </div>
   );
 };

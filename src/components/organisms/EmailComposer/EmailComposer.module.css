@@ -2,11 +2,15 @@
 .emailComposer {
   display: flex;
   flex-direction: column;
-  height: 80vh;
-  max-height: 600px;
-  background: var(--color-surface-primary);
+  height: 500px;
+  max-height: 80vh;
+  background: var(--color-obsidian-900);
   border-radius: var(--border-radius-lg);
   overflow: hidden;
+  /* Ensure proper width for centering */
+  width: 100%;
+  /* Temporary fix to ensure visibility */
+  box-shadow: 0 0 50px rgba(255, 255, 255, 0.1);
 }
 
 .header {

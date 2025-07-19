@@ -22,7 +22,12 @@ export interface ComponentRequirement {
   name: string;
   category: string;
   icon_name: string;
+  color?: string;
   short_description: string;
+  detailed_description?: string;
+  concepts?: any[];
+  use_cases?: any[];
+  compatible_with?: any[];
   unlock_level: number;
   required: boolean;
 }
@@ -307,7 +312,12 @@ export class MissionService {
       name: comp.name,
       category: comp.category,
       icon_name: comp.icon_name,
+      color: comp.color,
       short_description: comp.short_description,
+      detailed_description: comp.detailed_description,
+      concepts: comp.concepts,
+      use_cases: comp.use_cases,
+      compatible_with: comp.compatible_with,
       unlock_level: comp.unlock_level,
       required: false
     }));
