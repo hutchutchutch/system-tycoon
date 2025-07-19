@@ -157,7 +157,7 @@ export const TodaysNewsWrapper: React.FC = () => {
 
   return (
     <>
-      <div className="relative min-h-screen overflow-y-auto" style={{ 
+      <div className="relative h-screen overflow-hidden" style={{ 
         background: 'var(--color-surface-primary)'
       }}>
                 {/* Animated Globe Background */}
@@ -176,14 +176,20 @@ export const TodaysNewsWrapper: React.FC = () => {
         </div>
         
         <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--space-8)',
           position: 'relative',
-          zIndex: 20
+          zIndex: 20,
+          height: '100%',
+          overflowY: 'auto',
+          padding: 'var(--space-8) 0'
         }}>
+          <div style={{
+            maxWidth: '1200px', 
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-8)',
+            padding: '0 var(--space-8) calc(var(--space-8) * 4) var(--space-8)'
+          }}>
           {/* Header */}
           <div style={{ textAlign: 'center' }}>
             <h1 
@@ -199,7 +205,7 @@ export const TodaysNewsWrapper: React.FC = () => {
                 display: 'block'
               }}
             >
-              Good People News
+              Choose Your Mission
             </h1>
             <p style={{
               fontSize: 'var(--text-lg)',
@@ -250,7 +256,7 @@ export const TodaysNewsWrapper: React.FC = () => {
           </div>
 
           {/* News Grid */}
-          <div style={{ flex: 1 }}>
+          <div>
             <div className="relative backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-lg p-6">
               <BentoGrid
                 articles={articles}
@@ -268,6 +274,7 @@ export const TodaysNewsWrapper: React.FC = () => {
                 )}
               </BentoGrid>
             </div>
+          </div>
           </div>
         </div>
       </div>
