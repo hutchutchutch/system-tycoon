@@ -129,28 +129,12 @@ export const OnboardingExperience: React.FC = () => {
     closable: false,
   }]);
 
-  const handleTabChange = useCallback((tabId: string) => {
-    console.log('Tab changed to:', tabId);
-  }, []);
-
-  const handleTabClose = useCallback((tabId: string) => {
-    console.log('Tab close requested:', tabId);
-  }, []);
-
-  const handleNewTab = useCallback(() => {
-    console.log('New tab requested');
-  }, []);
-
   return (
     <OnboardingFlow onComplete={handleMentorComplete}>
       <div className={`${styles.initialExperience} ${styles['initialExperience--browser']}`}>
         <BrowserWindow
           activeTab="todays-news"
           tabs={tabs}
-          bookmarks={[]}
-          onTabChange={handleTabChange}
-          onTabClose={handleTabClose}
-          onNewTab={handleNewTab}
         />
         
         {emailToast && (

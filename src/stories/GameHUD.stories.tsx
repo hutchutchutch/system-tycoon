@@ -11,7 +11,7 @@ const mockStore = configureStore({
       profile: {
         username: 'john_doe',
         current_level: 5,
-        reputation_points: 12750,
+        reputation_score: 12750,
         career_title: 'Senior Developer',
       }
     }) => state,
@@ -52,7 +52,7 @@ export const HighLevel: Story = {
             profile: {
               username: 'senior_architect',
               current_level: 12,
-              reputation_points: 89500,
+              reputation_score: 89500,
               career_title: 'Principal Engineer',
             }
           }) => state,
@@ -80,7 +80,7 @@ export const Beginner: Story = {
             profile: {
               username: 'new_dev',
               current_level: 1,
-              reputation_points: 150,
+              reputation_score: 150,
               career_title: 'Junior Developer',
             }
           }) => state,
@@ -108,7 +108,7 @@ export const LongUsername: Story = {
             profile: {
               username: 'very_long_username_that_might_overflow',
               current_level: 8,
-              reputation_points: 45200,
+              reputation_score: 45200,
               career_title: 'Tech Lead',
             }
           }) => state,

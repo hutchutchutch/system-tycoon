@@ -19,129 +19,6 @@
   border-color: var(--color-neutral-300);
 }
 
-/* Browser chrome (header area) */
-.chrome {
-  display: flex;
-  flex-direction: column;
-  background: var(--color-neutral-800);
-  border-bottom: 1px solid var(--color-neutral-700);
-}
-
-[data-theme="dark"] .chrome {
-  background: var(--color-neutral-800);
-  border-color: var(--color-neutral-700);
-}
-
-/* Tab bar */
-.tabBar {
-  display: flex;
-  align-items: center;
-  height: 36px;
-  padding: 0 var(--space-3);
-  background: var(--color-neutral-100);
-  border-bottom: 1px solid var(--color-neutral-200);
-}
-
-[data-theme="dark"] .tabBar {
-  background: var(--color-neutral-200);
-  border-color: var(--color-neutral-400);
-}
-
-.tabs {
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
-  flex: 1;
-}
-
-.newTabButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  margin-left: var(--space-2);
-  background-color: transparent;
-  border: none;
-  border-radius: var(--radius-md);
-  color: var(--color-neutral-500);
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.newTabButton:hover {
-  background-color: var(--color-neutral-200);
-  color: var(--color-neutral-700);
-}
-
-[data-theme="dark"] .newTabButton:hover {
-  background-color: var(--color-neutral-300);
-  color: var(--color-neutral-800);
-}
-
-.newTabButton:active {
-  transform: scale(0.95);
-}
-
-/* Controls bar (address + window controls) */
-.controls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--color-neutral-800);
-}
-
-[data-theme="dark"] .controls {
-  background: var(--color-neutral-800);
-}
-
-
-
-/* Address bar container */
-.addressBarContainer {
-  flex: 1;
-  min-width: 0; /* Allow flexbox to shrink properly */
-}
-
-/* Window controls (minimize, maximize, close) */
-.windowControls {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-shrink: 0;
-}
-
-.windowControl {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--radius-full);
-  border: none;
-  cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
-}
-
-.windowControl--close {
-  background-color: #ff5f56;
-}
-
-.windowControl--minimize {
-  background-color: #ffbd2e;
-}
-
-.windowControl--maximize {
-  background-color: #27ca3f;
-}
-
-.windowControl:hover {
-  opacity: 0.8;
-  transform: scale(1.1);
-}
-
-.windowControl:active {
-  transform: scale(0.9);
-}
-
 /* Content area */
 .content {
   flex: 1;
@@ -262,15 +139,6 @@
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .chrome {
-    padding: 0 var(--space-2);
-  }
-  
-  .controls {
-    gap: var(--space-2);
-    padding: var(--space-2);
-  }
-  
   .userInfo {
     position: relative;
     top: auto;
@@ -281,14 +149,5 @@
   .userStats {
     flex-direction: column;
     gap: var(--space-1);
-  }
-  
-  .tabBar {
-    padding: 0 var(--space-2);
-  }
-  
-  .newTabButton {
-    width: 24px;
-    height: 24px;
   }
 } 

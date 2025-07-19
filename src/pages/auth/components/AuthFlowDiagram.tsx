@@ -525,6 +525,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
           zoomOnScroll={false}
           zoomOnPinch={false}
           zoomOnDoubleClick={false}
+          preventScrolling={false}
         >
           <Background color="transparent" gap={20} size={0} />
         </ReactFlow>

@@ -1,7 +1,7 @@
 .sidebar {
   width: 220px;
-  background-color: var(--color-gray-50);
-  border-right: 1px solid var(--color-gray-200);
+  background-color: var(--color-neutral-50);
+  border-right: 1px solid var(--color-neutral-200);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -9,10 +9,19 @@
   height: 100%; /* Fill parent height instead of viewport height */
 }
 
+[data-theme="dark"] .sidebar {
+  background-color: var(--color-obsidian-900);
+  border-right-color: var(--color-obsidian-800);
+}
+
 .compose {
   padding: 16px;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-neutral-200);
   flex-shrink: 0;
+}
+
+[data-theme="dark"] .compose {
+  border-bottom-color: var(--color-obsidian-800);
 }
 
 .folders {
@@ -35,13 +44,21 @@
   border: none;
   text-align: left;
   font-size: 14px;
-  color: var(--color-gray-700);
+  color: var(--color-neutral-700);
   cursor: pointer;
   transition: background-color 0.2s;
 }
 
 .folder:hover {
-  background-color: var(--color-gray-100);
+  background-color: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .folder {
+  color: var(--color-obsidian-300);
+}
+
+[data-theme="dark"] .folder:hover {
+  background-color: var(--color-obsidian-800);
 }
 
 .folder--active {
@@ -50,21 +67,34 @@
   font-weight: 500;
 }
 
+[data-theme="dark"] .folder--active {
+  background-color: var(--color-primary-900);
+  color: var(--color-primary-300);
+}
+
 /* Special styling for Mentor Chat - use margin-top: auto to push to bottom */
 .folder[data-folder-id="mentorchat"] {
   margin-top: auto;
   margin-bottom: 16px;
   margin-left: 8px;
   margin-right: 8px;
-  background-color: var(--color-blue-500) !important;
-  color: white !important;
+  background-color: var(--color-primary-500) !important;
+  color: var(--color-white) !important;
   border-radius: 8px;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
 
 .folder[data-folder-id="mentorchat"]:hover {
-  background-color: var(--color-blue-600) !important;
+  background-color: var(--color-primary-600) !important;
+}
+
+[data-theme="dark"] .folder[data-folder-id="mentorchat"] {
+  background-color: var(--color-primary-600) !important;
+}
+
+[data-theme="dark"] .folder[data-folder-id="mentorchat"]:hover {
+  background-color: var(--color-primary-700) !important;
 }
 
 .folder[data-folder-id="mentorchat"] .folderCount {
@@ -77,8 +107,8 @@
 }
 
 .folderCount {
-  background-color: var(--color-gray-300);
-  color: var(--color-gray-600);
+  background-color: var(--color-neutral-300);
+  color: var(--color-neutral-600);
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 11px;
@@ -90,4 +120,14 @@
 .folder--active .folderCount {
   background-color: var(--color-primary-200);
   color: var(--color-primary-800);
+}
+
+[data-theme="dark"] .folderCount {
+  background-color: var(--color-obsidian-800);
+  color: var(--color-obsidian-300);
+}
+
+[data-theme="dark"] .folder--active .folderCount {
+  background-color: var(--color-primary-800);
+  color: var(--color-primary-200);
 } 

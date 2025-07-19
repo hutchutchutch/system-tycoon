@@ -14,14 +14,23 @@
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-600);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .tab:hover {
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-800);
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-800);
+}
+
+[data-theme="dark"] .tab {
+  color: var(--color-obsidian-400);
+}
+
+[data-theme="dark"] .tab:hover {
+  background-color: var(--color-obsidian-800);
+  color: var(--color-obsidian-200);
 }
 
 .tab--active {
@@ -33,9 +42,18 @@
   background-color: var(--color-primary-100);
 }
 
+[data-theme="dark"] .tab--active {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: var(--color-primary-300);
+}
+
+[data-theme="dark"] .tab--active:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
 .tabCount {
-  background-color: var(--color-gray-300);
-  color: var(--color-gray-600);
+  background-color: var(--color-neutral-300);
+  color: var(--color-neutral-600);
   padding: 2px 6px;
   border-radius: 10px;
   font-size: 11px;
@@ -47,4 +65,14 @@
 .tab--active .tabCount {
   background-color: var(--color-primary-200);
   color: var(--color-primary-800);
+}
+
+[data-theme="dark"] .tabCount {
+  background-color: var(--color-obsidian-800);
+  color: var(--color-obsidian-300);
+}
+
+[data-theme="dark"] .tab--active .tabCount {
+  background-color: var(--color-primary-800);
+  color: var(--color-primary-200);
 } 

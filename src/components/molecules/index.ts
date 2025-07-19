@@ -21,12 +21,7 @@ export type { HeroContextCardProps } from './HeroContextCard';
 // export { ClientCard } from './ClientCard';
 // export type { ClientCardProps } from './ClientCard';
 
-// Browser interface components
-export { BrowserHeader } from './BrowserHeader';
-export type { BrowserHeaderProps } from './BrowserHeader';
-
-export { BrowserAddressBar } from './BrowserAddressBar';
-export type { BrowserAddressBarProps } from './BrowserAddressBar';
+// Browser interface components (removed - functionality moved to GameHUD)
 
 // Communication components (TODO: Implement these)
 // export { CallParticipant } from './CallParticipant';
@@ -53,6 +48,9 @@ export { MetricCard } from './MetricCard';
 export type { MetricCardProps } from './MetricCard';
 
 export { PhaseHeader } from './PhaseHeader';
+
+export { ProblemCard } from './ProblemCard';
+export type { ProblemCardProps } from './ProblemCard';
 export type { PhaseHeaderProps } from './PhaseHeader';
 
 export { QuestionCard } from './QuestionCard';

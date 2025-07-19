@@ -53,11 +53,16 @@ const designSlice = createSlice({
     },
     
     // Node Management
-    addNode: (state, action: PayloadAction<{ component: any; position: { x: number; y: number } }>) => {
-      const { component, position } = action.payload;
+    addNode: (state, action: PayloadAction<{ 
+      component: any; 
+      position: { x: number; y: number };
+      nodeType?: string;
+      nodeData?: any;
+    }>) => {
+      const { component, position, nodeType, nodeData } = action.payload;
       
-      // Generate unique node ID
-      const nodeId = `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      // Use component.id if provided, otherwise generate unique node ID
+      const nodeId = component.id || `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
       // Handle different component data structures
       const normalizedComponent = {
@@ -71,11 +76,14 @@ const designSlice = createSlice({
         icon: component.icon || component.icon_name || 'server'
       };
       
+      // Determine node type - if nodeType is provided, use it, otherwise default to 'custom'
+      const finalNodeType = nodeType || (normalizedComponent.category === 'stakeholder' ? 'user' : 'custom');
+      
       const newNode = {
         id: nodeId,
-        type: 'custom' as const,
+        type: finalNodeType,
         position: { ...position },
-        data: {
+        data: nodeData || {
           id: normalizedComponent.id,
           name: normalizedComponent.name,
           type: normalizedComponent.type,
@@ -85,6 +93,8 @@ const designSlice = createSlice({
           description: normalizedComponent.description,
           label: normalizedComponent.name,
           icon: normalizedComponent.icon,
+          // Add userCount for user nodes
+          ...(finalNodeType === 'user' ? { userCount: normalizedComponent.capacity } : {})
         },
       };
       

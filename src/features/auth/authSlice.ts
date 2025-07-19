@@ -151,7 +151,7 @@ export const demoSignIn = createAsyncThunk(
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       current_level: 1,
-      reputation_points: 0,
+      reputation_score: 0,
       career_title: 'Aspiring Developer',
       preferred_mentor_id: undefined,
       onboarding_completed: false,

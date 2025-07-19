@@ -10,6 +10,10 @@ import { SimpleLanding } from './pages/SimpleLanding';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
+import { TodaysNewsWrapper } from './pages/InitialExperience/TodaysNewsWrapper';
+
+import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
+import { CrisisSystemDesignCanvas } from './pages/InitialExperience/CrisisSystemDesignCanvas';
 import { MeetingRoomPage } from './pages/game/MeetingRoomPage';
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
 import { SystemDesignPage } from './pages/game/SystemDesignPage';
@@ -41,6 +45,49 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: <InitialExperience />,
+          },
+        ],
+      },
+
+      {
+        path: 'browser/news',
+        element: (
+          <ProtectedRoute>
+            <GameLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <TodaysNewsWrapper />,
+          },
+        ],
+      },
+      {
+        path: 'email',
+        element: (
+          <ProtectedRoute>
+            <GameLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <EmailClientWrapper />,
+          },
+        ],
+      },
+      {
+        path: 'crisis-design/:emailId',
+        element: (
+          <ProtectedRoute>
+            <GameLayout />
+          </ProtectedRoute>
+        ),
+        children: [
+          {
+            index: true,
+            element: <CrisisSystemDesignCanvas />,
           },
         ],
       },

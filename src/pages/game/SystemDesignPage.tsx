@@ -209,6 +209,11 @@ export const SystemDesignPage: React.FC = () => {
         fitView
         style={reactFlowStyle}
         colorMode={theme}
+        preventScrolling={false}
+        panOnDrag={true}
+        zoomOnScroll={true}
+        zoomOnPinch={true}
+        zoomOnDoubleClick={false}
       >
         {/* Game HUD Panel - Top Center */}
         <Panel position="top-center" className="pointer-events-none">

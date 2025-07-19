@@ -1,0 +1,146 @@
+.problemCard {
+  max-width: 500px;
+  margin: var(--spacing-lg);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  background: var(--surface-primary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+}
+
+.header {
+  padding: var(--spacing-md);
+  background: linear-gradient(135deg, var(--error-50) 0%, var(--error-100) 100%);
+  border-bottom: 1px solid var(--error-200);
+}
+
+.urgencyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.urgencyBadge[data-urgency="critical"] {
+  background: var(--error-600);
+  color: var(--text-on-primary);
+}
+
+.urgencyBadge[data-urgency="high"] {
+  background: var(--warning-600);
+  color: var(--text-on-primary);
+}
+
+.urgencyBadge[data-urgency="medium"] {
+  background: var(--warning-400);
+  color: var(--text-on-primary);
+}
+
+.urgencyBadge[data-urgency="low"] {
+  background: var(--info-400);
+  color: var(--text-on-primary);
+}
+
+.urgencyIcon {
+  flex-shrink: 0;
+}
+
+.urgencyIcon[data-urgency="critical"] {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.urgencyText {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+}
+
+.content {
+  padding: var(--spacing-lg);
+}
+
+.title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+  line-height: var(--line-height-tight);
+}
+
+.problem {
+  font-size: var(--font-size-base);
+  color: var(--text-secondary);
+  line-height: var(--line-height-normal);
+  margin: 0 0 var(--spacing-lg) 0;
+}
+
+.metadata {
+  display: flex;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--text-tertiary);
+}
+
+.metaItem svg {
+  color: var(--icon-secondary);
+}
+
+.actions {
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--surface-secondary);
+  border-top: 1px solid var(--border-color);
+}
+
+.startButton {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--primary-600);
+  color: var(--text-on-primary);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: all var(--transition-fast) ease;
+}
+
+.startButton:hover {
+  background: var(--primary-700);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.startButton:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Dark mode adjustments */
+[data-theme="dark"] .header {
+  background: linear-gradient(135deg, var(--error-900) 0%, var(--error-800) 100%);
+  border-bottom-color: var(--error-700);
+}
+
+[data-theme="dark"] .problemCard {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+} 

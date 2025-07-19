@@ -25,9 +25,9 @@ export type { AvatarProps } from './Avatar';
 export { Logo } from './Logo';
 export type { LogoProps } from './Logo';
 
-// New browser-focused atoms
-export { BrowserTab } from './BrowserTab';
-export type { BrowserTabProps } from './BrowserTab';
+// New browser-focused atoms (removed - functionality moved to GameHUD)
+// export { BrowserTab } from './BrowserTab';
+// export type { BrowserTabProps } from './BrowserTab';
 
 export { EmailStatus } from './EmailStatus';
 export type { EmailStatusProps, EmailStatusType } from './EmailStatus';

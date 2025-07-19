@@ -3,11 +3,16 @@
   align-items: center;
   gap: 16px;
   padding: 12px 16px;
-  background-color: var(--color-gray-50);
-  border-bottom: 1px solid var(--color-gray-200);
+  background-color: var(--color-neutral-50);
+  border-bottom: 1px solid var(--color-neutral-200);
   flex-shrink: 0;
   justify-content: space-between;
   width: 100%;
   overflow: hidden;
   min-height: 60px;
+}
+
+[data-theme="dark"] .toolbar {
+  background-color: var(--color-obsidian-900);
+  border-bottom-color: var(--color-obsidian-800);
 } 

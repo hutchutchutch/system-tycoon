@@ -113,7 +113,7 @@ function SourceNode({ data }: NodeProps) {
       width: '160px',
       textAlign: 'center',
     }}>
-      {data.label}
+      {(data as any).label}
       <Handle 
         type="source" 
         position={Position.Bottom} 
@@ -142,7 +142,7 @@ function ProcessNode({ data }: NodeProps) {
         position={Position.Top} 
         style={{ background: '#6b7280' }}
       />
-      {data.label}
+      {(data as any).label}
       <Handle 
         type="source" 
         position={Position.Bottom} 
@@ -172,7 +172,7 @@ function TargetNode({ data }: NodeProps) {
         position={Position.Top} 
         style={{ background: '#6b7280' }}
       />
-      {data.label}
+      {(data as any).label}
     </div>
   );
 }
@@ -362,6 +362,7 @@ function SimpleLandingFlow() {
       zoomOnDoubleClick={false}
       panOnDrag={false}
       panOnScroll={false}
+      preventScrolling={false}
       nodesDraggable={true}
       nodesConnectable={false}
       elementsSelectable={false}

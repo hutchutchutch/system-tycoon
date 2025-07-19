@@ -129,6 +129,7 @@ const BentoCardBase: React.FC<{
     <div
       key={displayName}
       className={`bento-card ${className}`}
+      data-bento-card="true"
       onClick={handleClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}

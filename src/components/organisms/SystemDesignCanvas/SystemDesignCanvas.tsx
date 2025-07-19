@@ -56,8 +56,8 @@ export const SystemDesignCanvas: React.FC<SystemDesignCanvasProps> = ({
   isCollaborative = false,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isSessionReady, setIsSessionReady] = useState(false);
 
   // Realtime collaboration hook
@@ -308,6 +308,11 @@ export const SystemDesignCanvas: React.FC<SystemDesignCanvasProps> = ({
           onMouseMove={handleMouseMove}
           nodeTypes={nodeTypes}
           fitView
+          preventScrolling={false}
+          panOnDrag={true}
+          zoomOnScroll={true}
+          zoomOnPinch={true}
+          zoomOnDoubleClick={false}
         >
           <Background />
           <Controls />

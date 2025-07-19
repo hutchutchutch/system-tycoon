@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Reply } from 'lucide-react';
 import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
 import { EmailCard } from '../../components/molecules/EmailCard';
@@ -9,7 +10,7 @@ import type { GroupChatMessage, MentorInfo } from '../../components/organisms/Em
 import styles from './EmailClientWrapper.module.css';
 
 interface EmailClientWrapperProps {
-  onOpenSystemDesign?: (emailId?: string) => void;
+  // No longer need onOpenSystemDesign prop - we'll use navigation
 }
 
 // Convert service EmailData to component EmailCardData
@@ -43,7 +44,7 @@ const convertToEmailCardData = (email: EmailData) => {
   };
 };
 
-export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSystemDesign }) => {
+export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   const [loading, setLoading] = useState(true);
   const [emails, setEmails] = useState<any[]>([]);
   const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
@@ -52,6 +53,14 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [showEmailDetail, setShowEmailDetail] = useState(false);
   const [selectedTab, setSelectedTab] = useState('primary');
+  const navigate = useNavigate();
+
+  // Handle opening system design canvas
+  const handleOpenSystemDesign = (emailId: string) => {
+    console.log('Opening system design canvas for email:', emailId);
+    // Navigate to crisis design route with email ID
+    navigate(`/crisis-design/${emailId}`);
+  };
 
   useEffect(() => {
     const loadEmails = async () => {
@@ -279,7 +288,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                     </p>
                     <button 
                       className={styles.openSystemDesignButton}
-                      onClick={() => onOpenSystemDesign?.(selectedEmail.id)}
+                      onClick={() => handleOpenSystemDesign(selectedEmail.id)}
                     >
                       <span className={styles.buttonIcon}>🚀</span>
                       Open System Design Canvas
@@ -292,7 +301,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = ({ onOpenSy
                     <p>This email mentions a crisis situation that requires immediate system design attention.</p>
                     <button 
                       className={styles.systemDesignButton}
-                      onClick={() => onOpenSystemDesign?.(selectedEmail.id)}
+                      onClick={() => handleOpenSystemDesign(selectedEmail.id)}
                     >
                       Open Crisis System Design Canvas
                     </button>

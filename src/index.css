@@ -45,3 +45,59 @@
     color: #FFFFFF;
   }
 }
+
+/* React Flow touch-action fixes for passive event listeners */
+.react-flow__pane {
+  touch-action: pan-x pan-y;
+}
+
+.react-flow__minimap {
+  touch-action: pan-x pan-y;
+}
+
+.react-flow__controls {
+  touch-action: auto;
+}
+
+.react-flow__handle {
+  touch-action: none;
+}
+
+.react-flow__node {
+  touch-action: none;
+}
+
+.react-flow__edge {
+  touch-action: auto;
+}
+
+/* Prevent scroll blocking on mobile */
+.react-flow {
+  touch-action: pan-x pan-y;
+}
+
+/* Additional fixes for drag and drop */
+.react-flow__node[data-dragging="true"] {
+  touch-action: none;
+}
+
+/* Mentor Chat Animations */
+@keyframes mentorPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}

@@ -157,12 +157,11 @@ export const TodaysNewsWrapper: React.FC = () => {
 
   return (
     <>
-      <div className="relative min-h-screen overflow-hidden" style={{ 
-        background: 'var(--color-surface-primary)',
-        padding: 'var(--space-8)'
+      <div className="relative min-h-screen overflow-y-auto" style={{ 
+        background: 'var(--color-surface-primary)'
       }}>
                 {/* Animated Globe Background */}
-        <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 1 }}>
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }}>
           <div style={{ 
             position: 'absolute',
             left: '50%',

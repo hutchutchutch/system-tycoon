@@ -1,7 +1,9 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { MessageCircle, Send, Minimize2, X, Bot, ChevronDown } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import { MENTORS } from '../../../constants/mentors';
+import { ProductTour } from '../../organisms/ProductTour';
 import type { MentorChatProps, ChatMessage } from './MentorChat.types';
 import { mentorChatService, type MentorChatSession } from '../../../services/mentorChatService';
 import type { RootState } from '../../../store';
@@ -19,6 +21,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   problemDescription,
   className = ''
 }) => {
+  const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentInput, setCurrentInput] = useState('');
@@ -26,6 +29,16 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const [showMentorSelector, setShowMentorSelector] = useState(false);
   const [conversationSessionId] = useState(() => mentorChatService.generateSessionId());
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // ProductTour state management
+  const [showProductTour, setShowProductTour] = useState(false);
+  
+  // Page-specific notification state
+  const [currentNotification, setCurrentNotification] = useState<{
+    title: string;
+    message: string;
+    actionLabel?: string;
+  } | null>(null);
 
   // Get current user and profile from Redux store
   const { user, profile, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -53,6 +66,135 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       loadChatHistory();
     }
   }, [selectedMentorId, user, isAuthenticated]);
+
+  // ProductTour initialization
+  useEffect(() => {
+    if (isAuthenticated && user && location.pathname === '/game') {
+      // Check if user has seen the tour before
+      const hasSeenTour = localStorage.getItem('systemTycoon_hasSeenProductTour');
+      
+      if (!hasSeenTour) {
+        // Start tour after a brief delay to ensure components are rendered
+        const timer = setTimeout(() => {
+          setShowProductTour(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isAuthenticated, user, location.pathname]);
+
+  // Add keyboard shortcuts for testing
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Trigger tour with Ctrl+Shift+T (or Cmd+Shift+T on Mac)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'T') {
+        event.preventDefault();
+        setShowProductTour(true);
+        console.log('Product tour manually triggered via keyboard shortcut');
+      }
+      
+      // Reset notifications with Ctrl+Shift+R (or Cmd+Shift+R on Mac)
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
+        event.preventDefault();
+        localStorage.removeItem('systemTycoon_hasSeenNewsNotification');
+        localStorage.removeItem('systemTycoon_hasSeenEmailNotification');
+        localStorage.removeItem('systemTycoon_hasSeenDesignNotification');
+        localStorage.removeItem('systemTycoon_hasSeenProductTour');
+        console.log('All mentor notifications and tour state reset!');
+        // Reload page to show notifications again
+        window.location.reload();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
+
+  // Page-specific notification logic
+  useEffect(() => {
+    if (!isAuthenticated || !user) return;
+
+    const showPageNotification = () => {
+      const addNotificationAsMessage = (title: string, content: string) => {
+        const notificationMessage: ChatMessage = {
+          id: `notification-${Date.now()}`,
+          content: `${title}\n\n${content}`,
+          timestamp: new Date(),
+          sender: 'mentor',
+          mentorId: selectedMentorId
+        };
+        setMessages(prev => [...prev, notificationMessage]);
+      };
+
+      switch (location.pathname) {
+        case '/browser/news':
+          // Today's News page notification
+          const hasSeenNewsNotification = localStorage.getItem('systemTycoon_hasSeenNewsNotification');
+          if (!hasSeenNewsNotification) {
+            setTimeout(() => {
+              const title = 'Explore and Discover! 🔍';
+              const message = 'Use the category filters to explore subjects that interest you, then look for bento cards where someone needs your help. Click "Contact" to reach out and make a difference!';
+              
+              setCurrentNotification({
+                title,
+                message,
+                actionLabel: 'Got it!'
+              });
+              
+              // Add as chat message
+              addNotificationAsMessage(title, message);
+            }, 3000); // Show after 3 seconds
+          }
+          break;
+        
+        case '/email':
+          // Email page notification
+          const hasSeenEmailNotification = localStorage.getItem('systemTycoon_hasSeenEmailNotification');
+          if (!hasSeenEmailNotification) {
+            setTimeout(() => {
+              const title = 'Check Your Inbox! 📧';
+              const message = 'Look for mission briefings and urgent requests from communities. Red dots indicate high-priority communications that need your immediate attention.';
+              
+              setCurrentNotification({
+                title,
+                message,
+                actionLabel: 'Understood!'
+              });
+              
+              // Add as chat message
+              addNotificationAsMessage(title, message);
+            }, 2000);
+          }
+          break;
+        
+        case '/crisis-design':
+          // Crisis design page notification  
+          const hasSeenDesignNotification = localStorage.getItem('systemTycoon_hasSeenDesignNotification');
+          if (!hasSeenDesignNotification) {
+            setTimeout(() => {
+              const title = 'Design Your Solution! 🎨';
+              const message = 'Drag components from the left panel onto the canvas to architect your system. Connect components to show data flow and relationships.';
+              
+              setCurrentNotification({
+                title,
+                message,
+                actionLabel: 'Let\'s build!'
+              });
+              
+              // Add as chat message
+              addNotificationAsMessage(title, message);
+            }, 2000);
+          }
+          break;
+        
+        default:
+          break;
+      }
+    };
+
+    showPageNotification();
+  }, [location.pathname, isAuthenticated, user, selectedMentorId]);
 
   const loadChatHistory = async () => {
     try {
@@ -161,9 +303,82 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     setMessages([]);
   };
 
-  // Don't render if user is not authenticated
+  // ProductTour handlers
+  const handleTourComplete = useCallback(() => {
+    setShowProductTour(false);
+    // Mark that user has seen the tour
+    localStorage.setItem('systemTycoon_hasSeenProductTour', 'true');
+    console.log('Product tour completed!');
+  }, []);
+
+  // Notification handlers
+  const handleNotificationClose = useCallback(() => {
+    if (currentNotification) {
+      // Mark the current page notification as seen
+      switch (location.pathname) {
+        case '/browser/news':
+          localStorage.setItem('systemTycoon_hasSeenNewsNotification', 'true');
+          break;
+        case '/email':
+          localStorage.setItem('systemTycoon_hasSeenEmailNotification', 'true');
+          break;
+        case '/crisis-design':
+          localStorage.setItem('systemTycoon_hasSeenDesignNotification', 'true');
+          break;
+      }
+      setCurrentNotification(null);
+    }
+  }, [currentNotification, location.pathname]);
+
+  // Hide notification when chat is expanded
+  useEffect(() => {
+    if (isExpanded && currentNotification) {
+      handleNotificationClose();
+    }
+  }, [isExpanded, currentNotification, handleNotificationClose]);
+
+  const handleNotificationAction = useCallback(() => {
+    handleNotificationClose();
+  }, [handleNotificationClose]);
+
+  // Show login prompt if user is not authenticated
   if (!isAuthenticated || !user) {
-    return null;
+    return (
+      <div 
+        style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '20px',
+          zIndex: 99999,
+          pointerEvents: 'auto'
+        }}
+      >
+        <button
+          onClick={() => {
+            // Navigate to auth page or show login prompt
+            window.location.href = '/auth';
+          }}
+          style={{
+            width: '60px',
+            height: '60px',
+            background: 'linear-gradient(135deg, #6b7280, #4b5563)',
+            border: '3px solid white',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            cursor: 'pointer',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
+            transition: 'all 0.3s ease',
+            opacity: 0.7
+          }}
+          title="Login to access Mentor Chat"
+        >
+          <MessageCircle size={24} />
+        </button>
+      </div>
+    );
   }
 
   if (!isExpanded) {
@@ -190,18 +405,21 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             justifyContent: 'center',
             color: 'white',
             cursor: 'pointer',
-            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s ease'
+            boxShadow: currentNotification 
+              ? '0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.6)' 
+              : '0 8px 25px rgba(0, 0, 0, 0.15)',
+            transition: 'all 0.3s ease',
+            animation: currentNotification ? 'mentorPulse 2s infinite' : 'none'
           }}
           title="Open Mentor Chat"
         >
           <MessageCircle size={24} />
-          {messages.length > 1 && (
+          {(messages.length > 1 || currentNotification) && (
             <div style={{
               position: 'absolute',
               top: '-4px',
               right: '-4px',
-              background: '#ef4444',
+              background: currentNotification ? '#22c55e' : '#ef4444',
               color: 'white',
               borderRadius: '50%',
               minWidth: '20px',
@@ -213,7 +431,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               fontWeight: '600',
               border: '2px solid white'
             }}>
-              {messages.length - 1}
+              {currentNotification ? '!' : messages.length - 1}
             </div>
           )}
         </button>
@@ -360,6 +578,146 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           </div>
         </div>
       </div>
+
+      {/* ProductTour - renders globally */}
+      {showProductTour && (
+        <ProductTour
+          isActive={showProductTour}
+          onComplete={handleTourComplete}
+        />
+      )}
+
+      {/* Custom Card Notification - positioned next to MentorChat icon */}
+      {currentNotification && !isExpanded && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '100px', // Positioned to the right of the MentorChat icon (60px width + 20px margin + 20px gap)
+          right: window.innerWidth < 768 ? '20px' : 'auto', // Make responsive on mobile
+          zIndex: 99998, // Just below MentorChat but above everything else
+          pointerEvents: 'auto',
+          maxWidth: window.innerWidth < 768 ? 'calc(100vw - 140px)' : '320px'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+            border: '2px solid white',
+            borderRadius: '16px',
+            padding: '16px 20px',
+            color: 'white',
+            boxShadow: '0 8px 25px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(59, 130, 246, 0.4)',
+            position: 'relative',
+            animation: 'slideInFromLeft 0.4s ease',
+            minWidth: window.innerWidth < 768 ? '240px' : '280px',
+            width: '100%',
+            backdropFilter: 'blur(10px)'
+          }}>
+            {/* Speech bubble arrow pointing to MentorChat */}
+            <div style={{
+              position: 'absolute',
+              left: '-8px',
+              top: '20px',
+              width: '0',
+              height: '0',
+              borderTop: '8px solid transparent',
+              borderBottom: '8px solid transparent',
+              borderRight: '8px solid #3b82f6'
+            }} />
+            <div style={{
+              position: 'absolute',
+              left: '-10px',
+              top: '18px',
+              width: '0',
+              height: '0',
+              borderTop: '10px solid transparent',
+              borderBottom: '10px solid transparent',
+              borderRight: '10px solid white',
+              zIndex: -1
+            }} />
+
+            {/* Close button */}
+            <button
+              onClick={handleNotificationClose}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                background: 'rgba(255, 255, 255, 0.2)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '24px',
+                height: '24px',
+                color: 'white',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                transition: 'background 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+              }}
+            >
+              ✕
+            </button>
+
+            {/* Notification content */}
+            <div style={{ paddingRight: '24px' }}>
+              <h3 style={{
+                margin: '0 0 8px 0',
+                fontSize: '16px',
+                fontWeight: '600',
+                color: 'white'
+              }}>
+                {currentNotification.title}
+              </h3>
+              <p style={{
+                margin: '0 0 16px 0',
+                fontSize: '14px',
+                lineHeight: '1.4',
+                color: 'rgba(255, 255, 255, 0.95)'
+              }}>
+                {currentNotification.message}
+              </p>
+              
+              {/* Action button */}
+              {currentNotification.actionLabel && (
+                <button
+                  onClick={handleNotificationAction}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    color: 'white',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  {currentNotification.actionLabel}
+                  <span style={{ fontSize: '12px' }}>→</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

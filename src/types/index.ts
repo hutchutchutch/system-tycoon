@@ -14,8 +14,8 @@ export interface Profile {
   display_name?: string;
   avatar_url?: string;
   current_level: number;
-  reputation_points: number;
-  career_title: string;
+  reputation_score: number;
+  career_title?: string;
   preferred_mentor_id?: string;
   onboarding_completed: boolean;
   created_at: string;

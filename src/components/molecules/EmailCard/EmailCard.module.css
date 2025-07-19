@@ -5,19 +5,32 @@
   align-items: center; /* Changed from flex-start to center */
   padding: 16px;
   background-color: var(--color-white);
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px solid var(--color-neutral-200);
   transition: background-color 0.2s ease;
   gap: 12px;
 }
 
+[data-theme="dark"] .emailCard {
+  background-color: var(--color-obsidian-950);
+  border-bottom-color: var(--color-obsidian-800);
+}
+
 /* Mission email styling */
 .emailCard--mission {
-  border-left: 3px solid var(--color-orange-500);
-  background-color: var(--color-orange-25);
+  border-left: 3px solid var(--color-accent-500);
+  background-color: var(--color-accent-50);
 }
 
 .emailCard--mission:hover {
-  background-color: var(--color-orange-50);
+  background-color: var(--color-accent-100);
+}
+
+[data-theme="dark"] .emailCard--mission {
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+[data-theme="dark"] .emailCard--mission:hover {
+  background-color: rgba(239, 68, 68, 0.15);
 }
 
 /* Clickable state */
@@ -26,7 +39,11 @@
 }
 
 .emailCard--clickable:hover {
-  background-color: var(--color-gray-50);
+  background-color: var(--color-neutral-50);
+}
+
+[data-theme="dark"] .emailCard--clickable:hover {
+  background-color: var(--color-obsidian-900);
 }
 
 /* Selected state */
@@ -36,10 +53,15 @@
   padding-left: 13px;
 }
 
+[data-theme="dark"] .emailCard--selected {
+  background-color: rgba(59, 130, 246, 0.15);
+  border-left-color: var(--color-primary-400);
+}
+
 /* Mission email selected state overrides */
 .emailCard--mission.emailCard--selected {
-  background-color: var(--color-orange-100);
-  border-left: 3px solid var(--color-orange-600);
+  background-color: var(--color-accent-100);
+  border-left: 3px solid var(--color-accent-600);
 }
 
 .emailCard--selected:hover {
@@ -47,7 +69,20 @@
 }
 
 .emailCard--mission.emailCard--selected:hover {
-  background-color: var(--color-orange-150);
+  background-color: var(--color-accent-200);
+}
+
+[data-theme="dark"] .emailCard--mission.emailCard--selected {
+  background-color: rgba(239, 68, 68, 0.2);
+  border-left-color: var(--color-accent-400);
+}
+
+[data-theme="dark"] .emailCard--selected:hover {
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+[data-theme="dark"] .emailCard--mission.emailCard--selected:hover {
+  background-color: rgba(239, 68, 68, 0.25);
 }
 
 /* Read/Unread states */
@@ -81,7 +116,11 @@
 }
 
 .statusButton:hover {
-  background-color: var(--color-gray-100);
+  background-color: var(--color-neutral-100);
+}
+
+[data-theme="dark"] .statusButton:hover {
+  background-color: var(--color-obsidian-800);
 }
 
 .statusButton:focus {
@@ -112,13 +151,17 @@
 }
 
 .senderName {
-  color: var(--color-gray-900);
+  color: var(--color-neutral-900);
   font-size: 14px;
   line-height: 1.4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
+}
+
+[data-theme="dark"] .senderName {
+  color: var(--color-obsidian-100);
 }
 
 .emailCard--unread .senderName {
@@ -145,7 +188,7 @@
 
 /* Subject (bold, inline) */
 .subject {
-  color: var(--color-gray-900);
+  color: var(--color-neutral-900);
   font-size: 14px;
   line-height: 1.4;
   font-weight: 600;
@@ -154,13 +197,21 @@
 }
 
 .emailCard--read .subject {
-  color: var(--color-gray-700);
+  color: var(--color-neutral-700);
   font-weight: 500;
+}
+
+[data-theme="dark"] .subject {
+  color: var(--color-obsidian-100);
+}
+
+[data-theme="dark"] .emailCard--read .subject {
+  color: var(--color-neutral-400);
 }
 
 /* Body text (truncated with ellipses) */
 .bodyText {
-  color: var(--color-gray-600);
+  color: var(--color-neutral-600);
   font-size: 14px;
   line-height: 1.4;
   overflow: hidden;
@@ -171,7 +222,15 @@
 }
 
 .emailCard--read .bodyText {
-  color: var(--color-gray-500);
+  color: var(--color-neutral-500);
+}
+
+[data-theme="dark"] .bodyText {
+  color: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .emailCard--read .bodyText {
+  color: var(--color-neutral-500);
 }
 
 /* Meta info */
@@ -188,24 +247,40 @@
 }
 
 .priority--high {
-  color: var(--color-red-500);
+  color: var(--color-error-500);
 }
 
 .priority--low {
-  color: var(--color-gray-400);
+  color: var(--color-neutral-400);
+}
+
+[data-theme="dark"] .priority--high {
+  color: var(--color-error-400);
+}
+
+[data-theme="dark"] .priority--low {
+  color: var(--color-neutral-500);
 }
 
 /* Attachment indicator */
 .attachment {
-  color: var(--color-gray-500);
+  color: var(--color-neutral-500);
   flex-shrink: 0;
+}
+
+[data-theme="dark"] .attachment {
+  color: var(--color-neutral-400);
 }
 
 /* Timestamp */
 .timestamp {
-  color: var(--color-gray-600);
+  color: var(--color-neutral-600);
   font-size: 12px;
   white-space: nowrap;
+}
+
+[data-theme="dark"] .timestamp {
+  color: var(--color-neutral-400);
 }
 
 /* Tags */
@@ -220,8 +295,8 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  background-color: var(--color-gray-100);
-  color: var(--color-gray-700);
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-700);
   border-radius: 12px;
   font-size: 11px;
   font-weight: 500;
@@ -229,9 +304,14 @@
   gap: 4px;
 }
 
+[data-theme="dark"] .tag {
+  background-color: var(--color-obsidian-800);
+  color: var(--color-obsidian-200);
+}
+
 /* Mission tag styling */
 .missionTag {
-  background-color: var(--color-orange-500);
+  background-color: var(--color-accent-500);
   color: var(--color-white);
   font-weight: 600;
   text-transform: uppercase;
@@ -240,6 +320,10 @@
   border-radius: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   animation: missionPulse 2s ease-in-out infinite;
+}
+
+[data-theme="dark"] .missionTag {
+  background-color: var(--color-accent-600);
 }
 
 .missionIcon {
@@ -262,9 +346,13 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  color: var(--color-gray-600);
+  color: var(--color-neutral-600);
   font-size: 11px;
   font-weight: 500;
+}
+
+[data-theme="dark"] .tagMore {
+  color: var(--color-neutral-400);
 }
 
 /* Responsive adjustments */
@@ -315,10 +403,10 @@
 
 /* Fallback colors for older browsers */
 .emailCard--mission {
-  border-left-color: #f97316; /* orange-500 fallback */
-  background-color: #fffbeb; /* orange-25 fallback */
+  border-left-color: #ef4444; /* red-500 fallback */
+  background-color: #fef2f2; /* red-50 fallback */
 }
 
 .missionTag {
-  background-color: #f97316; /* orange-500 fallback */
+  background-color: #ef4444; /* red-500 fallback */
 } 

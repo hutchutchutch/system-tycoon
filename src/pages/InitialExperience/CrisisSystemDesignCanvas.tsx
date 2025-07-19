@@ -1,25 +1,25 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { 
   ReactFlow, 
   ReactFlowProvider,
-  addEdge, 
-  useNodesState, 
-  useEdgesState, 
   Controls, 
   Background,
+  BackgroundVariant,
   MiniMap,
   Handle,
   Position,
   useReactFlow
 } from '@xyflow/react';
-import type { Connection, Edge, Node, NodeTypes, EdgeTypes, NodeProps } from '@xyflow/react';
-import { ChevronDown, ChevronUp, Settings, Clock, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
+import type { Connection, Node, NodeProps } from '@xyflow/react';
+import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
 import { ConnectionDebugOverlay } from './ConnectionDebugOverlay';
 
-import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
+// import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
-import { MentorChat } from '../../components/molecules/MentorChat/MentorChat';
+import { ProblemCard } from '../../components/molecules/ProblemCard/ProblemCard';
+
 import { ComponentDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
@@ -84,6 +84,67 @@ const getIconComponent = (iconType: string, size: number = 20) => {
   return <IconComponent size={size} />;
 };
 
+// User Node Data type
+interface UserNodeData extends CustomNodeData {
+  userCount: number;
+}
+
+// Get color based on user count
+const getUserCountColor = (count: number) => {
+  if (count >= 100000) return '#FF1744'; // Red - Critical mass
+  if (count >= 10000) return '#FF6B00'; // Orange - Very high
+  if (count >= 1000) return '#FFA726'; // Light orange - High
+  if (count >= 100) return '#FFD600'; // Yellow - Medium
+  if (count >= 10) return '#66BB6A'; // Green - Low
+  return '#4CAF50'; // Light green - Very low
+};
+
+// User Node Component
+const UserNode: React.FC<NodeProps<Node<UserNodeData>>> = React.memo(({ data, selected, isConnectable, id }) => {
+  const userColor = getUserCountColor(data.userCount || 1);
+  
+  return (
+    <div 
+      className={`${styles.userNode} ${selected ? styles.selected : ''}`}
+      style={{ 
+        borderColor: userColor,
+        backgroundColor: userColor + '15'
+      }}
+    >
+      {/* Input handle (top) */}
+      <Handle
+        type="target"
+        position={Position.Top}
+        id={`${id}-input`}
+        className={styles.nodeHandle}
+        isConnectable={isConnectable}
+      />
+      
+      <div className={styles.userNodeIcon} style={{ color: userColor }}>
+        <Users size={24} />
+      </div>
+      
+      <div className={styles.userNodeContent}>
+        <div className={styles.userNodeCount} style={{ color: userColor }}>
+          {data.userCount.toLocaleString()}
+        </div>
+        <div className={styles.userNodeLabel}>{data.label}</div>
+      </div>
+      
+      {/* Output handle (bottom) */}
+      <Handle
+        type="source"
+        position={Position.Bottom}
+        id={`${id}-output`}
+        className={styles.nodeHandle}
+        isConnectable={isConnectable}
+      />
+    </div>
+  );
+});
+
+UserNode.displayName = 'UserNode';
+
 // Custom Node Component with proper handles
 const CustomNode: React.FC<NodeProps<Node<CustomNodeData>>> = React.memo(({ data, selected, isConnectable, id }) => {
   // Map categories to node type classes for styling
@@ -145,13 +206,13 @@ CustomNode.displayName = 'CustomNode';
 
 interface CrisisSystemDesignCanvasProps {
   missionSlug?: string;
-  emailId?: string;
+  // emailId is now obtained from route params, not props
 }
 
 const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = ({ 
-  missionSlug = 'health-tracker-crisis',
-  emailId 
+  missionSlug = 'health-tracker-crisis'
 }) => {
+  const { emailId } = useParams<{ emailId: string }>();
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
@@ -162,6 +223,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const { screenToFlowPosition } = useReactFlow();
   
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
+  const [showingProblemCard, setShowingProblemCard] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeMission, setActiveMission] = useState<MissionData | null>(null);
@@ -183,6 +245,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Memoized node types (critical for React Flow performance)
   const nodeTypes = useMemo(() => ({
     custom: CustomNode,
+    user: UserNode,
   }), []);
 
   // Fetch detailed component information from Supabase
@@ -275,7 +338,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   });
   
-  // Fetch mission stage data directly from Supabase
+  // Fetch mission stage data and initial system state directly from Supabase
   const fetchMissionStageFromEmail = async (emailId: string): Promise<MissionStageData | null> => {
     try {
       console.log('Fetching mission stage data for email:', emailId);
@@ -302,6 +365,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       
       if (stageData) {
         console.log('Successfully loaded mission stage from database:', stageData);
+        
+        // Load initial system state from database
+        await loadInitialSystemState(emailData.stage_id);
+        
         return stageData;
       }
 
@@ -309,6 +376,186 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     } catch (error) {
       console.error('Failed to fetch mission stage from email:', error);
       return null;
+    }
+  };
+
+  // Load initial system state from database and set nodes/edges
+  const loadInitialSystemState = async (stageId: string) => {
+    try {
+      const { data: stageData, error } = await supabase
+        .from('mission_stages')
+        .select('initial_system_state')
+        .eq('id', stageId)
+        .single();
+
+      if (error) {
+        console.warn('Failed to load initial system state:', error);
+        return;
+      }
+
+      if (stageData?.initial_system_state) {
+        const { nodes: initialNodes = [], edges: initialEdges = [] } = stageData.initial_system_state;
+        
+        console.log('Loading initial system state:', { 
+          nodes: initialNodes.length, 
+          edges: initialEdges.length 
+        });
+
+        // Calculate center position for better layout
+        const centerX = 400;
+        const centerY = 300;
+
+        // Set the initial nodes and edges using Redux
+        if (initialNodes.length > 0) {
+          initialNodes.forEach((node: any, index: number) => {
+            // Position nodes in a layout
+            let position = node.position;
+            
+            // If no position, calculate based on node type
+            if (!position) {
+              if (node.type === 'user' || node.data?.category === 'stakeholder') {
+                // Position user nodes above the center
+                position = { x: centerX - 150 + (index * 150), y: centerY - 200 };
+              } else {
+                // Center the main system node
+                position = { x: centerX, y: centerY };
+              }
+            }
+
+            // Check if this is a user node
+            if (node.type === 'user' || node.data?.category === 'stakeholder') {
+              // Add user node directly to state (bypass component logic)
+              const userNode = {
+                id: node.id,
+                type: 'user',
+                position: position,
+                data: {
+                  label: node.data?.label || 'Users',
+                  icon: 'users',
+                  category: 'stakeholder',
+                  userCount: node.data?.userCount || 200,
+                  ...node.data
+                }
+              };
+              // We need to dispatch a custom action for user nodes
+              dispatch(addNode({
+                component: {
+                  id: node.id,
+                  name: node.data?.label || 'Users',
+                  type: 'user',
+                  category: 'stakeholder',
+                  cost: 0,
+                  capacity: node.data?.userCount || 200,
+                  description: node.data?.description || 'Affected families',
+                  icon: 'users'
+                },
+                position: position,
+                nodeType: 'user',
+                nodeData: {
+                  ...userNode.data,
+                  userCount: node.data?.userCount || 200
+                }
+              }));
+            } else {
+              // Regular component node - center it
+              dispatch(addNode({
+                component: {
+                  id: node.id,
+                  name: node.data?.label || 'Current System',
+                  type: node.type || 'custom',
+                  category: node.data?.category || 'compute',
+                  cost: 0,
+                  capacity: 1000,
+                  description: node.data?.description || 'Current laptop running everything',
+                  icon: node.data?.icon || 'server'
+                },
+                position: position
+              }));
+            }
+          });
+        }
+
+        if (initialEdges.length > 0) {
+          initialEdges.forEach((edge: any) => {
+            dispatch(addEdgeAction({
+              source: edge.source,
+              target: edge.target,
+              sourceHandle: edge.sourceHandle || `${edge.source}-output`,
+              targetHandle: edge.targetHandle || `${edge.target}-input`
+            }));
+          });
+        }
+      } else {
+        console.log('No initial system state found for stage:', stageId);
+        // If no initial state, create default nodes
+        const defaultSystemNode = {
+          id: 'current-system',
+          type: 'custom',
+          position: { x: centerX, y: centerY },
+          data: {
+            label: "Alex's Laptop",
+            icon: 'server',
+            category: 'compute',
+            description: 'Running both web server and database'
+          }
+        };
+
+        const defaultUserNode = {
+          id: 'families',
+          type: 'user',
+          position: { x: centerX, y: centerY - 200 },
+          data: {
+            label: 'Affected Families',
+            icon: 'users',
+            category: 'stakeholder',
+            userCount: 200
+          }
+        };
+
+        // Add default nodes
+        dispatch(addNode({
+          component: {
+            id: defaultSystemNode.id,
+            name: defaultSystemNode.data.label,
+            type: 'custom',
+            category: defaultSystemNode.data.category,
+            cost: 0,
+            capacity: 1000,
+            description: defaultSystemNode.data.description,
+            icon: defaultSystemNode.data.icon
+          },
+          position: defaultSystemNode.position
+        }));
+
+        dispatch(addNode({
+          component: {
+            id: defaultUserNode.id,
+            name: defaultUserNode.data.label,
+            type: 'user',
+            category: 'stakeholder',
+            cost: 0,
+            capacity: defaultUserNode.data.userCount,
+            description: 'Families trying to report symptoms',
+            icon: 'users'
+          },
+          position: defaultUserNode.position,
+          nodeType: 'user',
+          nodeData: {
+            ...defaultUserNode.data,
+            userCount: defaultUserNode.data.userCount
+          }
+        }));
+
+        // Add edge between them
+        dispatch(addEdgeAction({
+          source: 'families',
+          target: 'current-system',
+          sourceHandle: 'families-output',
+          targetHandle: 'current-system-input'
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to load initial system state:', error);
     }
   };
 
@@ -484,24 +731,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   // Removed automatic validation - now using on-demand API validation
 
-  // Initialize with the families node if not already present
-  useEffect(() => {
-    if (nodes.length === 0 && !loading && activeMission) {
-      dispatch(addNode({
-        component: {
-          id: 'families',
-          name: 'Families',
-          type: 'families',
-          category: 'stakeholder',
-          cost: 0,
-          capacity: 200,
-          description: 'Affected families trying to report',
-          icon: 'users'
-        },
-        position: { x: 250, y: 50 }
-      }));
-    }
-  }, [nodes.length, dispatch, loading, activeMission]);
+  // Handle starting the design process
+  const handleStartDesign = useCallback(() => {
+    setShowingProblemCard(false);
+  }, []);
 
   // Transform mission components for the component drawer
   const availableComponents = useMemo(() => {
@@ -639,10 +872,26 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   return (
     <div className={styles.crisisCanvas}>
-      {/* React Flow Canvas - Full Width */}
-      <div className={styles.canvasContainer}>
-        <div className={styles.reactFlowWrapper}>
-          <ReactFlow
+      {showingProblemCard && missionStageData ? (
+        /* Show Problem Card initially */
+        <div className={styles.problemCardContainer}>
+          <ProblemCard
+            title={missionStageData.title}
+            problem={missionStageData.problem_description}
+            urgency="critical"
+            affectedCount={200}
+            timeframe="Urgent - System Failing"
+            onStartDesign={handleStartDesign}
+            className={styles.centeredProblemCard}
+          />
+        </div>
+      ) : (
+        /* Show System Design Interface */
+        <>
+          {/* React Flow Canvas - Full Width */}
+          <div className={styles.canvasContainer}>
+            <div className={styles.reactFlowWrapper}>
+              <ReactFlow
             nodes={nodes}
             edges={edges}
             onNodesChange={(changes) => dispatch(onNodesChange(changes))}
@@ -654,8 +903,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             connectionLineComponent={MultiConnectionLine}
             multiSelectionKeyCode={["Meta", "Control"]}
             fitView
+            fitViewOptions={{
+              padding: 0.2,
+              includeHiddenNodes: false
+            }}
             colorMode={theme}
-            defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1 }}
             minZoom={0.2}
             maxZoom={2}
             className={styles.reactFlow}
@@ -664,8 +917,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             zoomOnScroll={true}
             zoomOnPinch={true}
             zoomOnDoubleClick={false}
-            preventScrolling={true}
+            preventScrolling={false}
             nodeOrigin={[0.5, 0.5]}
+            panOnDrag={true}
+            selectionOnDrag={false}
+            elementsSelectable={true}
+            nodesDraggable={true}
+            nodesConnectable={true}
             isValidConnection={(connection) => {
               // Validate the connection
               if (!connection.source || !connection.target) return false;
@@ -680,7 +938,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               return !edgeExists;
             }}
           >
-            <Background variant="dots" gap={20} size={1} />
+            <Background 
+              variant={BackgroundVariant.Lines} 
+              gap={16} 
+              color={theme === 'dark' ? '#1a1a1a' : '#e0e0e0'}
+              lineWidth={0.5}
+            />
             <Controls className={styles.reactFlowControls} />
             <MiniMap className={styles.reactFlowMinimap} />
             {process.env.NODE_ENV === 'development' && <ConnectionDebugOverlay />}
@@ -701,18 +964,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           </div>
           
           <div className={styles.drawerContent}>
-            {/* Stage Information - shown when loaded from email */}
-            {missionStageData && (
-              <div className={styles.stageInfo}>
-                <h4 className={styles.stageTitle}>
-                  {missionStageData.title}
-                </h4>
-                <p className={styles.stageProblem}>
-                  {missionStageData.problem_description}
-                </p>
-              </div>
-            )}
-            
             <p className={styles.drawerHint}>
               Drag components to the canvas to fix {activeMission?.title}!
             </p>
@@ -780,21 +1031,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         {/*   </div> */}
         {/* )} */}
         
-        {/* Floating Mentor Chat - Bottom Left */}
-        <MentorChat
-          missionStageId={missionStageData?.id}
-          missionTitle={missionStageData?.title || activeMission?.title}
-          problemDescription={missionStageData?.problem_description}
-        />
-      </div>
 
-      {/* Component Detail Modal */}
-      <ComponentDetailModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        component={selectedComponent}
-        availableComponents={allComponentDetails}
-      />
+          </div>
+
+          {/* Component Detail Modal */}
+          <ComponentDetailModal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            component={selectedComponent}
+            availableComponents={allComponentDetails}
+          />
+        </>
+      )}
     </div>
   );
 };
