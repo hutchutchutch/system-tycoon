@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { deliverMissionEmails } from './emailService';
 
 export interface Requirement {
   id: string;
@@ -574,6 +575,7 @@ export async function startMissionFromContactEmail(params: {
     }
 
     let missionStarted = false;
+    let firstStageId: string | null = null;
 
     // If no existing progress or mission is not started yet, start the mission
     if (!existingProgress || existingProgress.status === 'locked') {
@@ -589,6 +591,8 @@ export async function startMissionFromContactEmail(params: {
         console.error('Error fetching first stage:', stageError);
         return { success: false, missionStarted: false, error: stageError.message };
       }
+
+      firstStageId = firstStage.id;
 
       // Create or update mission progress
       const { error: upsertError } = await supabase
@@ -608,9 +612,20 @@ export async function startMissionFromContactEmail(params: {
       }
 
       missionStarted = true;
+
+      // Deliver mission start emails to user's inbox
+      if (firstStageId) {
+        const deliveryResult = await deliverMissionEmails(missionId, firstStageId);
+        if (!deliveryResult.success) {
+          console.error('Failed to deliver mission emails:', deliveryResult.error);
+          // Don't fail the whole operation, mission was started successfully
+        } else {
+          console.log(`Delivered ${deliveryResult.emailsDelivered} mission start emails to user inbox`);
+        }
+      }
     }
 
-    // Get first stage mission emails (trigger_type = 'mission_start')
+    // Get first stage mission emails (trigger_type = 'mission_start') for response
     const { data: firstStageEmails, error: emailsError } = await supabase
       .from('mission_emails')
       .select(`
