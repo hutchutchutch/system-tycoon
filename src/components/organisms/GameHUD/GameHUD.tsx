@@ -36,15 +36,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const [unreadEmailCount, setUnreadEmailCount] = useState(0);
   
   // Check if we're on the crisis system design canvas
-  const isOnCrisisCanvas = location.pathname.includes('/crisis/') || location.pathname.includes('/game/email/');
+  const isOnCrisisCanvas = location.pathname.includes('/crisis-design/') || location.pathname.includes('/game/email/');
   
-  // Extract stage ID from URL if on crisis canvas
-  const getStageIdFromPath = () => {
-    const match = location.pathname.match(/\/crisis\/([^/?]+)/);
+  // Extract email ID from URL if on crisis canvas (the route is /crisis-design/:emailId)
+  const getEmailIdFromPath = () => {
+    const match = location.pathname.match(/\/crisis-design\/([^/?]+)/);
     return match ? match[1] : null;
   };
   
-  const stageId = getStageIdFromPath();
+  const emailId = getEmailIdFromPath();
+  // For now, use emailId as stageId since they're related
+  const stageId = emailId;
   const missionId = currentDatabaseMission?.id || currentMission?.id;
   
   // Handle clicking outside to close dropdown
@@ -166,7 +168,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const isOnChooseMission = location.pathname === '/browser/news' || location.pathname === '/game';
   
   // Check if we're on a system design page (CrisisSystemDesignCanvas or SystemDesignPage)
-  const isOnSystemDesignPage = location.pathname.includes('/crisis/') || 
+  const isOnSystemDesignPage = location.pathname.includes('/crisis-design/') ||
                                location.pathname.includes('/system-design') ||
                                location.pathname.includes('/email/');
   
@@ -178,6 +180,28 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Show mission stages ONLY if we're on a system design page
   const showMissionStages = isOnSystemDesignPage && activeMission && hasStages;
+
+  // Debug logging to understand mission stage display
+  console.log('🎮 GameHUD Debug:', {
+    location: location.pathname,
+    isOnSystemDesignPage,
+    currentDatabaseMission: currentDatabaseMission ? {
+      id: currentDatabaseMission.id,
+      title: currentDatabaseMission.title,
+      stagesCount: currentDatabaseMission.stages?.length || 0
+    } : null,
+    currentMission: currentMission ? {
+      id: currentMission.id,
+      title: currentMission.title,
+      stepsCount: currentMission.steps?.length || 0
+    } : null,
+    activeMission: activeMission ? {
+      id: activeMission.id,
+      title: activeMission.title
+    } : null,
+    hasStages,
+    showMissionStages
+  });
 
   return (
     <>

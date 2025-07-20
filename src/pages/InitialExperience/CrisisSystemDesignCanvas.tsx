@@ -911,6 +911,14 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             // Find the current stage index based on the stage we're viewing
             const currentStageIndex = allStages.findIndex(stage => stage.id === stageData.id);
             
+            console.log('🚀 CrisisSystemDesignCanvas: Dispatching setDatabaseMission', {
+              missionId: stageData.mission.id,
+              missionTitle: stageData.mission.title,
+              stagesCount: allStages.length,
+              currentStageIndex,
+              allStages: allStages.map(s => ({ id: s.id, stage_number: s.stage_number, title: s.title }))
+            });
+            
             dispatch(setDatabaseMission({
               id: stageData.mission.id,
               title: stageData.mission.title,

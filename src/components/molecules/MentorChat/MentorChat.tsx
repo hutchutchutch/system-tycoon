@@ -43,6 +43,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const [showMentorSelector, setShowMentorSelector] = useState(false);
   const conversationSessionId = useConversationSession();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const lastMessageRef = useRef<HTMLDivElement>(null);
+  const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Update global session ID when it changes
   useEffect(() => {
@@ -74,9 +76,27 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     }
   }, [profile?.preferred_mentor_id, selectedMentorId]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Scroll to the start of the last message when chat is expanded
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isExpanded && lastMessageRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        lastMessageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [isExpanded]);
+  
+  // Auto-scroll to bottom when new messages arrive (only if already at bottom)
+  useEffect(() => {
+    if (chatMessagesContainerRef.current && messages.length > 0) {
+      const container = chatMessagesContainerRef.current;
+      const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      
+      // Only auto-scroll if user is already near the bottom
+      if (isNearBottom) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
   }, [messages]);
 
   // Load chat history and add welcome message when component mounts or mentor changes
@@ -684,10 +704,11 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         </div>
 
         {/* Chat Messages */}
-        <div className={styles.chatMessages}>
-          {messages.map((message) => (
+        <div className={styles.chatMessages} ref={chatMessagesContainerRef}>
+          {messages.map((message, index) => (
             <div
               key={message.id}
+              ref={index === messages.length - 1 ? lastMessageRef : null}
               className={`${styles.message} ${
                 message.sender === 'user' ? styles.userMessage : styles.mentorMessage
               }`}
