@@ -94,3 +94,74 @@ export const useMentorChat = () => {
     clearError,
   };
 };
+
+// Custom collaboration hooks following Redux patterns
+export const useCollaboration = () => {
+  const dispatch = useAppDispatch();
+  
+  // Selectors
+  const sentInvitations = useAppSelector(state => state.collaboration.sentInvitations);
+  const receivedInvitations = useAppSelector(state => state.collaboration.receivedInvitations);
+  const unreadCount = useAppSelector(state => state.collaboration.unreadInvitationsCount);
+  const isSending = useAppSelector(state => state.collaboration.isSendingInvitation);
+  const isLoading = useAppSelector(state => state.collaboration.isLoading);
+  const isUpdating = useAppSelector(state => state.collaboration.isUpdatingInvitation);
+  const error = useAppSelector(state => state.collaboration.error);
+  const sendError = useAppSelector(state => state.collaboration.sendError);
+  
+  // Actions
+  const sendInvitation = useCallback(async (params: {
+    inviteeEmail: string;
+    missionStageId: string;
+    missionId: string;
+  }) => {
+    return dispatch({
+      type: 'collaboration/sendInvitation',
+      payload: params,
+    });
+  }, [dispatch]);
+  
+  const loadInvitations = useCallback(() => {
+    dispatch({ type: 'collaboration/loadInvitations' });
+  }, [dispatch]);
+  
+  const updateInvitationStatus = useCallback((params: {
+    invitationId: string;
+    status: 'accepted' | 'declined';
+  }) => {
+    return dispatch({
+      type: 'collaboration/updateStatus',
+      payload: params,
+    });
+  }, [dispatch]);
+  
+  const clearError = useCallback(() => {
+    dispatch({ type: 'collaboration/clearError' });
+  }, [dispatch]);
+  
+  const markAsRead = useCallback((invitationId: string) => {
+    dispatch({
+      type: 'collaboration/markInvitationAsRead',
+      payload: invitationId,
+    });
+  }, [dispatch]);
+  
+  return {
+    // State
+    sentInvitations,
+    receivedInvitations,
+    unreadCount,
+    isSending,
+    isLoading,
+    isUpdating,
+    error,
+    sendError,
+    
+    // Actions
+    sendInvitation,
+    loadInvitations,
+    updateInvitationStatus,
+    clearError,
+    markAsRead,
+  };
+};

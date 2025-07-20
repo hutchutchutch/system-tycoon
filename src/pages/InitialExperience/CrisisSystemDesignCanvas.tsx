@@ -35,7 +35,8 @@ import { realtimeCollaborationService } from '../../services/realtimeCollaborati
 // Redux imports following the established patterns
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { skipToken } from '@reduxjs/toolkit/query';
-import { completeStep, updateMetrics, setDatabaseMission, completeDatabaseStage, clearDatabaseMission } from '../../features/mission/missionSlice';
+import { completeStep, updateMetrics, setDatabaseMission, completeDatabaseStage, clearDatabaseMission, resetTimerTestTrigger } from '../../features/mission/missionSlice';
+import { loadCollaborationInvitations } from '../../store/slices/collaborationSlice';
 import { 
   addNode, 
   setDraggedComponent,
@@ -1068,6 +1069,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     };
   }, [emailId, missionSlug, dispatch]);
 
+  // Load collaboration invitations when user is authenticated
+  useEffect(() => {
+    if (user?.id) {
+      dispatch(loadCollaborationInvitations());
+    }
+  }, [user?.id, dispatch]);
+
   // Load all component details for compatibility resolution
   useEffect(() => {
     const loadAllComponents = async () => {
@@ -1089,6 +1097,19 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     
     await validateRequirements(nodes, edges);
   }, [validateRequirements, nodes, edges, missionStageData?.id]);
+
+  // Get timer test triggered state from Redux
+  const timerTestTriggered = useAppSelector(state => state.mission.timerTestTriggered);
+  
+  // Listen for timer test trigger from Redux state
+  useEffect(() => {
+    if (timerTestTriggered && missionStageData?.id) {
+      console.log('Timer test triggered - running validation');
+      handleRunTest();
+      // Reset the trigger so it doesn't fire multiple times
+      dispatch(resetTimerTestTrigger());
+    }
+  }, [timerTestTriggered, missionStageData?.id, handleRunTest, dispatch]);
 
   // Handle closing mentor notification
   const handleCloseMentorNotification = useCallback(() => {

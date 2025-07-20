@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import clsx from 'clsx';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../../../hooks/redux';
-import { useTheme } from '../../../contexts/ThemeContext';
+import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { CAREER_TITLES } from '../../../constants';
-import { User, Trophy, Star, Sun, Moon, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu } from 'lucide-react';
+import { User, Trophy, Star, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu } from 'lucide-react';
 import { InviteCollaboratorModal } from '../InviteCollaboratorModal';
 import { getUnreadEmailCount } from '../../../services/emailService';
+import { triggerTestSystem } from '../../../features/mission/missionSlice';
 import styles from './GameHUD.module.css';
 
 interface GameHUDProps {
@@ -16,9 +16,9 @@ interface GameHUDProps {
 export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const dispatch = useAppDispatch();
   const { profile } = useAppSelector(state => state.auth);
   const { currentMission, currentDatabaseMission, crisisMetrics } = useAppSelector(state => state.mission);
-  const { theme, toggleTheme } = useTheme();
   
   // Avatar dropdown state
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
@@ -34,6 +34,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Email notification state
   const [unreadEmailCount, setUnreadEmailCount] = useState(0);
+  
+  // Mentor notification progress state
+  const [mentorNotificationProgress, setMentorNotificationProgress] = useState<{[stageId: string]: number}>({});
   
   // Check if we're on the crisis system design canvas
   const isOnCrisisCanvas = location.pathname.includes('/crisis-design/') || location.pathname.includes('/game/email/');
@@ -63,10 +66,13 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     }
   }, [isAvatarMenuOpen]);
   
-  // Timer effect - start timer when on crisis canvas
+  // Timer effect - start timer when on crisis canvas AND all mentor notifications are complete
   useEffect(() => {
-    if (isOnCrisisCanvas && !isTimerActive) {
-      // Start the timer at 3 minutes (180 seconds)
+    const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+    const notificationsCompleted = currentStageId ? (mentorNotificationProgress[currentStageId] || 0) >= 3 : false;
+    
+    if (isOnCrisisCanvas && !isTimerActive && notificationsCompleted) {
+      // Start the timer at 3 minutes (180 seconds) only after notifications are complete
       setTimerSeconds(180);
       setIsTimerActive(true);
     } else if (!isOnCrisisCanvas && isTimerActive) {
@@ -77,15 +83,37 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         timerRef.current = null;
       }
     }
-  }, [isOnCrisisCanvas, isTimerActive]);
+  }, [isOnCrisisCanvas, isTimerActive, mentorNotificationProgress, currentDatabaseMission]);
   
-  // Timer countdown effect
+  // Function to update mentor notification progress
+  const updateMentorNotificationProgress = (stageId: string, step: number) => {
+    setMentorNotificationProgress(prev => ({
+      ...prev,
+      [stageId]: Math.max(prev[stageId] || 0, step)
+    }));
+  };
+  
+  // Expose the progress update function globally so other components can use it
   useEffect(() => {
-    if (isTimerActive && timerSeconds > 0) {
+    (window as any).updateMentorNotificationProgress = updateMentorNotificationProgress;
+    
+    return () => {
+      delete (window as any).updateMentorNotificationProgress;
+    };
+  }, []);
+
+  // Timer countdown effect - pause when invite modal is open
+  useEffect(() => {
+    if (isTimerActive && timerSeconds > 0 && !isInviteModalOpen) {
       timerRef.current = setInterval(() => {
         setTimerSeconds(prev => {
           if (prev <= 1) {
             setIsTimerActive(false);
+            // Dispatch the test system trigger when timer reaches 0
+            if (isOnCrisisCanvas) {
+              console.log('Timer expired - triggering test system');
+              dispatch(triggerTestSystem());
+            }
             return 0;
           }
           return prev - 1;
@@ -101,7 +129,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         clearInterval(timerRef.current);
       }
     };
-  }, [isTimerActive, timerSeconds]);
+  }, [isTimerActive, timerSeconds, isOnCrisisCanvas, isInviteModalOpen, dispatch]);
   
   // Fetch unread email count on mount and periodically
   useEffect(() => {
@@ -180,15 +208,24 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Show mission stages ONLY if we're on a system design page
   const showMissionStages = isOnSystemDesignPage && activeMission && hasStages;
+  
+  // Check if mentor notifications are pending for current stage
+  const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+  const notificationsCompleted = currentStageId ? (mentorNotificationProgress[currentStageId] || 0) >= 3 : false;
+  const showMentorNotificationPending = isOnCrisisCanvas && currentStageId && !notificationsCompleted;
 
   // Debug logging to understand mission stage display
   console.log('🎮 GameHUD Debug:', {
     location: location.pathname,
     isOnSystemDesignPage,
+    isOnCrisisCanvas,
+    showMissionStages,
+    hasStages,
     currentDatabaseMission: currentDatabaseMission ? {
       id: currentDatabaseMission.id,
       title: currentDatabaseMission.title,
-      stagesCount: currentDatabaseMission.stages?.length || 0
+      stagesCount: currentDatabaseMission.stages?.length || 0,
+      currentStageIndex: currentDatabaseMission.currentStageIndex
     } : null,
     currentMission: currentMission ? {
       id: currentMission.id,
@@ -199,8 +236,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
       id: activeMission.id,
       title: activeMission.title
     } : null,
-    hasStages,
-    showMissionStages
   });
 
   return (
@@ -300,10 +335,72 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         
         {/* Center Section - Timer, Mission Stages, Choose Mission Message, or System Status */}
         <div className={clsx(styles.section, styles['section--center'])}>
-          {isTimerActive && timerSeconds > 0 ? (
-            <div className={styles.timer}>
-              <Clock size={16} className={styles.timerIcon} />
-              <span className={styles.timerText}>Time Remaining: {formatTimer(timerSeconds)}</span>
+          {showMentorNotificationPending ? (
+            <div className={styles.mentorNotificationPending}>
+              <Users size={16} className={styles.mentorIcon} />
+              <span className={styles.mentorText}>Complete mentor briefing to start timer</span>
+            </div>
+          ) : isTimerActive ? (
+            <div className={styles.timerAndStages}>
+              <div className={clsx(styles.timer, {
+                [styles['timer--warning']]: timerSeconds <= 30 && timerSeconds > 0,
+                [styles['timer--expired']]: timerSeconds === 0
+              })}>
+                <Clock size={16} className={styles.timerIcon} />
+                <span className={styles.timerText}>
+                  {timerSeconds === 0 ? 'Testing System...' : `Time Remaining: ${formatTimer(timerSeconds)}`}
+                </span>
+              </div>
+              {showMissionStages && (
+                <div className={styles.missionStages}>
+                  <span className={styles.stageLabel}>Stage:</span>
+                  <div className={styles.stageIndicators}>
+                    {currentDatabaseMission ? (
+                      // Render database mission stages
+                      currentDatabaseMission.stages.map((stage, index) => {
+                        const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
+                        const isCompleted = stage.completed || false;
+                        const isUpcoming = index > currentDatabaseMission.currentStageIndex;
+                        
+                        return (
+                          <div
+                            key={stage.id}
+                            className={clsx(styles.stageIndicator, {
+                              [styles['stageIndicator--current']]: isCurrentStage,
+                              [styles['stageIndicator--completed']]: isCompleted,
+                              [styles['stageIndicator--upcoming']]: isUpcoming,
+                            })}
+                            title={stage.title}
+                          >
+                            {stage.stage_number}
+                          </div>
+                        );
+                      })
+                    ) : (
+                      // Render hardcoded mission steps (fallback)
+                      currentMission?.steps.map((step, index) => {
+                        const isCurrentStage = index === currentMission.currentStepIndex;
+                        const isCompleted = step.completed;
+                        const isUpcoming = index > currentMission.currentStepIndex;
+                        
+                        return (
+                          <div
+                            key={step.id}
+                            className={clsx(styles.stageIndicator, {
+                              [styles['stageIndicator--current']]: isCurrentStage,
+                              [styles['stageIndicator--completed']]: isCompleted,
+                              [styles['stageIndicator--upcoming']]: isUpcoming,
+                            })}
+                            title={step.title}
+                          >
+                            {index + 1}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ) : isOnChooseMission ? (
             <div className={styles.chooseMissionMessage}>
@@ -391,14 +488,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                   {unreadEmailCount > 9 ? '9+' : unreadEmailCount}
                 </span>
               )}
-            </button>
-            <button 
-              className={clsx(styles.actionButton, styles['actionButton--theme'])} 
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-            >
-              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </button>
             <button 
               className={clsx(styles.actionButton, {

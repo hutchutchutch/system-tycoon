@@ -59,6 +59,7 @@ interface MissionState {
     familiesHelped: number;
     systemUptime: number;
   };
+  timerTestTriggered: boolean; // Track if test was triggered by timer
 }
 
 const healthCrisisMission: Mission = {
@@ -107,6 +108,7 @@ const initialState: MissionState = {
     familiesHelped: 0,
     systemUptime: 42,
   },
+  timerTestTriggered: false,
 };
 
 const missionSlice = createSlice({
@@ -217,6 +219,17 @@ const missionSlice = createSlice({
     clearDatabaseMission: (state) => {
       state.currentDatabaseMission = null;
     },
+
+    // Trigger test system action from timer
+    triggerTestSystem: (state) => {
+      state.timerTestTriggered = true;
+      console.log('Test system triggered from timer');
+    },
+    
+    // Reset timer test trigger
+    resetTimerTestTrigger: (state) => {
+      state.timerTestTriggered = false;
+    },
   },
 });
 
@@ -227,6 +240,8 @@ export const {
   completeStep, 
   updateMetrics, 
   unlockComponent, 
-  clearDatabaseMission 
+  clearDatabaseMission,
+  triggerTestSystem,
+  resetTimerTestTrigger 
 } = missionSlice.actions;
 export default missionSlice.reducer;
