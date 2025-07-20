@@ -259,15 +259,11 @@ export async function updateEmailStatus(emailId: string, status: 'read' | 'unrea
 // Get unread email count
 export async function getUnreadEmailCount(): Promise<number> {
   try {
-    const { count, error } = await supabase
-      .from('mission_emails')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'unread')
-      .neq('category', 'sent')
-      .neq('category', 'drafts');
-
-    if (error) {
-      console.error('Error getting unread email count:', error);
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
       // Fallback to counting from hardcoded emails
       return getFallbackEmails().filter(email => 
         email.status === 'unread' && 
@@ -276,7 +272,29 @@ export async function getUnreadEmailCount(): Promise<number> {
       ).length;
     }
 
-    return count || 0;
+    // Call the database function to get emails for current stage, then count unread
+    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
+      p_user_id: user.id
+    });
+
+    if (error) {
+      console.error('Error getting emails for current stage:', error);
+      // Fallback to counting from hardcoded emails
+      return getFallbackEmails().filter(email => 
+        email.status === 'unread' && 
+        email.category !== 'sent' && 
+        email.category !== 'drafts'
+      ).length;
+    }
+
+    // Count unread emails from the current stage
+    const unreadCount = data ? data.filter((row: any) => 
+      row.status === 'unread' && 
+      row.category !== 'sent' && 
+      row.category !== 'drafts'
+    ).length : 0;
+
+    return unreadCount;
   } catch (error) {
     console.error('Error in getUnreadEmailCount:', error);
     // Fallback to counting from hardcoded emails

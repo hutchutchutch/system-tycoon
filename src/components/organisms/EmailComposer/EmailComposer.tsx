@@ -8,6 +8,7 @@ import type { NewsHero } from '../../../types/news.types';
 import { saveEmail } from '../../../services/emailService';
 import { startMissionFromContactEmail } from '../../../services/missionService';
 import type { RootState } from '../../../store';
+import { supabase } from '../../../services/supabase';
 import styles from './EmailComposer.module.css';
 
 export interface EmailComposerProps {
@@ -252,21 +253,55 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         </div>
 
         <div className={styles.footer}>
-          <Button
-            variant="primary"
+          <button
             onClick={handleSend}
             disabled={!subject.trim() || !body.trim() || isTyping || isSending}
-            className={styles.sendButton}
+            style={{
+              position: 'relative',
+              padding: '16px 32px',
+              background: (!subject.trim() || !body.trim() || isTyping || isSending) 
+                ? 'var(--color-surface-tertiary)' 
+                : 'linear-gradient(to right, #3B82F6, #A855F7)',
+              color: (!subject.trim() || !body.trim() || isTyping || isSending) 
+                ? 'var(--color-text-tertiary)' 
+                : 'white',
+              fontWeight: '600',
+              fontSize: '1.125rem',
+              borderRadius: '9999px',
+              border: 'none',
+              cursor: (!subject.trim() || !body.trim() || isTyping || isSending) ? 'not-allowed' : 'pointer',
+              boxShadow: (!subject.trim() || !body.trim() || isTyping || isSending) 
+                ? 'none' 
+                : '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              transition: 'all 0.3s',
+              overflow: 'hidden',
+              width: '100%',
+              opacity: (!subject.trim() || !body.trim() || isTyping || isSending) ? 0.6 : 1
+            }}
+            onMouseOver={(e) => {
+              if (!(!subject.trim() || !body.trim() || isTyping || isSending)) {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (!(!subject.trim() || !body.trim() || isTyping || isSending)) {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+              }
+            }}
           >
-            {isSending ? (
-              <>
-                <div className={styles.spinner} />
-                Sending...
-              </>
-            ) : (
-              'Send'
-            )}
-          </Button>
+            <span style={{ position: 'relative', zIndex: 10 }}>
+              {isSending ? (
+                <>
+                  <div className={styles.spinner} />
+                  Sending...
+                </>
+              ) : (
+                'Send'
+              )}
+            </span>
+          </button>
         </div>
       </Modal>
     </div>

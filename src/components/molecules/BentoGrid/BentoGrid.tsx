@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Icon } from '../../atoms/Icon';
-import { Button } from '../../atoms/Button';
+import { motion } from 'framer-motion';
+import type { Transition } from 'framer-motion';
 import type { 
   BentoGridProps, 
   BentoCardProps, 
@@ -8,31 +8,59 @@ import type {
   BentoCardMediumProps, 
   BentoCardLargeProps 
 } from './BentoGrid.types';
-import type { IconName } from '../../atoms/Icon/Icon.types';
 import type { NewsArticle } from '../../../types/news.types';
 
-// Map category slugs to icons
-const getCategoryIcon = (categorySlug: string): IconName => {
-  const iconMap: Record<string, IconName> = {
-    'healthcare': 'heart',
-    'environment': 'globe',
-    'education': 'users',
-    'small-business': 'trending-up',
-    'community': 'users',
-    'technology': 'cpu',
-    'emergency': 'alert-circle'
-  };
-  return iconMap[categorySlug] || 'alert-circle';
+// BorderTrail component for animated border effect
+type BorderTrailProps = {
+  className?: string;
+  size?: number;
+  transition?: Transition;
+  delay?: number;
+  onAnimationComplete?: () => void;
+  style?: React.CSSProperties;
 };
 
-// Map urgency to priority
-const getUrgencyPriority = (urgency: string): 'urgent' | 'high' | 'normal' => {
-  switch (urgency) {
-    case 'critical': return 'urgent';
-    case 'high': return 'high';
-    default: return 'normal';
-  }
+const BorderTrail: React.FC<BorderTrailProps> = ({
+  className = '',
+  size = 60,
+  transition,
+  delay,
+  onAnimationComplete,
+  style,
+}) => {
+  const BASE_TRANSITION = {
+    repeat: Infinity,
+    duration: 5,
+    ease: 'linear' as const,
+  };
+
+  return (
+    <div className='pointer-events-none absolute inset-0 rounded-[inherit] border border-transparent [mask-clip:padding-box,border-box] [mask-composite:intersect] [mask-image:linear-gradient(transparent,transparent),linear-gradient(#000,#000)]'>
+      <motion.div
+        className={`absolute aspect-square ${className}`}
+        style={{
+          width: size,
+          height: size,
+          background: 'var(--color-accent-primary)',
+          borderRadius: '50%',
+          boxShadow: '0 0 8px var(--color-accent-primary)',
+          offsetPath: `rect(0 auto auto 0 round var(--radius-lg))`,
+          ...style,
+        }}
+        animate={{
+          offsetDistance: ['0%', '100%'],
+        }}
+        transition={{
+          ...(transition ?? BASE_TRANSITION),
+          delay: delay,
+        }}
+        onAnimationComplete={onAnimationComplete}
+      />
+    </div>
+  );
 };
+
+
 
 // Common card base component
 const BentoCardBase: React.FC<{
@@ -40,10 +68,8 @@ const BentoCardBase: React.FC<{
   name: string;
   className?: string;
   background?: React.ReactNode;
-  icon: IconName;
   href?: string;
   onClick?: () => void;
-  priority?: 'urgent' | 'high' | 'normal';
   category?: string;
   time?: string;
   article?: NewsArticle;
@@ -56,10 +82,8 @@ const BentoCardBase: React.FC<{
   name,
   className = '',
   background,
-  icon,
   href,
   onClick,
-  priority = 'normal',
   category,
   time,
   article,
@@ -96,31 +120,7 @@ const BentoCardBase: React.FC<{
     onHover?.(false);
   };
 
-  const getPriorityColor = () => {
-    if (article) {
-      switch (article.urgency_level) {
-        case 'critical':
-          return 'var(--color-accent-error)';
-        case 'high':
-          return 'var(--color-accent-warning)';
-        case 'medium':
-          return 'var(--color-accent-primary)';
-        default:
-          return 'var(--color-accent-success)';
-      }
-    }
 
-    switch (priority) {
-      case 'urgent':
-        return 'var(--color-accent-error)';
-      case 'high':
-        return 'var(--color-accent-warning)';
-      default:
-        return 'var(--color-accent-primary)';
-    }
-  };
-
-  const displayIcon = article ? getCategoryIcon(article.category_slug) : icon;
   const displayName = article ? article.headline : name;
   const displayCategory = article ? article.category_slug : category;
   const displayTime = article ? new Date(article.published_at).toLocaleDateString() : time;
@@ -198,20 +198,54 @@ const BentoCardBase: React.FC<{
           {children}
         </div>
 
-        {/* Contact button for articles */}
+                {/* Contact button for articles */}
         {actuallyHovered && article && onContact && (
           <div style={{ marginTop: 'var(--space-3)' }}>
-            <Button
-              variant="primary"
-              size="sm"
+            <button
               onClick={handleContactClick}
-              style={{ width: '100%' }}
+              style={{
+                position: 'relative',
+                padding: '16px 32px',
+                background: 'linear-gradient(to right, #3B82F6, #A855F7)',
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '1.125rem',
+                borderRadius: '9999px',
+                border: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                transition: 'all 0.3s',
+                overflow: 'hidden',
+                pointerEvents: 'auto',
+                zIndex: 10,
+                width: '100%'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+              }}
             >
-              Contact
-            </Button>
+              <span style={{ position: 'relative', zIndex: 10 }}>Contact</span>
+            </button>
           </div>
         )}
       </div>
+
+      {/* Animated border trail on hover */}
+      {actuallyHovered && (
+        <BorderTrail
+          size={3}
+          style={{
+            background: 'var(--color-accent-primary)',
+            borderRadius: '50%',
+            boxShadow: '0 0 6px var(--color-accent-primary)',
+          }}
+        />
+      )}
     </div>
   );
 };
@@ -375,17 +409,13 @@ const BentoGrid: React.FC<BentoGridProps> = ({
           <BentoCardMedium
             article={articles[0]}
             name={articles[0].headline}
-            icon={getCategoryIcon(articles[0].category_slug)}
             description={articles[0].preview_text}
-            priority={getUrgencyPriority(articles[0].urgency_level)}
             onContact={onContact}
           />
           <BentoCardSmall
             article={articles[1]}
             name={articles[1].headline}
-            icon={getCategoryIcon(articles[1].category_slug)}
             description={articles[1].preview_text}
-            priority={getUrgencyPriority(articles[1].urgency_level)}
             onContact={onContact}
           />
         </div>
@@ -395,9 +425,7 @@ const BentoGrid: React.FC<BentoGridProps> = ({
           <BentoCardLarge
             article={articles[2]}
             name={articles[2].headline}
-            icon={getCategoryIcon(articles[2].category_slug)}
             description={articles[2].preview_text}
-            priority={getUrgencyPriority(articles[2].urgency_level)}
             onContact={onContact}
           />
         </div>
@@ -411,17 +439,13 @@ const BentoGrid: React.FC<BentoGridProps> = ({
           <BentoCardSmall
             article={articles[3]}
             name={articles[3].headline}
-            icon={getCategoryIcon(articles[3].category_slug)}
             description={articles[3].preview_text}
-            priority={getUrgencyPriority(articles[3].urgency_level)}
             onContact={onContact}
           />
           <BentoCardMedium
             article={articles[4]}
             name={articles[4].headline}
-            icon={getCategoryIcon(articles[4].category_slug)}
             description={articles[4].preview_text}
-            priority={getUrgencyPriority(articles[4].urgency_level)}
             onContact={onContact}
           />
         </div>

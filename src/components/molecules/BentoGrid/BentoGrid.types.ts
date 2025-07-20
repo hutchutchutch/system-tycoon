@@ -14,7 +14,7 @@ export interface BentoCardBaseProps {
   name: string;
   className?: string;
   background?: ReactNode;
-  icon: IconName;
+  icon?: IconName;
   description: string;
   href?: string;
   cta?: string;
