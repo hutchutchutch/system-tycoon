@@ -135,6 +135,7 @@
   overflow: hidden;
   z-index: 10000; /* Ensure dropdown is always on top */
   animation: dropdownFadeIn var(--duration-fast) var(--ease-out);
+  padding-bottom: var(--space-1);
   
   /* Ensure dropdown stays within viewport */
   transform: translateX(0);
@@ -769,6 +770,7 @@
   border-bottom: 1px solid var(--color-neutral-200);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  margin-bottom: var(--space-1);
 }
 
 [data-theme="dark"] .dropdownHeader {
@@ -798,13 +800,13 @@
 }
 
 .dropdownItem:hover {
-  background: var(--color-neutral-50);
-  color: var(--color-neutral-900);
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
 }
 
 [data-theme="dark"] .dropdownItem:hover {
-  background: var(--color-neutral-200);
-  color: var(--color-neutral-800);
+  background: var(--color-primary-900);
+  color: var(--color-primary-300);
 }
 
 .dropdownItem:active {

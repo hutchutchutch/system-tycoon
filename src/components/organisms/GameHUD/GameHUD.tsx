@@ -242,7 +242,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
             {isAvatarMenuOpen && (
               <div className={styles.avatarDropdown}>
                 <div className={styles.dropdownHeader}>Navigation</div>
-
                 <button
                   className={styles.dropdownItem}
                   onClick={() => handleDropdownItemClick(() => {
@@ -250,9 +249,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                   })}
                 >
                   <FileText size={14} />
-                  <span>Choose Mission</span>
+                  <span>Choose Your Mission</span>
                 </button>
-                <div className={styles.dropdownDivider} />
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => handleDropdownItemClick(() => {
+                    navigate('/email');
+                  })}
+                >
+                  <Mail size={14} />
+                  <span>Email</span>
+                </button>
                 <button
                   className={styles.dropdownItem}
                   onClick={() => handleDropdownItemClick(() => {
@@ -261,16 +268,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 >
                   <Globe size={14} />
                   <span>System Design Canvas</span>
-                </button>
-                <div className={styles.dropdownDivider} />
-                <button
-                  className={styles.dropdownItem}
-                  onClick={() => handleDropdownItemClick(() => {
-                    navigate('/email');
-                  })}
-                >
-                  <Mail size={14} />
-                  <span>Email Client</span>
                 </button>
               </div>
             )}

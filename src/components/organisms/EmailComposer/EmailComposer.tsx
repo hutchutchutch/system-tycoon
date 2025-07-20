@@ -56,6 +56,22 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     return `Hey ${hero.name}! I love what you're doing! Do you need any help with your software stack?`;
   }, [hero.name]);
 
+  // Update news article accepted status
+  const updateNewsArticleAcceptedStatus = async (articleId: string, status: 'no' | 'pending' | 'yes') => {
+    try {
+      const { error } = await supabase
+        .from('news_articles')
+        .update({ accepted: status })
+        .eq('id', articleId);
+
+      if (error) {
+        console.error('Error updating news article accepted status:', error);
+      }
+    } catch (error) {
+      console.error('Error in updateNewsArticleAcceptedStatus:', error);
+    }
+  };
+
   // Typing animation effect
   const typeMessage = useCallback(async () => {
     const message = getSimpleMessage();
@@ -75,6 +91,10 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     if (isOpen) {
       setSubject('Do you need any help??');
       typeMessage();
+      // Mark article as "pending" when Contact is clicked to open composer
+      if (articleId) {
+        updateNewsArticleAcceptedStatus(articleId, 'pending');
+      }
     } else {
       // Reset state when modal closes
       setSubject('');
@@ -83,7 +103,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       setIsSaving(false);
       setIsSending(false);
     }
-  }, [isOpen, hero.headline, typeMessage]);
+  }, [isOpen, hero.headline, typeMessage, articleId]);
 
   const handleSend = useCallback(async () => {
     if (!subject.trim() || !body.trim() || isTyping || !currentUser) return;
@@ -103,6 +123,11 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       });
 
       if (result.success) {
+        // Mark article as "yes" since email was successfully sent
+        if (articleId) {
+          await updateNewsArticleAcceptedStatus(articleId, 'yes');
+        }
+
         // Start mission if we have all required data
         if (missionId && articleId) {
           try {
@@ -168,6 +193,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       });
 
       if (result.success) {
+        // Note: Keep article status as "pending" since user has engaged but hasn't sent
+        // The article was already marked as "pending" when the composer opened
         onClose();
       } else {
         console.error('Failed to save draft:', result.error);
