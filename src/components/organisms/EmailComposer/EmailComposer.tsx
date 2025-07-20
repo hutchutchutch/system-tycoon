@@ -130,6 +130,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
 
         // Start mission if we have all required data
         if (missionId && articleId) {
+          console.log('Starting mission with:', { missionId, articleId, userId: currentUser.id });
           try {
             const missionResult = await startMissionFromContactEmail({
               userId: currentUser.id,
@@ -143,15 +144,28 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
               }
             });
 
+            console.log('Mission start result:', missionResult);
             setMissionStartResult(missionResult);
             
             if (missionResult.success && missionResult.missionStarted) {
               console.log('Mission started successfully! First stage emails delivered:', missionResult.firstStageEmails);
+              
+              // Refresh the email inbox to show the new mission emails
+              if ((window as any).refreshEmailInbox) {
+                console.log('Refreshing email inbox to show mission emails...');
+                setTimeout(() => {
+                  (window as any).refreshEmailInbox();
+                }, 2000); // Give it 2 seconds for the database to fully process
+              }
+            } else if (!missionResult.success) {
+              console.error('Mission start failed:', missionResult.error);
             }
           } catch (missionError) {
             console.error('Error starting mission:', missionError);
             // Don't prevent email success flow from completing
           }
+        } else {
+          console.log('Missing required data for mission start:', { missionId, articleId });
         }
 
         // Call onSend callback if provided

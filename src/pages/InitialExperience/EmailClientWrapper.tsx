@@ -56,6 +56,35 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   const navigate = useNavigate();
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // Function to load emails
+  const loadEmails = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch emails from Supabase (with fallback to hardcoded data)
+      const emailData = await fetchEmails();
+      console.log('Raw email data from service:', emailData);
+      const convertedEmails = emailData.map(convertToEmailCardData);
+      console.log('Converted emails:', convertedEmails);
+      
+      setEmails(convertedEmails);
+    } catch (error) {
+      console.error('Error loading emails:', error);
+      // Fallback to empty array on error
+      setEmails([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Expose refresh function globally for other components to trigger
+  useEffect(() => {
+    (window as any).refreshEmailInbox = loadEmails;
+    return () => {
+      delete (window as any).refreshEmailInbox;
+    };
+  }, []);
+
   // Handle opening system design canvas
   const handleOpenSystemDesign = (emailId: string) => {
     console.log('Opening system design canvas for email:', emailId);
@@ -64,24 +93,6 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   };
 
   useEffect(() => {
-    const loadEmails = async () => {
-      try {
-        setLoading(true);
-        
-        // Fetch emails from Supabase (with fallback to hardcoded data)
-        const emailData = await fetchEmails();
-        const convertedEmails = emailData.map(convertToEmailCardData);
-        
-        setEmails(convertedEmails);
-      } catch (error) {
-        console.error('Error loading emails:', error);
-        // Fallback to empty array on error
-        setEmails([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadEmails();
   }, []);
 
@@ -179,6 +190,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   // Filter emails
   const filteredEmails = React.useMemo(() => {
     let filtered = [...emails];
+    console.log('Starting filter with emails:', emails.length, 'selectedFolder:', selectedFolder, 'selectedTab:', selectedTab);
 
     // Filter by folder
     if (selectedFolder === 'sent') {
@@ -193,6 +205,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
         email.category !== 'drafts' && 
         email.category !== 'sent'
       );
+      console.log('After inbox filter:', filtered.length, filtered.map(e => ({ id: e.id, category: e.category, status: e.status })));
     } else if (selectedFolder !== 'trash') {
       filtered = filtered.filter(email => email.category === selectedFolder);
     }
@@ -209,7 +222,9 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
 
     // Only apply tab filtering for inbox and other non-special folders
     if (selectedFolder === 'inbox' || (selectedFolder !== 'sent' && selectedFolder !== 'drafts' && selectedFolder !== 'trash')) {
-      return filtered.filter(email => email.category === selectedTab);
+      const tabFiltered = filtered.filter(email => email.category === selectedTab);
+      console.log('After tab filter for', selectedTab, ':', tabFiltered.length);
+      return tabFiltered;
     }
 
     return filtered;

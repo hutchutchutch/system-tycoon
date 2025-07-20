@@ -615,6 +615,7 @@ export async function startMissionFromContactEmail(params: {
 
       // Deliver mission start emails to user's inbox
       if (firstStageId) {
+        console.log('Attempting to deliver mission emails:', { missionId, firstStageId });
         const deliveryResult = await deliverMissionEmails(missionId, firstStageId);
         if (!deliveryResult.success) {
           console.error('Failed to deliver mission emails:', deliveryResult.error);
@@ -622,6 +623,8 @@ export async function startMissionFromContactEmail(params: {
         } else {
           console.log(`Delivered ${deliveryResult.emailsDelivered} mission start emails to user inbox`);
         }
+      } else {
+        console.warn('No firstStageId found - cannot deliver mission emails');
       }
     }
 
