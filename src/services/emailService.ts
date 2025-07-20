@@ -28,19 +28,43 @@ export async function saveEmail(emailData: {
   stageId?: string;
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
   try {
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      return { success: false, error: 'User not authenticated' };
+    }
+
     // Generate preview from body (first 100 characters)
     const preview = emailData.body.substring(0, 100) + (emailData.body.length > 100 ? '...' : '');
     
-    // Extract sender info from current user (for now use placeholder)
-    const currentUser = 'Player'; // In a real app, get from auth context
+    // Extract sender info from current user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('username, display_name')
+      .eq('id', user.id)
+      .single();
+    
+    if (profileError) {
+      console.error('Error fetching user profile:', profileError);
+      return { success: false, error: 'Could not fetch user profile' };
+    }
+    
+    const senderName = profile?.display_name || profile?.username || 'Player';
+    const senderEmail = user.email || 'player@systemtycoon.com';
     
     const emailRecord = {
-      sender_name: currentUser,
-      sender_email: `${currentUser.toLowerCase()}@systemtycoon.com`,
+      sender_name: senderName,
+      sender_email: senderEmail,
       sender_avatar: null,
+      recipient_email: emailData.to,
+      recipient_name: emailData.hero?.name || null,
       subject: emailData.subject,
       preview,
       body: emailData.body,
+      content: emailData.body,
+      timestamp: new Date().toISOString(),
       status: emailData.status,
       priority: 'normal' as const,
       has_attachments: false,
@@ -48,6 +72,8 @@ export async function saveEmail(emailData: {
       category: emailData.status === 'sent' ? 'sent' as const : 'drafts' as const,
       mission_id: emailData.missionId,
       stage_id: emailData.stageId,
+      trigger_type: null, // User emails don't have automatic triggers
+      character_id: null, // User emails aren't from characters
     };
 
     const { data, error } = await supabase
@@ -61,10 +87,80 @@ export async function saveEmail(emailData: {
       return { success: false, error: error.message };
     }
 
+    // If email was sent, deliver it to user's inbox
+    if (emailData.status === 'sent') {
+      const { error: deliveryError } = await supabase.rpc('deliver_user_sent_email', {
+        p_user_id: user.id,
+        p_mission_email_id: data.id
+      });
+
+      if (deliveryError) {
+        console.error('Error delivering email to inbox:', deliveryError);
+        // Don't fail the whole operation, email was saved successfully
+      }
+    }
+
     return { success: true, emailId: data.id };
   } catch (error) {
     console.error('Error in saveEmail:', error);
     return { success: false, error: 'Failed to save email' };
+  }
+}
+
+// New function to trigger mission email delivery
+export async function deliverMissionEmails(missionId: string, stageId: string): Promise<{ success: boolean; emailsDelivered?: number; error?: string }> {
+  try {
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    const { data: emailsDelivered, error } = await supabase.rpc('deliver_mission_emails', {
+      p_user_id: user.id,
+      p_mission_id: missionId,
+      p_stage_id: stageId
+    });
+
+    if (error) {
+      console.error('Error delivering mission emails:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, emailsDelivered };
+  } catch (error) {
+    console.error('Error in deliverMissionEmails:', error);
+    return { success: false, error: 'Failed to deliver mission emails' };
+  }
+}
+
+// New function to mark email as read
+export async function markEmailAsRead(emailId: string): Promise<boolean> {
+  try {
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      return false;
+    }
+
+    const { error } = await supabase.rpc('mark_email_as_read', {
+      p_user_id: user.id,
+      p_mission_email_id: emailId
+    });
+
+    if (error) {
+      console.error('Error marking email as read:', error);
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error in markEmailAsRead:', error);
+    return false;
   }
 }
 

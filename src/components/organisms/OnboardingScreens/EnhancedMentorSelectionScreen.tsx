@@ -223,8 +223,8 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '40px 20px',
-      gap: '40px',
+      padding: '20px 10px',
+      gap: '20px',
       minHeight: '100%',
       color: 'white',
       position: 'relative'
@@ -244,23 +244,23 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
           pointerEvents: 'none'
         }} />
       )}
-      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+      <div style={{ textAlign: 'center', marginBottom: '10px' }}>
         <h2 style={{
-          fontSize: '2.5rem',
+          fontSize: '2rem',
           fontWeight: 'bold',
           margin: 0,
           color: 'white',
-          marginBottom: '16px',
+          marginBottom: '8px',
           textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)'
         }}>
           Choose Your Mentor
         </h2>
         
         <p style={{
-          fontSize: '1.25rem',
+          fontSize: '1rem',
           color: 'rgba(255, 255, 255, 0.8)',
-          maxWidth: '600px',
-          lineHeight: 1.6,
+          maxWidth: '500px',
+          lineHeight: 1.4,
           margin: 0
         }}>
           Your mentor will guide you through your first projects and help you help others.
@@ -301,13 +301,13 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
         
         <div style={{
           display: 'flex',
-          gap: '24px',
+          gap: '16px',
           overflowX: 'auto',
           overflowY: 'visible',
-          paddingBottom: '20px',
-          paddingTop: '20px',
-          paddingLeft: '80px',
-          paddingRight: '80px',
+          paddingBottom: '10px',
+          paddingTop: '10px',
+          paddingLeft: '60px',
+          paddingRight: '60px',
           scrollBehavior: 'smooth',
           scrollbarWidth: 'none',
           msOverflowStyle: 'none'
@@ -316,9 +316,9 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
             <Card
               key={mentor.id}
               style={{
-                minWidth: '320px',
-                maxWidth: '320px',
-                padding: '24px',
+                minWidth: '240px',
+                maxWidth: '240px',
+                padding: '16px',
                 cursor: 'pointer',
                 border: selectedMentor?.id === mentor.id 
                   ? '2px solid #00d4ff' 
@@ -328,7 +328,7 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
                   ? 'rgba(0, 212, 255, 0.1)' 
                   : 'rgba(255, 255, 255, 0.05)',
                 backdropFilter: 'blur(10px)',
-                borderRadius: '16px',
+                borderRadius: '12px',
                 transform: selectedMentor?.id === mentor.id ? 'scale(1.02)' : 'scale(1)',
                 boxShadow: selectedMentor?.id === mentor.id 
                   ? '0 8px 32px rgba(0, 212, 255, 0.3)' 
@@ -339,12 +339,12 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '16px',
+                gap: '12px',
                 textAlign: 'center',
                 height: '100%'
               }}>
                 <div style={{ 
-                  fontSize: '3rem',
+                  fontSize: '2.5rem',
                   filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))'
                 }}>
                   {mentor.avatar}
@@ -352,17 +352,17 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
                 
                 <div>
                   <h3 style={{
-                    fontSize: '1.25rem',
+                    fontSize: '1.1rem',
                     fontWeight: '600',
                     margin: 0,
                     color: 'white',
-                    marginBottom: '4px'
+                    marginBottom: '2px'
                   }}>
                     {mentor.name}
                   </h3>
                   
                   <p style={{
-                    fontSize: '1rem',
+                    fontSize: '0.875rem',
                     color: '#00d4ff',
                     margin: 0,
                     fontWeight: '500'
@@ -372,7 +372,7 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
                 </div>
 
                 <p style={{
-                  fontSize: '0.875rem',
+                  fontSize: '0.75rem',
                   color: 'rgba(255, 255, 255, 0.7)',
                   margin: 0,
                   fontWeight: '500'
@@ -381,10 +381,10 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
                 </p>
 
                 <p style={{
-                  fontSize: '0.875rem',
+                  fontSize: '0.8rem',
                   color: 'rgba(255, 255, 255, 0.8)',
                   margin: 0,
-                  lineHeight: 1.5,
+                  lineHeight: 1.4,
                   flex: 1
                 }}>
                   {mentor.message}
@@ -393,18 +393,18 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
                 <div style={{
                   display: 'flex',
                   flexWrap: 'wrap',
-                  gap: '8px',
+                  gap: '6px',
                   justifyContent: 'center'
                 }}>
                   {mentor.expertise.slice(0, 3).map((skill, index) => (
                     <span
                       key={index}
                       style={{
-                        fontSize: '0.75rem',
-                        padding: '4px 8px',
+                        fontSize: '0.7rem',
+                        padding: '3px 6px',
                         backgroundColor: 'rgba(255, 255, 255, 0.1)',
                         color: 'rgba(255, 255, 255, 0.9)',
-                        borderRadius: '12px',
+                        borderRadius: '10px',
                         border: '1px solid rgba(255, 255, 255, 0.2)'
                       }}
                     >
@@ -424,8 +424,8 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
           size="lg"
           onClick={handleConfirm}
           style={{
-            padding: '16px 48px',
-            fontSize: '1.125rem',
+            padding: '12px 36px',
+            fontSize: '1rem',
             background: 'linear-gradient(135deg, #00d4ff 0%, #0099cc 100%)',
             border: 'none',
             color: 'white',

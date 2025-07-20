@@ -195,6 +195,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         localStorage.removeItem('systemTycoon_hasSeenNewsNotification');
         localStorage.removeItem('systemTycoon_hasSeenEmailNotification');
         localStorage.removeItem('systemTycoon_hasSeenDesignNotification');
+        localStorage.removeItem('systemTycoon_hasSeenGameNotification');
         localStorage.removeItem('systemTycoon_hasSeenProductTour');
         console.log('All mentor notifications and tour state reset!');
         // Reload page to show notifications again
@@ -280,6 +281,26 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               // Add as chat message
               addNotificationAsMessage(title, message);
             }, 2000);
+          }
+          break;
+
+        case '/game':
+          // Game/Mission Selection page notification
+          const hasSeenGameNotification = localStorage.getItem('systemTycoon_hasSeenGameNotification');
+          if (!hasSeenGameNotification) {
+            setTimeout(() => {
+              const title = 'Welcome to Mission Selection! 🚀';
+              const message = 'Choose your first mission to start helping communities solve real-world problems. Each mission will challenge you to design systems that make a difference.';
+              
+              setCurrentNotification({
+                title,
+                message,
+                actionLabel: 'Show me around!'
+              });
+              
+              // Add as chat message
+              addNotificationAsMessage(title, message);
+            }, 1500);
           }
           break;
         
@@ -514,6 +535,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           break;
         case '/crisis-design':
           localStorage.setItem('systemTycoon_hasSeenDesignNotification', 'true');
+          break;
+        case '/game':
+          localStorage.setItem('systemTycoon_hasSeenGameNotification', 'true');
           break;
       }
       setCurrentNotification(null);
