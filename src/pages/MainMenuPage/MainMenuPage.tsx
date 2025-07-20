@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
-import { MenuTemplate } from '../../templates/MenuTemplate';
-import { Button } from '../../atoms/Button';
-import { Card } from '../../atoms/Card';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
+import { Button } from '../../components/atoms/Button';
+import { Card } from '../../components/atoms/Card';
 
 /**
  * MainMenuPage - Game main menu
@@ -20,8 +19,9 @@ export const MainMenuPage: React.FC = () => {
   
   // Redux state selectors
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const hasSaveGame = useAppSelector((state) => state.game.hasSaveGame);
-  const soundEnabled = useAppSelector((state) => state.settings.soundEnabled);
+  // TODO: Add hasSaveGame and settings to Redux state
+  // const hasSaveGame = useAppSelector((state) => state.game.hasSaveGame);
+  // const soundEnabled = useAppSelector((state) => state.settings.soundEnabled);
 
   const handleNewGame = () => {
     dispatch({ type: 'game/newGame' });
@@ -38,10 +38,11 @@ export const MainMenuPage: React.FC = () => {
   };
 
   return (
-    <MenuTemplate>
+    <div className="main-menu-page">
               <Card className="menu-card">
           <div className="menu-options">
-          {hasSaveGame && (
+          {/* TODO: Implement save game detection */}
+          {false && (
             <Button
               onClick={handleContinue}
               size="lg"
@@ -54,7 +55,7 @@ export const MainMenuPage: React.FC = () => {
           <Button
             onClick={handleNewGame}
             size="lg"
-            variant={hasSaveGame ? 'outline' : 'default'}
+            variant="primary"
             className="menu-button"
           >
             New Game
@@ -81,7 +82,7 @@ export const MainMenuPage: React.FC = () => {
           )}
         </div>
       </Card>
-    </MenuTemplate>
+    </div>
   );
 };
 

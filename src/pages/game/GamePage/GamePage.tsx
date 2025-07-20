@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
-import { MapTemplate } from '../../templates/MapTemplate';
-import { ComponentDrawer } from '../../organisms/ComponentDrawer';
+// import { MapTemplate } from '../../templates/MapTemplate'; // Missing template
+// import { ComponentDrawer } from '../../organisms/ComponentDrawer'; // Wrong path
 
 /**
  * GamePage - Main gameplay page showing the career map
@@ -22,7 +22,7 @@ export const GamePage: React.FC = () => {
   const inventory = useAppSelector((state) => state.game.inventory);
 
   return (
-    <MapTemplate>
+    <div className="game-page">
       <div className="game-content">
         {/* Location-specific content and interactions */}
         {currentLocation && (
@@ -32,10 +32,10 @@ export const GamePage: React.FC = () => {
           </div>
         )}
         
-        {/* Component discovery drawer */}
-        {showDrawer && <ComponentDrawer />}
+        {/* TODO: Component discovery drawer */}
+        <p>Game page - under development</p>
       </div>
-    </MapTemplate>
+    </div>
   );
 };
 

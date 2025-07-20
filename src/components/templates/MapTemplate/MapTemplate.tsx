@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppSelector } from '../../../hooks/redux';
 import { GameHUD } from '../../organisms/GameHUD';
-import { CareerMap } from '../../organisms/CareerMap';
+// import { CareerMap } from '../../organisms/CareerMap'; // Missing component
 import styles from './MapTemplate.module.css';
 
 interface MapTemplateProps {
@@ -26,7 +26,8 @@ export const MapTemplate: React.FC<MapTemplateProps> = ({ children }) => {
         <GameHUD />
       </div>
       <main className={styles.content}>
-        <CareerMap />
+{/* <CareerMap /> */}
+        <div>Map placeholder</div>
         {children}
       </main>
     </div>
