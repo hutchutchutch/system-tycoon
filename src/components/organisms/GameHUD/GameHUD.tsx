@@ -3,10 +3,11 @@ import clsx from 'clsx';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { CAREER_TITLES } from '../../../constants';
-import { User, Trophy, Star, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu } from 'lucide-react';
+import { User, Trophy, Star, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu, LogOut } from 'lucide-react';
 import { InviteCollaboratorModal } from '../InviteCollaboratorModal';
 import { getUnreadEmailCount } from '../../../services/emailService';
 import { triggerTestSystem } from '../../../features/mission/missionSlice';
+import { signOut } from '../../../features/auth/authSlice';
 import styles from './GameHUD.module.css';
 
 interface GameHUDProps {
@@ -350,6 +351,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 >
                   <Globe size={14} />
                   <span>System Design Canvas</span>
+                </button>
+                <div className={styles.dropdownDivider} />
+                <button
+                  className={styles.dropdownItem}
+                  onClick={() => handleDropdownItemClick(async () => {
+                    await dispatch(signOut());
+                    navigate('/auth');
+                  })}
+                >
+                  <LogOut size={14} />
+                  <span>Sign Out</span>
                 </button>
               </div>
             )}
