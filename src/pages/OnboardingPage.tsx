@@ -31,21 +31,21 @@ export const OnboardingPage: React.FC = () => {
   const transformationStories = [
     {
       id: 'connectivity',
-      icon: '💬',
-      headline: 'A grandmother in rural Kenya...',
-      body: 'Distance became irrelevant when video calls connected her to family across continents. Technology collapsed geography.'
+      icon: '🌍',
+      headline: 'Right now, someone is trying to change the world...',
+      body: 'Doctors, teachers, activists, and dreamers are building solutions to humanity\'s greatest challenges. But they can\'t do it alone.'
     },
     {
       id: 'beginning',
-      icon: '🌱',
-      headline: 'But this is just the beginning...',
-      body: 'Every breakthrough creates new possibilities. The next revolution in human connection is waiting to be built.'
+      icon: '🤝',
+      headline: 'The world only gets better when people join together',
+      body: 'Every movement, every breakthrough, every positive change happens because people found each other and decided to fight for what they believe in.'
     },
     {
       id: 'next-chapter',
-      icon: '🚀',
-      headline: 'Your code writes the next chapter',
-      body: 'The tools that will solve tomorrow\'s crises don\'t exist yet. They\'re waiting for someone like you to build them.'
+      icon: '💻',
+      headline: 'The internet made finding them easier than ever',
+      body: 'The people working on the problems you care about are already out there. Now it\'s YOUR job to join them and help build the solutions they need.'
     }
   ];
 

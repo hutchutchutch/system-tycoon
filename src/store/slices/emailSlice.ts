@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Email, EmailStatus, EmailCategory } from '../../types/email.types';
+import { fetchEmails, fetchEmailsByCategory, type EmailData } from '../../services/emailService';
 
 interface EmailState {
   // Email Data
@@ -58,6 +59,10 @@ const initialState: EmailState = {
     drafts: [],
     archive: [],
     urgent: [],
+    primary: [],
+    projects: [],
+    news: [],
+    promotions: [],
   },
   unreadCount: 0,
   
@@ -103,18 +108,93 @@ export const checkForNewEmails = createAsyncThunk(
   }
 );
 
-// Async thunk for loading initial emails
+// Updated async thunk for loading emails filtered by current mission stage
 export const loadUserEmails = createAsyncThunk(
   'email/loadUserEmails',
-  async (playerId: string, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await fetch(`/api/emails/user/${playerId}`);
+      // Use the updated emailService that filters by current mission stage
+      const emails = await fetchEmails();
       
-      if (!response.ok) {
-        throw new Error('Failed to load emails');
-      }
+      // Convert EmailData to Email format for Redux state
+      const convertedEmails: Email[] = emails.map((emailData: EmailData): Email => ({
+        id: emailData.id,
+        missionId: undefined, // Will be populated from database if available
+        stageId: undefined, // Will be populated from database if available
+        sender: {
+          id: emailData.sender_email,
+          name: emailData.sender_name,
+          email: emailData.sender_email,
+          avatar: emailData.sender_avatar,
+        },
+        subject: emailData.subject,
+        preview: emailData.preview,
+        body: emailData.content,
+        category: emailData.category,
+        status: emailData.status === 'draft' || emailData.status === 'sent' ? 
+                emailData.status as EmailStatus : 
+                emailData.status as EmailStatus,
+        priority: emailData.priority as 'low' | 'normal' | 'high' | 'urgent',
+        sentAt: emailData.timestamp,
+        readAt: emailData.status === 'read' ? emailData.timestamp : undefined,
+        isAccessible: true, // These emails are already filtered to be accessible
+        triggerType: 'stage_complete',
+        hasAttachments: emailData.has_attachments,
+        attachments: emailData.has_attachments ? [] : undefined,
+        isImportant: emailData.priority === 'high' || emailData.priority === 'urgent',
+        isUrgent: emailData.priority === 'urgent',
+        canReply: true,
+        canForward: true,
+        requiresAction: false,
+      }));
       
-      return await response.json();
+      return convertedEmails;
+    } catch (error) {
+      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
+    }
+  }
+);
+
+// New async thunk for loading emails by category (still filtered by stage)
+export const loadEmailsByCategory = createAsyncThunk(
+  'email/loadEmailsByCategory',
+  async (category: EmailCategory, { rejectWithValue }) => {
+    try {
+      const emails = await fetchEmailsByCategory(category);
+      
+      // Convert EmailData to Email format for Redux state
+      const convertedEmails: Email[] = emails.map((emailData: EmailData): Email => ({
+        id: emailData.id,
+        missionId: undefined,
+        stageId: undefined,
+        sender: {
+          id: emailData.sender_email,
+          name: emailData.sender_name,
+          email: emailData.sender_email,
+          avatar: emailData.sender_avatar,
+        },
+        subject: emailData.subject,
+        preview: emailData.preview,
+        body: emailData.content,
+        category: emailData.category,
+        status: emailData.status === 'draft' || emailData.status === 'sent' ? 
+                emailData.status as EmailStatus : 
+                emailData.status as EmailStatus,
+        priority: emailData.priority as 'low' | 'normal' | 'high' | 'urgent',
+        sentAt: emailData.timestamp,
+        readAt: emailData.status === 'read' ? emailData.timestamp : undefined,
+        isAccessible: true,
+        triggerType: 'stage_complete',
+        hasAttachments: emailData.has_attachments,
+        attachments: emailData.has_attachments ? [] : undefined,
+        isImportant: emailData.priority === 'high' || emailData.priority === 'urgent',
+        isUrgent: emailData.priority === 'urgent',
+        canReply: true,
+        canForward: true,
+        requiresAction: false,
+      }));
+      
+      return { category, emails: convertedEmails };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
     }
@@ -320,7 +400,7 @@ const emailSlice = createSlice({
   
   extraReducers: (builder) => {
     builder
-      // Load User Emails
+      // Load user emails
       .addCase(loadUserEmails.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -328,7 +408,21 @@ const emailSlice = createSlice({
       .addCase(loadUserEmails.fulfilled, (state, action) => {
         state.isLoading = false;
         
-        const { emails, missionProgress, availableEmails } = action.payload;
+        const emails = action.payload;
+        
+        // Clear existing emails for fresh load
+        state.emails = {};
+        state.emailsByCategory = {
+          inbox: [],
+          sent: [],
+          drafts: [],
+          archive: [],
+          urgent: [],
+          primary: [],
+          projects: [],
+          news: [],
+          promotions: [],
+        };
         
         // Normalize emails
         emails.forEach((email: Email) => {
@@ -336,50 +430,54 @@ const emailSlice = createSlice({
           if (!state.emailsByCategory[email.category].includes(email.id)) {
             state.emailsByCategory[email.category].push(email.id);
           }
+          
+          // Mark as available since these are already filtered for current stage
+          if (!state.availableEmails.includes(email.id)) {
+            state.availableEmails.push(email.id);
+          }
         });
         
-        // Update mission progress
-        state.missionEmailProgress = missionProgress || {};
-        state.availableEmails = availableEmails || [];
-        
         // Calculate unread count
-        state.unreadCount = emails.filter((email: Email) => email.status === 'unread').length;
+        state.unreadCount = emails.filter(email => email.status === 'unread').length;
       })
       .addCase(loadUserEmails.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-      })
-      
-      // Check for New Emails
-      .addCase(checkForNewEmails.pending, (state) => {
+      });
+    
+    // Load emails by category
+    builder
+      .addCase(loadEmailsByCategory.pending, (state) => {
+        state.isLoading = true;
         state.error = null;
       })
-      .addCase(checkForNewEmails.fulfilled, (state, action) => {
-        const { newEmails, updatedProgress } = action.payload;
+      .addCase(loadEmailsByCategory.fulfilled, (state, action) => {
+        state.isLoading = false;
+        
+        const { category, emails } = action.payload;
+        
+        // Clear existing emails for this category
+        state.emailsByCategory[category] = [];
         
         // Add new emails
-        newEmails?.forEach((email: Email) => {
-          if (!state.emails[email.id]) {
-            state.emails[email.id] = email;
+        emails.forEach((email: Email) => {
+          state.emails[email.id] = email;
+          if (!state.emailsByCategory[email.category].includes(email.id)) {
             state.emailsByCategory[email.category].push(email.id);
-            
-            if (email.status === 'unread') {
-              state.unreadCount++;
-            }
-            
-            // Show notification for the most recent email
-            if (!state.newEmailNotification) {
-              state.newEmailNotification = email;
-            }
+          }
+          
+          // Mark as available since these are already filtered for current stage
+          if (!state.availableEmails.includes(email.id)) {
+            state.availableEmails.push(email.id);
           }
         });
         
-        // Update mission progress
-        if (updatedProgress) {
-          Object.assign(state.missionEmailProgress, updatedProgress);
-        }
+        // Recalculate unread count
+        const allEmails = Object.values(state.emails);
+        state.unreadCount = allEmails.filter(email => email.status === 'unread').length;
       })
-      .addCase(checkForNewEmails.rejected, (state, action) => {
+      .addCase(loadEmailsByCategory.rejected, (state, action) => {
+        state.isLoading = false;
         state.error = action.payload as string;
       });
   },

@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import type { EmailCategory } from '../types/email.types';
 
 export interface EmailData {
   id: string;
@@ -13,7 +14,7 @@ export interface EmailData {
   priority: 'low' | 'normal' | 'high' | 'urgent';
   has_attachments: boolean;
   tags: string[];
-  category: 'primary' | 'projects' | 'news' | 'promotions';
+  category: EmailCategory;
 }
 
 // Save email as draft or sent
@@ -148,35 +149,36 @@ function convertToEmailData(row: any): EmailData {
   };
 }
 
-// Fetch all emails from the database
+// Fetch emails for user's current mission stage from the database
 export async function fetchEmails(): Promise<EmailData[]> {
   try {
-    const { data, error } = await supabase
-      .from('mission_emails')
-      .select(`
-        *,
-        mission_characters (
-          name,
-          email,
-          avatar_url
-        )
-      `)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching emails:', error);
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
       return getFallbackEmails();
     }
 
-    return data ? data.map(row => ({
+    // Call the database function to get emails for current stage
+    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
+      p_user_id: user.id
+    });
+
+    if (error) {
+      console.error('Error fetching emails for current stage:', error);
+      return getFallbackEmails();
+    }
+
+    return data ? data.map((row: any) => ({
       id: row.id,
-      sender_name: row.mission_characters?.name || row.sender_name || 'Unknown Sender',
-      sender_email: row.mission_characters?.email || row.sender_email || 'unknown@example.com',
-      sender_avatar: row.mission_characters?.avatar_url || row.sender_avatar,
+      sender_name: row.character_name || row.sender_name || 'Unknown Sender',
+      sender_email: row.character_email || row.sender_email || 'unknown@example.com',
+      sender_avatar: row.character_avatar_url || row.sender_avatar,
       subject: row.subject,
       preview: row.preview,
-      content: row.body || row.content || '', // Use body field if content is empty
-      timestamp: row.created_at || row.timestamp,
+      content: row.body || row.content || '',
+      timestamp: row.email_timestamp || row.created_at,
       status: row.status,
       priority: row.priority,
       has_attachments: row.has_attachments,
@@ -189,45 +191,48 @@ export async function fetchEmails(): Promise<EmailData[]> {
   }
 }
 
-// Fetch emails by category
-export async function fetchEmailsByCategory(category: string): Promise<EmailData[]> {
+// Fetch emails by category (also filtered by current stage)
+export async function fetchEmailsByCategory(category: EmailCategory): Promise<EmailData[]> {
   try {
-    const { data, error } = await supabase
-      .from('mission_emails')
-      .select(`
-        *,
-        mission_characters (
-          name,
-          email,
-          avatar_url
-        )
-      `)
-      .eq('category', category)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching emails by category:', error);
-      return getFallbackEmails().filter(email => email.category === category);
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('User not authenticated:', authError);
+      return getFallbackEmails().filter((email: EmailData) => email.category === category);
     }
 
-    return data ? data.map(row => ({
+    // Call the database function to get emails for current stage, then filter by category
+    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
+      p_user_id: user.id
+    });
+
+    if (error) {
+      console.error('Error fetching emails by category for current stage:', error);
+      return getFallbackEmails().filter((email: EmailData) => email.category === category);
+    }
+
+    // Filter by category on the client side
+    const allEmails = data ? data.map((row: any) => ({
       id: row.id,
-      sender_name: row.mission_characters?.name || row.sender_name || 'Unknown Sender',
-      sender_email: row.mission_characters?.email || row.sender_email || 'unknown@example.com',
-      sender_avatar: row.mission_characters?.avatar_url || row.sender_avatar,
+      sender_name: row.character_name || row.sender_name || 'Unknown Sender',
+      sender_email: row.character_email || row.sender_email || 'unknown@example.com',
+      sender_avatar: row.character_avatar_url || row.sender_avatar,
       subject: row.subject,
       preview: row.preview,
       content: row.body || row.content || '',
-      timestamp: row.created_at || row.timestamp,
+      timestamp: row.email_timestamp || row.created_at,
       status: row.status,
       priority: row.priority,
       has_attachments: row.has_attachments,
       tags: row.tags || [],
       category: row.category,
     })) : [];
+
+    return allEmails.filter((email: EmailData) => email.category === category);
   } catch (error) {
     console.error('Error in fetchEmailsByCategory:', error);
-    return getFallbackEmails().filter(email => email.category === category);
+    return getFallbackEmails().filter((email: EmailData) => email.category === category);
   }
 }
 
