@@ -44,7 +44,7 @@ function HeroTextNode({ data }: NodeProps) {
         maxWidth: '32rem',
         lineHeight: 1.75
       }}>
-        Transform real-world challenges into meaningful impact through thoughtful system design and innovative software solutions.
+        Learn how system design helps you help others.
       </p>
     </div>
   );
@@ -394,6 +394,24 @@ export function SimpleLanding() {
       position: 'relative',
       overflow: 'hidden'
     }}>
+      {/* Logo in top left */}
+      <div style={{
+        position: 'absolute',
+        top: '24px',
+        left: '24px',
+        zIndex: 100,
+      }}>
+        <img 
+          src="/saasw.png" 
+          alt="SaaSW Logo" 
+          style={{
+            height: '48px',
+            width: 'auto',
+            filter: 'brightness(0) invert(1)', // Makes the logo white
+            opacity: 0.9
+          }}
+        />
+      </div>
       <ReactFlowProvider>
         <SimpleLandingFlow />
       </ReactFlowProvider>
