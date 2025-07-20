@@ -161,6 +161,12 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
           body: body.trim(),
           hero
         });
+        
+        // Trigger email notification in GameHUD
+        if ((window as any).triggerEmailNotification) {
+          (window as any).triggerEmailNotification();
+        }
+        
         onClose();
       } else {
         console.error('Failed to send email:', result.error);

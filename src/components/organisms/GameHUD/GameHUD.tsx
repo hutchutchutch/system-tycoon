@@ -131,6 +131,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     };
   }, [isTimerActive, timerSeconds, isOnCrisisCanvas, isInviteModalOpen, dispatch]);
   
+  // Email notification animation state
+  const [showEmailNotification, setShowEmailNotification] = useState(false);
+  
   // Fetch unread email count on mount and periodically
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -145,6 +148,26 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     const interval = setInterval(fetchUnreadCount, 30000);
     
     return () => clearInterval(interval);
+  }, []);
+  
+  // Function to trigger email notification
+  const triggerEmailNotification = () => {
+    setShowEmailNotification(true);
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      setShowEmailNotification(false);
+    }, 3000);
+    // Also refresh unread count
+    getUnreadEmailCount().then(setUnreadEmailCount);
+  };
+  
+  // Expose the notification trigger globally so EmailComposer can use it
+  useEffect(() => {
+    (window as any).triggerEmailNotification = triggerEmailNotification;
+    
+    return () => {
+      delete (window as any).triggerEmailNotification;
+    };
   }, []);
   
   const handleAvatarClick = () => {
@@ -474,21 +497,29 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         {/* Right Section - Actions Only */}
         <div className={clsx(styles.section, styles['section--right'])}>
           <div className={styles.actions}>
-            <button 
-              className={clsx(styles.actionButton, styles['actionButton--email'], {
-                [styles['actionButton--hasNotification']]: unreadEmailCount > 0
-              })} 
-              onClick={() => navigate('/email')}
-              aria-label={`Email (${unreadEmailCount} unread)`}
-              title={`Email (${unreadEmailCount} unread)`}
-            >
-              <Mail size={16} />
-              {unreadEmailCount > 0 && (
-                <span className={styles.notificationBadge}>
-                  {unreadEmailCount > 9 ? '9+' : unreadEmailCount}
-                </span>
+            <div className={styles.emailButtonContainer}>
+              {showEmailNotification && (
+                <div className={styles.emailNotification}>
+                  <Mail size={12} />
+                  <span>Email sent!</span>
+                </div>
               )}
-            </button>
+              <button 
+                className={clsx(styles.actionButton, styles['actionButton--email'], {
+                  [styles['actionButton--hasNotification']]: unreadEmailCount > 0
+                })} 
+                onClick={() => navigate('/email')}
+                aria-label={`Email (${unreadEmailCount} unread)`}
+                title={`Email (${unreadEmailCount} unread)`}
+              >
+                <Mail size={16} />
+                {unreadEmailCount > 0 && (
+                  <span className={styles.notificationBadge}>
+                    {unreadEmailCount > 9 ? '9+' : unreadEmailCount}
+                  </span>
+                )}
+              </button>
+            </div>
             <button 
               className={clsx(styles.actionButton, {
                 [styles['actionButton--collaborate']]: isOnCrisisCanvas
