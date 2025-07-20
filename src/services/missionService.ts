@@ -578,7 +578,7 @@ export async function startMissionFromContactEmail(params: {
     let firstStageId: string | null = null;
 
     // If no existing progress or mission is not started yet, start the mission
-    if (!existingProgress || existingProgress.status === 'locked') {
+    if (!existingProgress || existingProgress.status === 'locked' || existingProgress.status === 'available') {
       // Get the first stage of this mission
       const { data: firstStage, error: stageError } = await supabase
         .from('mission_stages')

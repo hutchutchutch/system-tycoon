@@ -118,6 +118,12 @@ export async function deliverMissionEmails(missionId: string, stageId: string): 
       return { success: false, error: 'User not authenticated' };
     }
 
+    console.log('Calling deliver_mission_emails RPC with:', {
+      p_user_id: user.id,
+      p_mission_id: missionId,
+      p_stage_id: stageId
+    });
+
     const { data: emailsDelivered, error } = await supabase.rpc('deliver_mission_emails', {
       p_user_id: user.id,
       p_mission_id: missionId,
@@ -129,6 +135,7 @@ export async function deliverMissionEmails(missionId: string, stageId: string): 
       return { success: false, error: error.message };
     }
 
+    console.log('Mission emails delivered successfully:', emailsDelivered);
     return { success: true, emailsDelivered };
   } catch (error) {
     console.error('Error in deliverMissionEmails:', error);

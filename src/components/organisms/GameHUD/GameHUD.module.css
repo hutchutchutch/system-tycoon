@@ -507,7 +507,7 @@
 /* Email Notification */
 .emailNotification {
   position: absolute;
-  bottom: calc(100% + var(--space-2));
+  top: calc(100% + var(--space-2));
   left: 50%;
   transform: translateX(-50%);
   display: flex;
@@ -530,27 +530,27 @@
   color: var(--color-neutral-900);
 }
 
-.emailNotification::after {
+.emailNotification::before {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
   border-left: 4px solid transparent;
   border-right: 4px solid transparent;
-  border-top: 4px solid var(--color-success-500);
+  border-bottom: 4px solid var(--color-success-500);
 }
 
-[data-theme="dark"] .emailNotification::after {
-  border-top-color: var(--color-success-400);
+[data-theme="dark"] .emailNotification::before {
+  border-bottom-color: var(--color-success-400);
 }
 
 @keyframes emailNotificationSlideIn {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(8px);
+    transform: translateX(-50%) translateY(-8px);
   }
   100% {
     opacity: 1;
