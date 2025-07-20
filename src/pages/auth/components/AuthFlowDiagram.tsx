@@ -516,7 +516,8 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.1 }}
+          fitViewOptions={{ padding: 0.2 }}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.85 }}
           className="auth-flow"
           nodesDraggable={true}
           nodesConnectable={false}
