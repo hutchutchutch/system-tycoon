@@ -213,7 +213,29 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
               }}
             >
               <div className={styles.username}>{username}</div>
-              <div className={styles.careerTitle}>{careerTitle}</div>
+              <div className={styles.stats}>
+                <div className={styles.stat}>
+                  <div className={styles.statIcon}>
+                    <Trophy size={16} />
+                  </div>
+                  <div className={styles.statContent}>
+                    <div className={styles.statLabel}>Level</div>
+                    <div className={styles.statValue}>{currentLevel}</div>
+                  </div>
+                </div>
+                
+                <div className={styles.stat}>
+                  <div className={styles.statIcon}>
+                    <Star size={16} />
+                  </div>
+                  <div className={styles.statContent}>
+                    <div className={styles.statLabel}>Reputation</div>
+                    <div className={styles.statValue}>
+                      {reputationPoints.toLocaleString()}
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Navigation Dropdown Menu */}
@@ -331,32 +353,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
           )}
         </div>
         
-        {/* Right Section - Stats & Actions */}
+        {/* Right Section - Actions Only */}
         <div className={clsx(styles.section, styles['section--right'])}>
-          <div className={styles.stats}>
-            <div className={styles.stat}>
-              <div className={styles.statIcon}>
-                <Trophy size={16} />
-              </div>
-              <div className={styles.statContent}>
-                <div className={styles.statLabel}>Level</div>
-                <div className={styles.statValue}>{currentLevel}</div>
-              </div>
-            </div>
-            
-            <div className={styles.stat}>
-              <div className={styles.statIcon}>
-                <Star size={16} />
-              </div>
-              <div className={styles.statContent}>
-                <div className={styles.statLabel}>Reputation</div>
-                <div className={styles.statValue}>
-                  {reputationPoints.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </div>
-          
           <div className={styles.actions}>
             <button 
               className={clsx(styles.actionButton, styles['actionButton--email'], {
