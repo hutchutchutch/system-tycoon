@@ -263,7 +263,7 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
           lineHeight: 1.6,
           margin: 0
         }}>
-          Your mentor will guide you through your first projects and help you develop your consulting skills.
+          Your mentor will guide you through your first projects and help you help others.
         </p>
       </div>
 
