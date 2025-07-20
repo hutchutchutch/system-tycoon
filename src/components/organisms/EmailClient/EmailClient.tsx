@@ -301,14 +301,17 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                   />
                 )}
                 
-                {selectedEmailDetail.content?.includes('/?crisis=true') && (
+                {/* Show system design button for mission emails or crisis emails */}
+                {((selectedEmailDetail.missionId && selectedEmailDetail.stageId && 
+                   (selectedEmailDetail.triggerType === 'mission_start' || selectedEmailDetail.deliveryReason === 'mission_start')) ||
+                  selectedEmailDetail.content?.includes('/?crisis=true')) && (
                   <div className={styles.systemDesignPrompt}>
-                    <p>This email mentions a crisis situation that requires immediate system design attention.</p>
+                    <p>This email contains a critical mission that requires your system design expertise.</p>
                     <button 
                       className={styles.systemDesignButton}
                       onClick={onOpenSystemDesign}
                     >
-                      Open Crisis System Design Canvas
+                      Open System Design Canvas
                     </button>
                   </div>
                 )}

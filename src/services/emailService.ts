@@ -15,6 +15,10 @@ export interface EmailData {
   has_attachments: boolean;
   tags: string[];
   category: EmailCategory;
+  // Mission-related fields
+  mission_id?: string;
+  stage_id?: string;
+  trigger_type?: string;
 }
 
 // Save email as draft or sent
@@ -287,6 +291,10 @@ export async function fetchEmails(): Promise<EmailData[]> {
       has_attachments: row.has_attachments,
       tags: row.tags || [],
       category: row.category,
+      // Include mission-related fields
+      mission_id: row.mission_id,
+      stage_id: row.stage_id,
+      trigger_type: row.trigger_type,
     })) : getFallbackEmails();
   } catch (error) {
     console.error('Error in fetchEmails:', error);
@@ -330,6 +338,10 @@ export async function fetchEmailsByCategory(category: EmailCategory): Promise<Em
       has_attachments: row.has_attachments,
       tags: row.tags || [],
       category: row.category,
+      // Include mission-related fields
+      mission_id: row.mission_id,
+      stage_id: row.stage_id,
+      trigger_type: row.trigger_type,
     })) : [];
 
     return allEmails.filter((email: EmailData) => email.category === category);

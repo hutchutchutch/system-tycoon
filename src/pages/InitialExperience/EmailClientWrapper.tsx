@@ -31,7 +31,7 @@ const convertToEmailCardData = (email: EmailData) => {
     status: email.status,
     priority: email.priority,
     sentAt: email.timestamp, // Keep as string for Email interface
-    triggerType: 'manual', // Default trigger type
+    triggerType: email.trigger_type || 'manual', // Use actual trigger type from DB
     isAccessible: true,
     hasAttachments: email.has_attachments,
     attachments: email.has_attachments ? [] : undefined,
@@ -41,6 +41,9 @@ const convertToEmailCardData = (email: EmailData) => {
     canForward: true,
     requiresAction: false,
     tags: email.tags,
+    // Include mission-related fields
+    missionId: email.mission_id,
+    stageId: email.stage_id,
   };
 };
 
@@ -295,7 +298,8 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
                 />
                 
                 {/* Check if this is a mission email and show the system design button */}
-                {(selectedEmail.tags.includes('crisis') || 
+                {(selectedEmail.missionId && selectedEmail.stageId && selectedEmail.triggerType === 'mission_start') || 
+                 (selectedEmail.tags.includes('crisis') || 
                   selectedEmail.tags.includes('system-design') || 
                   selectedEmail.tags.includes('healthcare') ||
                   selectedEmail.body?.toLowerCase().includes('system design') ||
