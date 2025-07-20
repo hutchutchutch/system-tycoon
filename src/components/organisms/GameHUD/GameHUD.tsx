@@ -190,7 +190,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
               onClick={handleAvatarClick}
               role="button"
               tabIndex={0}
-              aria-label="Open user menu"
+              aria-label="Open navigation menu"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
@@ -198,10 +198,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 }
               }}
             >
-              <span className={styles.avatarText}>
-                {username[0]?.toUpperCase() || 'U'}
-              </span>
-              <div className={styles.statusIndicator} />
+              <Menu size={16} className={styles.menuIcon} />
             </div>
             <div 
               className={styles.userInfo}
@@ -219,10 +216,10 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
               <div className={styles.careerTitle}>{careerTitle}</div>
             </div>
             
-            {/* Avatar Dropdown Menu */}
+            {/* Navigation Dropdown Menu */}
             {isAvatarMenuOpen && (
               <div className={styles.avatarDropdown}>
-                <div className={styles.dropdownHeader}>Browser Options</div>
+                <div className={styles.dropdownHeader}>Navigation</div>
 
                 <button
                   className={styles.dropdownItem}

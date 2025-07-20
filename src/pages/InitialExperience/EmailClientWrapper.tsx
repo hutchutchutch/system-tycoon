@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Reply } from 'lucide-react';
 import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
@@ -54,6 +54,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   const [showEmailDetail, setShowEmailDetail] = useState(false);
   const [selectedTab, setSelectedTab] = useState('primary');
   const navigate = useNavigate();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Handle opening system design canvas
   const handleOpenSystemDesign = (emailId: string) => {
@@ -116,6 +117,11 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   const handleEmailSelect = async (emailId: string) => {
     setSelectedEmailId(emailId);
     setShowEmailDetail(true);
+    
+    // Scroll to top of content area when email is selected
+    if (contentRef.current) {
+      contentRef.current.scrollTop = 0;
+    }
     
     // Mark as read in database and local state
     const success = await updateEmailStatus(emailId, 'read');
@@ -242,7 +248,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
         />
 
         {/* Scrollable Content */}
-        <div className={styles.content}>
+        <div className={styles.content} ref={contentRef}>
           {showEmailDetail && selectedEmail ? (
             <div className={styles.emailDetail}>
               <div className={styles.emailDetailHeader}>
