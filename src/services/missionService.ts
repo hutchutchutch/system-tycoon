@@ -161,6 +161,39 @@ export class MissionService {
     }));
   }
 
+  // Transform mission_stage_requirements table data to Requirement interface
+  private transformMissionStageRequirements(dbRequirements: any[]): Requirement[] {
+    return dbRequirements
+      .filter(req => req.initially_visible || req.unlock_order <= 1) // Only show initially visible requirements
+      .map(req => ({
+        id: req.id,
+        description: req.title, // Use title as the main description for Requirements component
+        completed: false,
+        type: req.requirement_type,
+        priority: req.priority?.toString() || '1',
+        validation: req.validation_config ? JSON.stringify(req.validation_config) : undefined,
+        validation_type: req.requirement_type,
+        // Parse validation_config for validator creation
+        required_nodes: req.validation_config?.required_components || undefined,
+        min_nodes: req.validation_config?.min_instances || undefined,
+        min_nodes_of_type: req.validation_config?.min_instances ? 
+          { [req.validation_config.required_components?.[0] || 'unknown']: req.validation_config.min_instances } : undefined,
+        required_connection: req.validation_config?.source_types && req.validation_config?.target_types ? 
+          { from: req.validation_config.source_types[0], to: req.validation_config.target_types[0] } : undefined,
+        target_metric: req.validation_config?.max_monthly_cost ? 'cost' : undefined,
+        target_value: req.validation_config?.max_monthly_cost || undefined,
+        validator: this.createValidatorFunction({
+          validation_type: req.requirement_type,
+          required_nodes: req.validation_config?.required_components,
+          min_nodes: req.validation_config?.min_instances,
+          required_connection: req.validation_config?.source_types && req.validation_config?.target_types ? 
+            { from: req.validation_config.source_types[0], to: req.validation_config.target_types[0] } : undefined,
+          target_metric: req.validation_config?.max_monthly_cost ? 'cost' : undefined,
+          target_value: req.validation_config?.max_monthly_cost
+        })
+      }));
+  }
+
   // Create validator function based on database validation criteria
   private createValidatorFunction(requirement: any): (nodes: any[], edges: any[]) => boolean {
     const { validation_type, required_nodes, min_nodes, required_connection, min_nodes_of_type, target_metric, target_value } = requirement;
@@ -224,6 +257,43 @@ export class MissionService {
           }
           return true;
 
+        case 'component_required':
+          // Check if required components exist with proper min/max instances
+          if (required_nodes) {
+            return required_nodes.every((category: string) => {
+              const count = nodes.filter(n => n.data.category === category).length;
+              return count >= (min_nodes || 1);
+            });
+          }
+          return true;
+
+        case 'connection_required':
+          // Check if required connections exist between specific component types
+          if (required_connection) {
+            return edges.some((e) => {
+              const sourceNode = nodes.find(n => n.id === e.source);
+              const targetNode = nodes.find(n => n.id === e.target);
+              
+              // Handle special cases like 'families' or user nodes
+              if (required_connection.from === 'families' || required_connection.to === 'families') {
+                return (sourceNode?.data.label === 'Families' && targetNode?.data.category === required_connection.to) ||
+                       (sourceNode?.data.category === required_connection.from && targetNode?.data.label === 'Families');
+              }
+              
+              return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
+                     (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
+            });
+          }
+          return true;
+
+        case 'cost_constraint':
+          // Check if total system cost is within budget
+          if (target_metric === 'cost' || target_value) {
+            const totalCost = nodes.reduce((sum, node) => sum + (node.data.cost || 50), 0);
+            return totalCost <= (target_value || 500);
+          }
+          return true;
+
         case 'metric':
           // For now, return true for metric-based validations as they require runtime metrics
           // This could be enhanced to check actual performance metrics if available
@@ -244,13 +314,13 @@ export class MissionService {
   // Load mission stage data by stage ID
   async loadMissionStageById(stageId: string): Promise<MissionStageData | null> {
     try {
+      // Load stage basic data
       const { data: stageData, error: stageError } = await supabase
         .from('mission_stages')
         .select(`
           id,
           title,
           problem_description,
-          system_requirements,
           missions!inner(
             id,
             title,
@@ -266,11 +336,25 @@ export class MissionService {
         return null;
       }
 
+      // Load requirements from mission_stage_requirements table
+      const { data: requirementsData, error: requirementsError } = await supabase
+        .from('mission_stage_requirements')
+        .select('*')
+        .eq('stage_id', stageId)
+        .order('unlock_order');
+
+      if (requirementsError) {
+        console.warn(`Failed to load requirements for stage '${stageId}':`, requirementsError);
+      }
+
+      // Transform mission_stage_requirements data to match Requirement interface
+      const transformedRequirements = this.transformMissionStageRequirements(requirementsData || []);
+
       return {
         id: stageData.id,
         title: stageData.title,
         problem_description: stageData.problem_description,
-        system_requirements: this.transformDatabaseRequirements(stageData.system_requirements || []),
+        system_requirements: transformedRequirements,
         mission: Array.isArray(stageData.missions) ? stageData.missions[0] : stageData.missions
       };
     } catch (error) {
@@ -458,6 +542,110 @@ export class MissionService {
   async getCurrentUserId(): Promise<string | null> {
     const { data: { user } } = await supabase.auth.getUser();
     return user?.id || null;
+  }
+}
+
+// Start mission when user sends contact email to news article hero
+export async function startMissionFromContactEmail(params: {
+  userId: string;
+  newsArticleId: string;
+  missionId: string;
+  contactEmailData: {
+    to: string;
+    subject: string;
+    body: string;
+    hero: any;
+  };
+}): Promise<{ success: boolean; missionStarted: boolean; firstStageEmails?: any[]; error?: string }> {
+  try {
+    const { userId, newsArticleId, missionId, contactEmailData } = params;
+
+    // Check if user has already started this mission
+    const { data: existingProgress, error: progressError } = await supabase
+      .from('user_mission_progress')
+      .select('id, status')
+      .eq('user_id', userId)
+      .eq('mission_id', missionId)
+      .single();
+
+    if (progressError && progressError.code !== 'PGRST116') { // Not found is OK
+      console.error('Error checking mission progress:', progressError);
+      return { success: false, missionStarted: false, error: progressError.message };
+    }
+
+    let missionStarted = false;
+
+    // If no existing progress or mission is not started yet, start the mission
+    if (!existingProgress || existingProgress.status === 'locked') {
+      // Get the first stage of this mission
+      const { data: firstStage, error: stageError } = await supabase
+        .from('mission_stages')
+        .select('id, stage_number')
+        .eq('mission_id', missionId)
+        .eq('stage_number', 1)
+        .single();
+
+      if (stageError) {
+        console.error('Error fetching first stage:', stageError);
+        return { success: false, missionStarted: false, error: stageError.message };
+      }
+
+      // Create or update mission progress
+      const { error: upsertError } = await supabase
+        .from('user_mission_progress')
+        .upsert({
+          user_id: userId,
+          mission_id: missionId,
+          status: 'in_progress',
+          current_stage_id: firstStage.id,
+          stage_id: firstStage.id,
+          started_at: new Date().toISOString(),
+        });
+
+      if (upsertError) {
+        console.error('Error starting mission:', upsertError);
+        return { success: false, missionStarted: false, error: upsertError.message };
+      }
+
+      missionStarted = true;
+    }
+
+    // Get first stage mission emails (trigger_type = 'mission_start')
+    const { data: firstStageEmails, error: emailsError } = await supabase
+      .from('mission_emails')
+      .select(`
+        id,
+        subject,
+        preview,
+        body,
+        sender_name,
+        sender_email,
+        sender_avatar,
+        priority,
+        trigger_type,
+        created_at
+      `)
+      .eq('mission_id', missionId)
+      .eq('trigger_type', 'mission_start')
+      .order('created_at');
+
+    if (emailsError) {
+      console.error('Error fetching mission emails:', emailsError);
+      return { success: false, missionStarted, error: emailsError.message };
+    }
+
+    return { 
+      success: true, 
+      missionStarted, 
+      firstStageEmails: firstStageEmails || [] 
+    };
+  } catch (error) {
+    console.error('Error starting mission from contact email:', error);
+    return { 
+      success: false, 
+      missionStarted: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
   }
 }
 

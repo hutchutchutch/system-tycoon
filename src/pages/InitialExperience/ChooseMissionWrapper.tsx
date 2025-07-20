@@ -279,6 +279,8 @@ export const ChooseMissionWrapper: React.FC = () => {
           onClose={handleCloseEmailComposer}
           hero={heroToShow}
           theme="dark"
+          articleId={emailToOpen?.id}
+          missionId={emailToOpen?.mission_id}
           onSend={handleEmailSend}
         />
       )}

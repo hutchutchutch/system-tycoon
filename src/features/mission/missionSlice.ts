@@ -129,8 +129,9 @@ const missionSlice = createSlice({
       description: string;
       slug: string;
       stages: DatabaseMissionStage[];
+      currentStageIndex?: number;
     }>) => {
-      const { id, title, description, slug, stages } = action.payload;
+      const { id, title, description, slug, stages, currentStageIndex = 0 } = action.payload;
       state.currentDatabaseMission = {
         id,
         title,
@@ -140,7 +141,7 @@ const missionSlice = createSlice({
           ...stage,
           completed: false // Initialize as not completed
         })),
-        currentStageIndex: 0,
+        currentStageIndex,
         completed: false,
         startedAt: new Date().toISOString(),
       };

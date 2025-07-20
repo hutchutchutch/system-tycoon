@@ -2,28 +2,25 @@ import React from 'react';
 import clsx from 'clsx';
 import { CheckCircle, Circle, Play, ClipboardList } from 'lucide-react';
 import { Button } from '../../atoms/Button';
+import { useAppSelector } from '../../../hooks/redux';
+import { selectRequirementsStatus, selectCanvasValidation } from '../../../features/design/designSlice';
 import styles from './Requirements.module.css';
 
-interface Requirement {
-  id: string;
-  description: string;
-  completed: boolean;
-}
-
 interface RequirementsProps {
-  requirements: Requirement[];
   onTestSystem: () => void;
   className?: string;
 }
 
 export const Requirements: React.FC<RequirementsProps> = ({ 
-  requirements, 
   onTestSystem, 
   className = '' 
 }) => {
-  const completedCount = requirements.filter(req => req.completed).length;
-  const allCompleted = completedCount === requirements.length;
-  const progressPercentage = (completedCount / requirements.length) * 100;
+  // Connect to Redux store using memoized selectors (Redux best practice)
+  const requirementsStatus = useAppSelector(selectRequirementsStatus);
+  const canvasValidation = useAppSelector(selectCanvasValidation);
+
+  const { requirements, progress, allMet } = requirementsStatus;
+  const { canProceed } = canvasValidation;
 
   return (
     <div className={clsx(styles.requirements, className)}>
@@ -33,7 +30,7 @@ export const Requirements: React.FC<RequirementsProps> = ({
           Requirements
         </h3>
         <div className={styles.requirements__counter}>
-          {completedCount}/{requirements.length}
+          {progress.completed}/{progress.total}
         </div>
       </div>
       
@@ -42,9 +39,9 @@ export const Requirements: React.FC<RequirementsProps> = ({
           <div 
             className={clsx(
               styles.progressBar__fill,
-              allCompleted && styles['progressBar__fill--complete']
+              allMet && styles['progressBar__fill--complete']
             )}
-            style={{ width: `${progressPercentage}%` }}
+            style={{ width: `${progress.percentage}%` }}
           />
         </div>
       </div>
@@ -72,6 +69,19 @@ export const Requirements: React.FC<RequirementsProps> = ({
             </div>
           </div>
         ))}
+        
+        {requirements.length === 0 && (
+          <div className={styles.requirement}>
+            <div className={styles.requirement__icon}>
+              <Circle size={20} />
+            </div>
+            <div className={styles.requirement__content}>
+              <p className={styles.requirement__description}>
+                Loading requirements...
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       
       <div className={styles.requirements__actions}>
@@ -79,7 +89,7 @@ export const Requirements: React.FC<RequirementsProps> = ({
           variant="primary"
           size="md"
           onClick={onTestSystem}
-          disabled={!allCompleted}
+          disabled={!canProceed}
           className={styles.testSystemButton}
         >
           <Play size={16} />

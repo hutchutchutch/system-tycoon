@@ -372,6 +372,42 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             const targetNode = canvasNodes.find(n => n.id === edge.target);
             return `${sourceNode?.data?.label || edge.source} → ${targetNode?.data?.label || edge.target}`;
           })
+        },
+        systemAnalysis: {
+          userLoad: {
+            totalUsers: canvasNodes.filter(n => n.type === 'user').reduce((sum, n) => sum + (n.data?.userCount || 0), 0),
+            userNodeCount: canvasNodes.filter(n => n.type === 'user').length,
+            largestUserGroup: Math.max(...canvasNodes.filter(n => n.type === 'user').map(n => n.data?.userCount || 0), 0)
+          },
+          systemComponents: {
+            brokenComponents: canvasNodes.filter(n => n.data?.status === 'broken').map(n => ({
+              name: n.data?.label,
+              category: n.data?.category,
+              description: n.data?.description
+            })),
+            healthyComponents: canvasNodes.filter(n => n.data?.status !== 'broken' && n.type !== 'user').map(n => ({
+              name: n.data?.label,
+              category: n.data?.category
+            }))
+          },
+          criticalIssues: {
+            singlePointsOfFailure: canvasNodes.filter(n => {
+              const incomingConnections = canvasEdges.filter(e => e.target === n.id).length;
+              const outgoingConnections = canvasEdges.filter(e => e.source === n.id).length;
+              return incomingConnections > 3 || outgoingConnections > 3; // High traffic nodes
+            }).map(n => n.data?.label),
+            overloadedSystems: canvasNodes.filter(n => {
+              const userConnections = canvasEdges.filter(e => {
+                const sourceNode = canvasNodes.find(sn => sn.id === e.source);
+                return sourceNode?.type === 'user' && e.target === n.id;
+              });
+              const totalUserLoad = userConnections.reduce((sum, edge) => {
+                const sourceNode = canvasNodes.find(sn => sn.id === edge.source);
+                return sum + (sourceNode?.data?.userCount || 0);
+              }, 0);
+              return totalUserLoad > 100; // Systems with more than 100 users
+            }).map(n => ({ name: n.data?.label, category: n.data?.category }))
+          }
         }
       };
 

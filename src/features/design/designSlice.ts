@@ -1,8 +1,40 @@
-import { createSlice, current } from '@reduxjs/toolkit';
+import { createSlice, current, createSelector } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
 import type { Node, Edge, Connection, NodeChange, EdgeChange } from '@xyflow/react';
 import type { ComponentData } from '../../components/molecules/ComponentCard/ComponentCard.types';
+
+// Types for requirements validation
+interface ValidationError {
+  type: string;
+  severity: 'error' | 'warning';
+  message: string;
+  nodeIds?: string[];
+}
+
+interface SystemRequirement {
+  id: string;
+  type?: string;
+  priority?: string;
+  description: string;
+  validation_type?: string;
+  required_nodes?: string[];
+  min_nodes_of_type?: Record<string, number>;
+  required_connection?: {
+    from: string;
+    to: string;
+  };
+  forbidden_nodes?: string[];
+  target_value?: number;
+  target_metric?: string;
+}
+
+interface RequirementValidationResult {
+  id: string;
+  description: string;
+  completed: boolean;
+  validationDetails?: any;
+}
 
 interface DesignState {
   // React Flow state
@@ -17,13 +49,23 @@ interface DesignState {
   // Design metrics
   totalCost: number;
   isValidDesign: boolean;
-  validationErrors: string[];
+  validationErrors: ValidationError[];
   
   // Canvas viewport
   canvasViewport: {
     x: number;
     y: number;
     zoom: number;
+  };
+
+  // Requirements validation state
+  systemRequirements: SystemRequirement[];
+  requirementValidationResults: RequirementValidationResult[];
+  allRequirementsMet: boolean;
+  requirementProgress: {
+    completed: number;
+    total: number;
+    percentage: number;
   };
 }
 
@@ -40,6 +82,16 @@ const initialState: DesignState = {
   validationErrors: [],
   
   canvasViewport: { x: 0, y: 0, zoom: 1 },
+
+  // Requirements state
+  systemRequirements: [],
+  requirementValidationResults: [],
+  allRequirementsMet: false,
+  requirementProgress: {
+    completed: 0,
+    total: 0,
+    percentage: 0,
+  },
 };
 
 const designSlice = createSlice({
@@ -106,7 +158,8 @@ const designSlice = createSlice({
       state.draggedComponent = null;
       state.isDragging = false;
       
-      // Validate design
+      // Validate design and requirements
+      designSlice.caseReducers.validateRequirements(state);
       designSlice.caseReducers.validateDesign(state);
     },
     
@@ -121,6 +174,7 @@ const designSlice = createSlice({
         };
         
         designSlice.caseReducers.recalculateTotalCost(state);
+        designSlice.caseReducers.validateRequirements(state);
         designSlice.caseReducers.validateDesign(state);
       }
     },
@@ -147,6 +201,7 @@ const designSlice = createSlice({
           state.selectedNodeId = null;
         }
         
+        designSlice.caseReducers.validateRequirements(state);
         designSlice.caseReducers.validateDesign(state);
       }
     },
@@ -195,6 +250,7 @@ const designSlice = createSlice({
         };
         
         state.edges.push(newEdge);
+        designSlice.caseReducers.validateRequirements(state);
         designSlice.caseReducers.validateDesign(state);
       }
     },
@@ -202,6 +258,7 @@ const designSlice = createSlice({
     deleteEdge: (state, action: PayloadAction<string>) => {
       const edgeId = action.payload;
       state.edges = state.edges.filter(e => e.id !== edgeId);
+      designSlice.caseReducers.validateRequirements(state);
       designSlice.caseReducers.validateDesign(state);
     },
     
@@ -223,6 +280,15 @@ const designSlice = createSlice({
       state.totalCost = 0;
       state.isValidDesign = false;
       state.validationErrors = [];
+      
+      // Reset requirements validation
+      state.requirementValidationResults = [];
+      state.allRequirementsMet = false;
+      state.requirementProgress = {
+        completed: 0,
+        total: state.systemRequirements.length,
+        percentage: 0,
+      };
     },
     
     // Helper reducers
@@ -233,12 +299,111 @@ const designSlice = createSlice({
       }, 0);
     },
     
+    // Set system requirements (called when mission stage data loads)
+    setSystemRequirements: (state, action: PayloadAction<SystemRequirement[]>) => {
+      state.systemRequirements = action.payload;
+      designSlice.caseReducers.validateRequirements(state);
+    },
+
+    // Validate all requirements against current canvas state
+    validateRequirements: (state) => {
+      const validationResults: RequirementValidationResult[] = [];
+      
+      state.systemRequirements.forEach(requirement => {
+        let completed = false;
+        let validationDetails: any = {};
+        
+        switch (requirement.validation_type) {
+          case 'node_count':
+            if (requirement.min_nodes_of_type) {
+              const results = Object.entries(requirement.min_nodes_of_type).map(([category, minCount]) => {
+                const nodeCount = state.nodes.filter(node => 
+                  node.data.category === category || 
+                  node.type === category ||
+                  (category === 'compute' && ['web_server', 'app_server', 'server'].includes(node.type || ''))
+                ).length;
+                return { category, required: minCount, actual: nodeCount, met: nodeCount >= minCount };
+              });
+              completed = results.every(r => r.met);
+              validationDetails = { nodeCountResults: results };
+            }
+            break;
+            
+          case 'edge_connection':
+            if (requirement.required_connection) {
+              const { from, to } = requirement.required_connection;
+              const hasConnection = state.edges.some(edge => {
+                const sourceNode = state.nodes.find(n => n.id === edge.source);
+                const targetNode = state.nodes.find(n => n.id === edge.target);
+                
+                if (!sourceNode || !targetNode) return false;
+                
+                const sourceMatches = sourceNode.data.category === from || 
+                                    sourceNode.type === from ||
+                                    (from === 'compute' && ['web_server', 'app_server', 'server'].includes(sourceNode.type || ''));
+                                    
+                const targetMatches = targetNode.data.category === to || 
+                                     targetNode.type === to ||
+                                     (to === 'database' && ['database', 'mysql', 'postgres'].includes(targetNode.type || ''));
+                
+                return sourceMatches && targetMatches;
+              });
+              completed = hasConnection;
+              validationDetails = { connectionRequired: requirement.required_connection, hasConnection };
+            }
+            break;
+            
+          case 'node_removal':
+            if (requirement.required_nodes) {
+              // For node_removal type, required_nodes contains forbidden node IDs
+              const forbiddenNodesPresent = requirement.required_nodes.filter((forbiddenId: string) => 
+                state.nodes.some(node => node.id === forbiddenId)
+              );
+              completed = forbiddenNodesPresent.length === 0;
+              validationDetails = { forbiddenNodes: requirement.required_nodes, forbiddenNodesPresent };
+            }
+            break;
+            
+          default:
+            completed = false;
+        }
+        
+        validationResults.push({
+          id: requirement.id,
+          description: requirement.description,
+          completed,
+          validationDetails
+        });
+      });
+      
+      state.requirementValidationResults = validationResults;
+      
+      // Update progress metrics
+      const completedCount = validationResults.filter(r => r.completed).length;
+      const totalCount = validationResults.length;
+      
+      state.requirementProgress = {
+        completed: completedCount,
+        total: totalCount,
+        percentage: totalCount > 0 ? (completedCount / totalCount) * 100 : 0
+      };
+      
+      state.allRequirementsMet = completedCount === totalCount && totalCount > 0;
+      
+      // Trigger design validation as well
+      designSlice.caseReducers.validateDesign(state);
+    },
+
     validateDesign: (state) => {
-      const errors: string[] = [];
+      const errors: ValidationError[] = [];
       
       // Basic validation - can be expanded
       if (state.nodes.length === 0) {
-        errors.push('No components added');
+        errors.push({
+          type: 'no_components',
+          severity: 'warning',
+          message: 'No components added'
+        });
       }
       
       // Check for orphan nodes (nodes without connections)
@@ -251,12 +416,17 @@ const designSlice = createSlice({
         
         const orphanNodes = state.nodes.filter(node => !connectedNodes.has(node.id));
         if (orphanNodes.length > 0) {
-          errors.push(`${orphanNodes.length} component(s) are not connected`);
+          errors.push({
+            type: 'orphan_nodes',
+            severity: 'warning',
+            message: `${orphanNodes.length} component(s) are not connected`,
+            nodeIds: orphanNodes.map(n => n.id)
+          });
         }
       }
       
       state.validationErrors = errors;
-      state.isValidDesign = errors.length === 0;
+      state.isValidDesign = errors.filter(e => e.severity === 'error').length === 0;
     },
   },
 });
@@ -275,15 +445,62 @@ export const {
   clearDesign,
   recalculateTotalCost,
   validateDesign,
+  setSystemRequirements,
+  validateRequirements,
 } = designSlice.actions;
 
 export default designSlice.reducer;
 
-// Selectors
+// Basic selectors
 export const selectNodes = (state: { design: DesignState }) => state.design.nodes;
 export const selectEdges = (state: { design: DesignState }) => state.design.edges;
 export const selectTotalCost = (state: { design: DesignState }) => state.design.totalCost;
 export const selectIsValidDesign = (state: { design: DesignState }) => state.design.isValidDesign;
 export const selectValidationErrors = (state: { design: DesignState }) => state.design.validationErrors;
 export const selectDraggedComponent = (state: { design: DesignState }) => state.design.draggedComponent;
-export const selectIsDragging = (state: { design: DesignState }) => state.design.isDragging; 
+export const selectIsDragging = (state: { design: DesignState }) => state.design.isDragging;
+
+// Requirements selectors
+export const selectSystemRequirements = (state: { design: DesignState }) => state.design.systemRequirements;
+export const selectRequirementValidationResults = (state: { design: DesignState }) => state.design.requirementValidationResults;
+export const selectAllRequirementsMet = (state: { design: DesignState }) => state.design.allRequirementsMet;
+export const selectRequirementProgress = (state: { design: DesignState }) => state.design.requirementProgress;
+
+// Memoized selectors following Redux best practices
+export const selectRequirementsStatus = createSelector(
+  [selectRequirementValidationResults, selectRequirementProgress],
+  (validationResults, progress) => ({
+    requirements: validationResults,
+    progress,
+    allMet: validationResults.length > 0 && validationResults.every(req => req.completed),
+    completedCount: progress.completed,
+    totalCount: progress.total,
+    percentage: progress.percentage
+  })
+);
+
+export const selectCanvasValidation = createSelector(
+  [selectNodes, selectEdges, selectIsValidDesign, selectValidationErrors, selectAllRequirementsMet],
+  (nodes, edges, isValidDesign, validationErrors, allRequirementsMet) => ({
+    isValidDesign,
+    validationErrors,
+    allRequirementsMet,
+    canProceed: isValidDesign && allRequirementsMet,
+    hasComponents: nodes.length > 0,
+    hasConnections: edges.length > 0
+  })
+);
+
+export const selectDesignMetrics = createSelector(
+  [selectNodes, selectEdges, selectTotalCost],
+  (nodes, edges, totalCost) => ({
+    nodeCount: nodes.length,
+    edgeCount: edges.length,
+    totalCost,
+    nodesByCategory: nodes.reduce((acc: Record<string, number>, node) => {
+      const category = (node.data as any)?.category || 'unknown';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {})
+  })
+); 

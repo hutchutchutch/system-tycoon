@@ -33,6 +33,9 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(categories.map(c => c.id))
   );
+  
+  // State for drawer collapse
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Filter components based on search
   const filteredComponents = useMemo(() => {
@@ -262,22 +265,32 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
   };
 
   return (
-    <div className={clsx(styles.drawer, className)}>
+    <div className={clsx(styles.drawer, isCollapsed && styles.collapsed, className)}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Components</h2>
-        <Input
-          type="search"
-          value={searchQuery}
-          onChange={onSearchChange}
-          placeholder="Search components..."
-          leftIcon={<Icon name="search" size="sm" />}
-          className={styles.search}
-          aria-label="Search components"
-        />
+        {!isCollapsed && <h2 className={styles.title}>Components</h2>}
+        <button
+          className={styles.collapseToggle}
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Expand component drawer" : "Collapse component drawer"}
+        >
+          <Icon name={isCollapsed ? "chevron-right" : "chevron-left"} size="sm" />
+        </button>
+        {!isCollapsed && (
+          <Input
+            type="search"
+            value={searchQuery}
+            onChange={onSearchChange}
+            placeholder="Search components..."
+            leftIcon={<Icon name="search" size="sm" />}
+            className={styles.search}
+            aria-label="Search components"
+          />
+        )}
       </div>
 
-      <div className={styles.categories}>
-        {categories.map(category => {
+      {!isCollapsed && (
+        <div className={styles.categories}>
+          {categories.map(category => {
           const categoryComponents = groupedComponents[category.id] || [];
           const isExpanded = expandedCategories.has(category.id);
           
@@ -333,7 +346,8 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

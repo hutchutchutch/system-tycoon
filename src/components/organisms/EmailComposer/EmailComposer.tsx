@@ -1,10 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { Modal } from '../../atoms/Modal';
 import { Button } from '../../atoms/Button';
 import { Input } from '../../atoms/Input';
 import { Icon } from '../../atoms/Icon';
 import type { NewsHero } from '../../../types/news.types';
 import { saveEmail } from '../../../services/emailService';
+import { startMissionFromContactEmail } from '../../../services/missionService';
+import type { RootState } from '../../../store';
 import styles from './EmailComposer.module.css';
 
 export interface EmailComposerProps {
@@ -14,6 +17,7 @@ export interface EmailComposerProps {
   missionId?: string;
   stageId?: string;
   theme?: 'light' | 'dark';
+  articleId?: string; // Add articleId to know which news article this is for
   onSend?: (emailData: {
     to: string;
     subject: string;
@@ -29,6 +33,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   missionId,
   stageId,
   theme = 'light',
+  articleId,
   onSend
 }) => {
   const [subject, setSubject] = useState('');
@@ -36,7 +41,11 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [missionStartResult, setMissionStartResult] = useState<any>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+
+  // Get current user from Redux store
+  const currentUser = useSelector((state: RootState) => state.auth.user);
 
   // Generate recipient email
   const recipientEmail = `${hero.name.toLowerCase().replace(/\s+/g, '.')}@${hero.organization.toLowerCase().replace(/\s+/g, '')}.org`;
@@ -76,7 +85,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   }, [isOpen, hero.headline, typeMessage]);
 
   const handleSend = useCallback(async () => {
-    if (!subject.trim() || !body.trim() || isTyping) return;
+    if (!subject.trim() || !body.trim() || isTyping || !currentUser) return;
 
     setIsSending(true);
     
@@ -93,6 +102,32 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
       });
 
       if (result.success) {
+        // Start mission if we have all required data
+        if (missionId && articleId) {
+          try {
+            const missionResult = await startMissionFromContactEmail({
+              userId: currentUser.id,
+              newsArticleId: articleId,
+              missionId: missionId,
+              contactEmailData: {
+                to: recipientEmail,
+                subject: subject.trim(),
+                body: body.trim(),
+                hero
+              }
+            });
+
+            setMissionStartResult(missionResult);
+            
+            if (missionResult.success && missionResult.missionStarted) {
+              console.log('Mission started successfully! First stage emails delivered:', missionResult.firstStageEmails);
+            }
+          } catch (missionError) {
+            console.error('Error starting mission:', missionError);
+            // Don't prevent email success flow from completing
+          }
+        }
+
         // Call onSend callback if provided
         onSend?.({
           to: recipientEmail,
@@ -110,7 +145,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     } finally {
       setIsSending(false);
     }
-  }, [subject, body, hero, recipientEmail, onSend, onClose, isTyping]);
+  }, [subject, body, hero, recipientEmail, onSend, onClose, isTyping, currentUser, missionId, articleId]);
 
   const handleSaveToDrafts = useCallback(async () => {
     if (!subject.trim() && !body.trim()) {

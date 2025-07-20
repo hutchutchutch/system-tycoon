@@ -43,7 +43,9 @@ import {
   onEdgesChange,
   selectNodes,
   selectEdges,
-  addEdge as addEdgeAction 
+  addEdge as addEdgeAction,
+  setSystemRequirements,
+  validateRequirements
 } from '../../features/design/designSlice';
 import {
   setActiveCanvas,
@@ -767,6 +769,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           }));
         });
       }
+      
+      console.log('✅ Initial system state loaded successfully:', { 
+        nodesDispatched: 'User nodes + system nodes', 
+        edgesDispatched: 'User to system connections',
+        totalUsers: 200 
+      });
     } catch (error) {
       console.error('Failed to load initial system state:', error);
     }
@@ -861,13 +869,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
                   setMissionStageData(stageData);
         console.log('Using stage-specific requirements:', stageData.system_requirements);
         
-        // Load initial requirements when stage data is available
+        // Dispatch system requirements to Redux (Redux best practice)
+        if (stageData.system_requirements && stageData.system_requirements.length > 0) {
+          dispatch(setSystemRequirements(stageData.system_requirements));
+          console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+        }
+        
+        // Load initial requirements when stage data is available (fallback for legacy components)
         if (stageData.id) {
-          // Convert stage requirements to our format for initial display
           const initialReqs = stageData.system_requirements.map(req => ({
             id: req.id,
             description: req.description,
-            completed: false // Start with all incomplete
+            completed: false
           }));
           setRequirements(initialReqs);
         }
@@ -895,12 +908,16 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             .order('stage_number');
 
           if (!stagesError && allStages) {
+            // Find the current stage index based on the stage we're viewing
+            const currentStageIndex = allStages.findIndex(stage => stage.id === stageData.id);
+            
             dispatch(setDatabaseMission({
               id: stageData.mission.id,
               title: stageData.mission.title,
               description: stageData.mission.description,
               slug: mission.slug,
-              stages: allStages
+              stages: allStages,
+              currentStageIndex: currentStageIndex >= 0 ? currentStageIndex : 0
             }));
           }
         }
@@ -1158,17 +1175,27 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     // Set this as the active canvas
     dispatch(setActiveCanvas({ stageId: missionStageData.id }));
     
-    // If we have saved canvas data, load it into Redux state
-    if (savedCanvasData?.canvasState) {
-      console.log('Loading saved canvas state');
+    // IMPORTANT: Only load saved canvas state if there are no nodes in designSlice
+    // This ensures initial system state takes precedence over saved empty state
+    if (savedCanvasData?.canvasState && nodes.length === 0) {
+      console.log('Loading saved canvas state (no initial state exists)');
       dispatch(loadCanvasState({
         stageId: missionStageData.id,
         nodes: savedCanvasData.canvasState.nodes,
         edges: savedCanvasData.canvasState.edges,
         viewport: savedCanvasData.canvasState.viewport
       }));
+    } else if (nodes.length > 0) {
+      console.log('Keeping current designSlice state (initial system state loaded)');
+      // Sync designSlice state to canvasSlice for persistence
+      dispatch(updateCanvasState({
+        stageId: missionStageData.id,
+        nodes: nodes.map(serializeNode),
+        edges: edges.map(serializeEdge),
+        viewport: { x: 0, y: 0, zoom: 0.6 }
+      }));
     }
-  }, [dispatch, missionStageData?.id, savedCanvasData]);
+  }, [dispatch, missionStageData?.id, savedCanvasData, nodes, edges]);
 
   // Auto-save canvas state when nodes/edges change
   const persistCanvasState = useCallback(async () => {
@@ -1315,6 +1342,16 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   }, [isCollaborative, user]);
 
+  // Debug useEffect to check if nodes and edges are loaded for MentorChat
+  useEffect(() => {
+    if (missionStageData && nodes.length > 0 && edges.length > 0) {
+      console.log('Nodes and edges loaded for MentorChat:', {
+        nodesCount: nodes.length,
+        edgesCount: edges.length
+      });
+    }
+  }, [missionStageData, nodes, edges]);
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -1436,7 +1473,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         {missionStageData && showRequirements && (
           <div className={styles.floatingRequirements}>
             <Requirements
-              requirements={requirements}
               onTestSystem={handleRunTest}
               className={styles.bottomRequirements}
             />
@@ -1476,16 +1512,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           />
         )}
 
-        {/* Mentor Chat */}
-        <MentorChat 
-          missionStageId={emailId}
-          missionTitle={missionStageData?.title}
-          problemDescription={missionStageData?.problem_description}
-          canvasNodes={nodes}
-          canvasEdges={edges}
-          requirements={requirements}
-          availableComponents={availableComponents}
-        />
+        {/* Mentor Chat - Only render when stage data and initial state are loaded */}
+        {missionStageData && (
+          <MentorChat 
+            missionStageId={emailId}
+            missionTitle={missionStageData?.title}
+            problemDescription={missionStageData?.problem_description}
+            canvasNodes={nodes}
+            canvasEdges={edges}
+            requirements={requirements}
+            availableComponents={availableComponents}
+          />
+        )}
 
         {/* Component Detail Modal */}
         <ComponentDetailModal

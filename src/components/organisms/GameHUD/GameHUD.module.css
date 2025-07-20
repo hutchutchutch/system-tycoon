@@ -8,7 +8,7 @@
   border-bottom: 1px solid var(--color-neutral-200);
   padding: var(--space-2) var(--space-6);
   min-height: 48px;
-  z-index: var(--z-sticky);
+  z-index: 9999; /* High z-index to ensure HUD stays above content */
   transition: all var(--duration-fast) var(--ease-out);
   font-family: var(--font-sans);
   overflow: visible;
@@ -133,7 +133,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  z-index: var(--z-popover);
+  z-index: 10000; /* Ensure dropdown is always on top */
   animation: dropdownFadeIn var(--duration-fast) var(--ease-out);
   
   /* Ensure dropdown stays within viewport */
@@ -650,6 +650,7 @@
 /* Settings Dropdown */
 .settingsContainer {
   position: relative;
+  z-index: 10001; /* Ensure the container has high z-index too */
 }
 
 .actionButtonActive {
@@ -674,7 +675,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
-  z-index: var(--z-200);
+  z-index: 10001; /* Higher than avatarDropdown to ensure it's always on top */
   animation: dropdownFadeIn var(--duration-fast) var(--ease-out);
 }
 
