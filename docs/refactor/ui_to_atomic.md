@@ -41,7 +41,7 @@ Refactoring `/src/components/ui` folder to follow the established atomic design 
 - [ ] ModernSignIn component
 
 ### 4. Import Updates
-- [x] Updated TodaysNewsWrapper imports
+- [x] Updated ChooseMissionWrapper imports
 - [x] Updated atoms/index.ts exports
 - [x] Updated organisms/index.ts exports
 - [ ] Update remaining import paths throughout codebase
@@ -86,7 +86,7 @@ ComponentName/
 - `src/components/organisms/index.ts` - Added BentoNewsDemo exports
 
 ### Import Updates
-- `src/pages/InitialExperience/TodaysNewsWrapper.tsx` - Updated to use atomic imports
+- `src/pages/InitialExperience/ChooseMissionWrapper.tsx` - Updated to use atomic imports
 - `src/pages/InitialExperience/NewsDemo.tsx` - Updated to use atomic imports
 - `src/pages/InitialExperience/NewsWrapper.tsx` - Updated to use atomic imports
 

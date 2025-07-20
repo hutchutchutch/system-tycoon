@@ -11,7 +11,7 @@
 1. [Executive Summary](#1-executive-summary)
 2. [Core User Journey](#2-core-user-journey)
 3. [Mentor Onboarding Flow](#3-mentor-onboarding-flow)
-4. [Discovery Phase - News Browsing](#4-discovery-phase)
+4. [Discovery Phase - Mission Selection](#4-discovery-phase)
 5. [Contact Phase - Email Composition](#5-contact-phase)
 6. [Response Phase - Building Relationships](#6-response-phase)
 7. [Mission Phase - System Design](#7-mission-phase)
@@ -130,7 +130,7 @@ After reading the mentor's message, a button appears: "Show Me Today's Heroes"
 
 **What Happens Next**:
 - Modal closes smoothly
-- Browser window reveals with "Today's News" already active
+- Browser window reveals with "Choose Mission" already active
 - News articles populate showing real people needing help
 - The transition feels like pulling back a curtain
 
@@ -153,7 +153,7 @@ As the news feed appears, a toast notification slides in from the selected mento
 
 ---
 
-## 4. Discovery Phase - News Browsing
+## 4. Discovery Phase - Mission Selection
 
 ### The News Grid Experience
 
@@ -445,7 +445,7 @@ Players naturally develop expertise:
 The game gradually introduces complexity:
 
 **Level 1**: Basic consulting
-- News browsing
+- Mission selection
 - Email communication
 - Simple system design
 
@@ -477,7 +477,7 @@ Unlike traditional leveling, progression here means:
 The browser metaphor keeps interactions familiar:
 
 **Tab Behaviors**:
-- News tab: Always accessible, badge for new articles
+- Choose Mission tab: Always accessible, badge for new articles
 - Email tab: Badge shows unread count, bounces on new mail
 - Video tab: Unlocks with first referral
 - Design tab: Unlocks after first mission

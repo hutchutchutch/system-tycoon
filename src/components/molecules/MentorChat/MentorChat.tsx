@@ -7,7 +7,17 @@ import { ProductTour } from '../../organisms/ProductTour';
 import type { MentorChatProps, ChatMessage } from './MentorChat.types';
 import { mentorChatService, type MentorChatSession, collectPageContext } from '../../../services/mentorChatService';
 import type { RootState } from '../../../store';
+import { supabase } from '../../../services/supabase';
+import { useConversationSession } from '../../../hooks/useConversationSession';
 import styles from './MentorChat.module.css';
+
+// Global conversation session ID that other components can access
+let globalConversationSessionId: string | null = null;
+
+// Function to get the current conversation session ID
+export const getCurrentConversationSessionId = (): string | null => {
+  return globalConversationSessionId;
+};
 
 // Utility function to validate if a string is a valid UUID
 const isValidUUID = (str: string): boolean => {
@@ -31,8 +41,13 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const [currentInput, setCurrentInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showMentorSelector, setShowMentorSelector] = useState(false);
-  const [conversationSessionId] = useState(() => mentorChatService.generateSessionId());
+  const conversationSessionId = useConversationSession();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update global session ID when it changes
+  useEffect(() => {
+    globalConversationSessionId = conversationSessionId;
+  }, [conversationSessionId]);
 
   // ProductTour state management
   const [showProductTour, setShowProductTour] = useState(false);
@@ -70,6 +85,62 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       loadChatHistory();
     }
   }, [selectedMentorId, user, isAuthenticated]);
+
+  // Set up real-time subscription for new messages
+  useEffect(() => {
+    if (!conversationSessionId || !isAuthenticated) return;
+
+    console.log('🔔 MentorChat: Setting up real-time subscription for session:', conversationSessionId);
+
+    // Subscribe to new messages for this conversation session
+    const channel = supabase
+      .channel(`mentor_chat_${conversationSessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'mentor_chat_messages',
+          filter: `conversation_session_id=eq.${conversationSessionId}`
+        },
+        (payload: any) => {
+          console.log('📨 MentorChat: Received real-time message:', payload);
+          const newMessage = payload.new;
+          
+          // Don't add the message if it's from the current user (to avoid duplicates)
+          if (newMessage.sender_type === 'user' && newMessage.user_id === user?.id) {
+            console.log('⏭️ MentorChat: Skipping user message to avoid duplicate');
+            return;
+          }
+
+          const chatMessage: ChatMessage = {
+            id: newMessage.id,
+            content: newMessage.message_content,
+            timestamp: new Date(newMessage.created_at),
+            sender: newMessage.sender_type as 'user' | 'mentor' | 'system',
+            mentorId: newMessage.mentor_id,
+          };
+
+          console.log('✅ MentorChat: Adding new message to chat:', chatMessage);
+
+          setMessages(prev => {
+            // Check if message already exists to prevent duplicates
+            const exists = prev.some(msg => msg.id === chatMessage.id);
+            if (!exists) {
+              return [...prev, chatMessage];
+            }
+            console.log('⚠️ MentorChat: Message already exists, skipping duplicate');
+            return prev;
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('🔕 MentorChat: Unsubscribing from real-time channel');
+      channel.unsubscribe();
+    };
+  }, [conversationSessionId, isAuthenticated, user?.id]);
 
   // ProductTour initialization
   useEffect(() => {
@@ -585,11 +656,6 @@ export const MentorChat: React.FC<MentorChatProps> = ({
                 message.sender === 'user' ? styles.userMessage : styles.mentorMessage
               }`}
             >
-              {message.sender === 'mentor' && (
-                <div className={styles.messageAvatar}>
-                  <Bot size={16} />
-                </div>
-              )}
               <div className={styles.messageContent}>
                 <div className={styles.messageText}>{message.content}</div>
                 <div className={styles.messageTime}>
@@ -603,9 +669,6 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           ))}
           {isLoading && (
             <div className={`${styles.message} ${styles.mentorMessage}`}>
-              <div className={styles.messageAvatar}>
-                <Bot size={16} />
-              </div>
               <div className={styles.messageContent}>
                 <div className={styles.typingIndicator}>
                   <span></span>

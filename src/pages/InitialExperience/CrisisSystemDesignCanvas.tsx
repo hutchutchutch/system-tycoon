@@ -21,6 +21,7 @@ import { Requirements } from '../../components/molecules/Requirements/Requiremen
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
 import { MentorNotification } from '../../components/atoms/MentorNotification/MentorNotification';
 import { MentorChat } from '../../components/molecules/MentorChat/MentorChat';
+import { useConversationSession } from '../../hooks/useConversationSession';
 import { CursorManager } from '../../components/organisms/CursorManager/CursorManager';
 
 import { ComponentDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
@@ -293,7 +294,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const [notificationStep, setNotificationStep] = useState<number>(0); // 0: none, 1: issue analysis, 2: requirements explanation, 3: component drawer guidance
   const [showRequirements, setShowRequirements] = useState(false);
   const [showComponentDrawer, setShowComponentDrawer] = useState(false);
-  const [conversationSessionId] = useState(() => `design-session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
+  const conversationSessionId = useConversationSession();
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
     familiesHelped: 0,
@@ -580,7 +581,20 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         const userNodes = createUserNodeBreakdown(totalUsers);
         
         userNodes.forEach((userNode, index) => {
-          const yOffset = (index - (userNodes.length - 1) / 2) * 140; // Increased spacing
+          // UserNode height is ~122px (90px + 32px padding)
+          // We need at least half a node height (61px) as gap between nodes
+          // So total spacing should be: node height (122px) + gap (61px) = 183px
+          const nodeHeight = 122;
+          const nodeGap = nodeHeight / 2; // Half the node height as gap
+          const nodeSpacing = nodeHeight + nodeGap; // Total spacing between node centers
+          
+          // Calculate total height of all nodes
+          const totalHeight = (userNodes.length - 1) * nodeSpacing;
+          
+          // Position nodes starting from top, with proper spacing
+          const startY = centerY - (totalHeight / 2);
+          const yPosition = startY + (index * nodeSpacing);
+          
           dispatch(addNode({
             component: {
               id: userNode.id,
@@ -592,7 +606,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               description: userNode.description,
               icon: 'users'
             },
-            position: { x: centerX - 350, y: centerY + yOffset }, // Moved further left
+            position: { x: centerX - 400, y: yPosition }, // Absolute positioning with proper spacing
             nodeType: 'user',
             nodeData: {
               id: userNode.id,
@@ -613,7 +627,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         if (initialNodes.length > 0) {
           initialNodes.forEach((node: any, index: number) => {
             // Position nodes in a layout - system nodes go to the right
-            let position = node.position || { x: centerX + 250, y: centerY };
+            let position = node.position || { x: centerX + 100, y: centerY };
             
             // Regular component node - mark as broken
             dispatch(addNode({
@@ -673,7 +687,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         const defaultSystemNode = {
           id: 'current-system',
           type: 'custom',
-          position: { x: centerX + 250, y: centerY },
+          position: { x: centerX + 100, y: centerY },
           data: {
             label: "Alex's Laptop",
             icon: 'server',

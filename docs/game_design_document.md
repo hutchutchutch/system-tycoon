@@ -164,7 +164,7 @@ When the player clicks "Show Me Today's Heroes," the mentor modal gracefully clo
 
 **The Reveal Moment**:
 - Modal fades out smoothly
-- Browser window is already loaded behind with "Today's News" tab active
+- Browser window is already loaded behind with "Choose Mission" tab active
 - News articles populate in an animated cascade
 - The transition feels like pulling back a curtain on a world of opportunity
 
@@ -298,9 +298,9 @@ This gentle guidance ensures players understand the full scope of available miss
 
 The game gradually introduces new features as players demonstrate mastery, maintaining a sense of growth and discovery:
 
-#### Level 1: News Browser (Tutorial)
+#### Level 1: Mission Browser (Tutorial)
 Players begin with these core features:
-- Today's News tab opens by default, showing the current crisis landscape
+- Choose Mission tab opens by default, showing the current crisis landscape
 - Basic category filtering to explore different types of missions
 - Email modal for contacting heroes in need
 - Email tab for receiving and managing responses
@@ -653,8 +653,8 @@ The game interface mimics a modern web browser to maintain familiarity:
 
 **Tab System Design**:
 
-**News Tab** (Default Starting Tab):
-- Label: "Today's News" with newspaper icon (📰)
+**Choose Mission Tab** (Default Starting Tab):
+- Label: "Choose Mission" with newspaper icon (📰)
 - Badge shows count of new articles since last visit
 - Opens by default when game starts
 - Animations:
@@ -704,11 +704,11 @@ The game interface mimics a modern web browser to maintain familiarity:
 
 ### Tab Designs
 
-#### News Tab (Default)
+#### Choose Mission Tab (Default)
 ```
 Desktop View:
 ┌─────────────────────────────────────────────────────────┐
-│ 📰 Today's News                    [Filters] [Sort] [🔍] │
+│ 📰 Choose Mission                  [Filters] [Sort] [🔍] │
 ├─────────────────────────────────────────────────────────┤
 │ [All] [Healthcare] [Environment] [Education] [Mental+]   │
 ├─────────────────────────────────────────────────────────┤
@@ -726,7 +726,7 @@ Desktop View:
 
 Mobile View:
 ┌─────────────────┐
-│ 📰 Today's News │
+│ 📰 Choose Mission │
 ├─────────────────┤
 │ [All][Health]+  │
 ├─────────────────┤

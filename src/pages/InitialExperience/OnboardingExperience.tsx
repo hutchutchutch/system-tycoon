@@ -123,7 +123,7 @@ export const OnboardingExperience: React.FC = () => {
 
   const [tabs] = useState([{
     id: 'todays-news',
-    title: "Today's News",
+            title: "Choose Mission",
     url: 'https://news.local/today',
     component: NewsWrapperComponent,
     closable: false,

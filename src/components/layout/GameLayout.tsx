@@ -31,7 +31,7 @@ export const GameLayout: React.FC = () => {
     if (path === '/browser/news') {
       return {
         missionStageId: 'todays-news',
-        missionTitle: "Today's News",
+        missionTitle: "Choose Mission",
         problemDescription: 'Review the latest crises and choose your mission'
       };
     }

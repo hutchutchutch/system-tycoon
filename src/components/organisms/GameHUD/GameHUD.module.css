@@ -253,8 +253,8 @@
   border-color: var(--color-neutral-400);
 }
 
-/* Today's News Message */
-.todaysNewsMessage {
+/* Choose Mission Message */
+.chooseMissionMessage {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -265,7 +265,7 @@
   animation: pulse-news 2s ease-in-out infinite;
 }
 
-[data-theme="dark"] .todaysNewsMessage {
+[data-theme="dark"] .chooseMissionMessage {
   background: linear-gradient(135deg, var(--color-accent-400), var(--color-accent-500));
 }
 
@@ -483,6 +483,7 @@
   color: var(--color-neutral-600);
   cursor: pointer;
   transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
 }
 
 [data-theme="dark"] .actionButton {
@@ -527,6 +528,76 @@
   background: var(--color-warning-900);
   color: var(--color-warning-400);
   border-color: var(--color-warning-700);
+}
+
+/* Email button styles */
+.actionButton--email {
+  color: var(--color-primary-600);
+}
+
+[data-theme="dark"] .actionButton--email {
+  color: var(--color-primary-400);
+}
+
+.actionButton--email:hover {
+  background: var(--color-primary-50);
+  color: var(--color-primary-700);
+  border-color: var(--color-primary-200);
+}
+
+[data-theme="dark"] .actionButton--email:hover {
+  background: var(--color-primary-900);
+  color: var(--color-primary-300);
+  border-color: var(--color-primary-700);
+}
+
+/* Notification badge */
+.notificationBadge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: var(--color-error-500);
+  color: var(--color-white);
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+  min-width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  border: 2px solid var(--color-white);
+  animation: pulse-notification 2s ease-in-out infinite;
+}
+
+[data-theme="dark"] .notificationBadge {
+  border-color: var(--color-neutral-900);
+  background: var(--color-error-400);
+}
+
+.actionButton--hasNotification {
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes pulse-notification {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(-2deg); }
+  20% { transform: rotate(2deg); }
+  30% { transform: rotate(-2deg); }
+  40% { transform: rotate(2deg); }
+  50% { transform: rotate(0deg); }
 }
 
 /* Animations */

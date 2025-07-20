@@ -109,6 +109,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   const [isVisible, setIsVisible] = useState(true);
   const [highlightBounds, setHighlightBounds] = useState<DOMRect | null>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const hasBeenSavedRef = useRef(false);
 
   // Get current user and profile from Redux store
   const { user, profile } = useSelector((state: RootState) => state.auth);
@@ -116,10 +117,18 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   // Use preferred mentor from profile, fallback to 'linda-wu'
   const selectedMentorId = profile?.preferred_mentor_id || 'linda-wu';
 
-  // Save notification as system message when component mounts
+  // Save notification as system message when component mounts (only once)
   useEffect(() => {
-    if (user && conversationSessionId) {
+    if (user && conversationSessionId && !hasBeenSavedRef.current) {
       const fullMessage = `${title}\n\n${message}`;
+      console.log('💾 MentorNotification: Saving system message to database:', {
+        userId: user.id,
+        mentorId: selectedMentorId,
+        conversationSessionId,
+        message: fullMessage,
+        missionStageId
+      });
+      
       saveNotificationAsSystemMessage(
         user.id,
         selectedMentorId,
@@ -127,6 +136,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         fullMessage,
         missionStageId
       );
+      hasBeenSavedRef.current = true;
     }
   }, [user, selectedMentorId, conversationSessionId, title, message, missionStageId]);
 

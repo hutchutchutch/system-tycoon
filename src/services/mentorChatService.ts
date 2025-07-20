@@ -31,7 +31,7 @@ export const collectPageContext = (pathname: string, additionalData?: any): Page
   switch (true) {
     case pathname.includes('/browser/news') || pathname === '/browser/news':
       return {
-        currentPage: 'TodaysNews',
+        currentPage: 'ChooseMission',
         purpose: 'Users browse through news articles to find communities and organizations that need help with their technical challenges. They look for bento cards showing problems they can solve.',
         userGoals: [
           'Find news articles about technical problems',

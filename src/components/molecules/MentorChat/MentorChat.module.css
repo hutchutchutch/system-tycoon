@@ -220,17 +220,20 @@
 
 .message {
   display: flex;
-  gap: var(--space-2);
   align-items: flex-start;
+  margin-bottom: var(--space-3);
 }
 
 .userMessage {
   flex-direction: row-reverse;
   align-self: flex-end;
+  gap: var(--space-2);
 }
 
 .mentorMessage {
   align-self: flex-start;
+  width: 90%;
+  justify-content: flex-start;
 }
 
 .messageAvatar {
@@ -246,7 +249,6 @@
 }
 
 .messageContent {
-  max-width: 240px;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -254,6 +256,12 @@
 
 .userMessage .messageContent {
   align-items: flex-end;
+  max-width: 240px;
+}
+
+.mentorMessage .messageContent {
+  align-items: flex-start;
+  width: 100%;
 }
 
 .messageText {
@@ -274,6 +282,8 @@
 
 .mentorMessage .messageText {
   border-bottom-left-radius: 4px;
+  width: 100%;
+  max-width: none;
 }
 
 .messageTime {

@@ -7,7 +7,7 @@ import { useTheme } from '../../contexts/ThemeContext';
 import { newsService } from '../../services/newsService';
 import type { NewsArticle, NewsHero } from '../../types/news.types';
 
-export const TodaysNewsWrapper: React.FC = () => {
+export const ChooseMissionWrapper: React.FC = () => {
   const { theme } = useTheme();
   const [emailToOpen, setEmailToOpen] = useState<NewsArticle | null>(null);
   const [articles, setArticles] = useState<NewsArticle[]>([]);
@@ -144,7 +144,7 @@ export const TodaysNewsWrapper: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="animate-pulse">Loading today's news...</div>
+        <div className="animate-pulse">Loading missions...</div>
       </div>
     );
   }
@@ -211,47 +211,40 @@ export const TodaysNewsWrapper: React.FC = () => {
               fontSize: 'var(--text-lg)',
               color: 'var(--color-text-secondary)',
               maxWidth: '600px',
-              margin: '0 auto'
+              margin: '0 auto',
+              marginBottom: 'var(--space-3)'
             }}>
-              Discover heroes making a difference in their communities
+              Help a hero who aligns with what you care about
             </p>
-          </div>
 
-          {/* Category filters */}
-          <div className="relative backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-lg p-6" style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            gap: 'var(--space-4)'
-          }}>
-            <h3 style={{
-              fontSize: 'var(--text-lg)',
-              fontWeight: 'var(--font-weight-semibold)',
-              color: 'var(--color-text-primary)'
-            }}>
-              Filter by Category:
-            </h3>
-            
+            {/* Category filters integrated into header */}
             {categories.length > 0 && (
-              <TagGroup 
-                selectionMode="multiple"
-                selectedKeys={new Set(selectedCategories)}
-                onSelectionChange={(keys) => {
-                  setSelectedCategories(Array.from(keys) as string[]);
-                }}
-                aria-label="Filter news articles by category"
-              >
-                <TagList>
-                  {categories.map((categorySlug) => (
-                    <Tag 
-                      key={categorySlug}
-                      id={categorySlug}
-                      className="cursor-pointer"
-                    >
-                      {formatCategoryName(categorySlug)}
-                    </Tag>
-                  ))}
-                </TagList>
-              </TagGroup>
+              <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}>
+                <TagGroup 
+                  selectionMode="multiple"
+                  selectedKeys={new Set(selectedCategories)}
+                  onSelectionChange={(keys) => {
+                    setSelectedCategories(Array.from(keys) as string[]);
+                  }}
+                  aria-label="Filter news articles by category"
+                >
+                  <TagList>
+                    {categories.map((categorySlug) => (
+                      <Tag 
+                        key={categorySlug}
+                        id={categorySlug}
+                        className="cursor-pointer"
+                      >
+                        {formatCategoryName(categorySlug)}
+                      </Tag>
+                    ))}
+                  </TagList>
+                </TagGroup>
+              </div>
             )}
           </div>
 

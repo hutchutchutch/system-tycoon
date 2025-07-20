@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { TodaysNewsWrapper } from './TodaysNewsWrapper';
+import { ChooseMissionWrapper } from './ChooseMissionWrapper';
 import { MissionInitializer } from '../../components/mission/MissionInitializer';
 import styles from './InitialExperience.module.css';
 
@@ -9,8 +9,8 @@ const InitialExperienceContent: React.FC = () => {
 
   return (
     <div className={`${styles.initialExperience} ${styles['initialExperience--browser']}`}>
-      {/* Render Today's News directly - no more BrowserWindow */}
-      <TodaysNewsWrapper />
+              {/* Render Choose Mission directly - no more BrowserWindow */}
+              <ChooseMissionWrapper />
     </div>
   );
 };

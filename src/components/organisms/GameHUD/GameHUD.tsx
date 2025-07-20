@@ -4,8 +4,9 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../../hooks/redux';
 import { useTheme } from '../../../contexts/ThemeContext';
 import { CAREER_TITLES } from '../../../constants';
-import { User, Trophy, Star, Sun, Moon, AlertTriangle, Mail, Globe, FileText, Clock, Users } from 'lucide-react';
+import { User, Trophy, Star, Sun, Moon, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu } from 'lucide-react';
 import { InviteCollaboratorModal } from '../InviteCollaboratorModal';
+import { getUnreadEmailCount } from '../../../services/emailService';
 import styles from './GameHUD.module.css';
 
 interface GameHUDProps {
@@ -30,6 +31,9 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Email notification state
+  const [unreadEmailCount, setUnreadEmailCount] = useState(0);
   
   // Check if we're on the crisis system design canvas
   const isOnCrisisCanvas = location.pathname.includes('/crisis/') || location.pathname.includes('/game/email/');
@@ -97,6 +101,22 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     };
   }, [isTimerActive, timerSeconds]);
   
+  // Fetch unread email count on mount and periodically
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      const count = await getUnreadEmailCount();
+      setUnreadEmailCount(count);
+    };
+    
+    // Initial fetch
+    fetchUnreadCount();
+    
+    // Poll every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
   const handleAvatarClick = () => {
     setIsAvatarMenuOpen(!isAvatarMenuOpen);
   };
@@ -142,8 +162,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   // Check if we're on the game route (where InitialExperience and system design canvas are)
   const isOnGameRoute = location.pathname.startsWith('/game');
   
-  // Check if we're on the Today's News screen
-  const isOnTodaysNews = location.pathname === '/browser/news' || location.pathname === '/game';
+      // Check if we're on the Choose Mission screen
+  const isOnChooseMission = location.pathname === '/browser/news' || location.pathname === '/game';
   
   // Check if we're on a system design page (CrisisSystemDesignCanvas or SystemDesignPage)
   const isOnSystemDesignPage = location.pathname.includes('/crisis/') || 
@@ -211,7 +231,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                   })}
                 >
                   <FileText size={14} />
-                  <span>Today's News</span>
+                  <span>Choose Mission</span>
                 </button>
                 <div className={styles.dropdownDivider} />
                 <button
@@ -238,15 +258,15 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
           </div>
         </div>
         
-        {/* Center Section - Timer, Mission Stages, Today's News Message, or System Status */}
+        {/* Center Section - Timer, Mission Stages, Choose Mission Message, or System Status */}
         <div className={clsx(styles.section, styles['section--center'])}>
           {isTimerActive && timerSeconds > 0 ? (
-            <div className={clsx(styles.timer, timerSeconds <= 30 && styles['timer--warning'])}>
+            <div className={styles.timer}>
               <Clock size={16} className={styles.timerIcon} />
               <span className={styles.timerText}>Time Remaining: {formatTimer(timerSeconds)}</span>
             </div>
-          ) : isOnTodaysNews ? (
-            <div className={styles.todaysNewsMessage}>
+          ) : isOnChooseMission ? (
+            <div className={styles.chooseMissionMessage}>
               <span className={styles.newsMessageText}>People need help! Choose your Mission</span>
             </div>
           ) : showMissionStages ? (
@@ -341,6 +361,21 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
           </div>
           
           <div className={styles.actions}>
+            <button 
+              className={clsx(styles.actionButton, styles['actionButton--email'], {
+                [styles['actionButton--hasNotification']]: unreadEmailCount > 0
+              })} 
+              onClick={() => navigate('/email')}
+              aria-label={`Email (${unreadEmailCount} unread)`}
+              title={`Email (${unreadEmailCount} unread)`}
+            >
+              <Mail size={16} />
+              {unreadEmailCount > 0 && (
+                <span className={styles.notificationBadge}>
+                  {unreadEmailCount > 9 ? '9+' : unreadEmailCount}
+                </span>
+              )}
+            </button>
             <button 
               className={clsx(styles.actionButton, styles['actionButton--theme'])} 
               onClick={toggleTheme}

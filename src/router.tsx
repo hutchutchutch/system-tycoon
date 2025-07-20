@@ -10,7 +10,7 @@ import { SimpleLanding } from './pages/SimpleLanding';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { InitialExperience } from './pages/InitialExperience';
-import { TodaysNewsWrapper } from './pages/InitialExperience/TodaysNewsWrapper';
+import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
 
 import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
 import { CrisisSystemDesignCanvas } from './pages/InitialExperience/CrisisSystemDesignCanvas';
@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <TodaysNewsWrapper />,
+            element: <ChooseMissionWrapper />,
           },
         ],
       },

@@ -251,6 +251,38 @@ export async function updateEmailStatus(emailId: string, status: 'read' | 'unrea
   }
 }
 
+// Get unread email count
+export async function getUnreadEmailCount(): Promise<number> {
+  try {
+    const { count, error } = await supabase
+      .from('mission_emails')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'unread')
+      .neq('category', 'sent')
+      .neq('category', 'drafts');
+
+    if (error) {
+      console.error('Error getting unread email count:', error);
+      // Fallback to counting from hardcoded emails
+      return getFallbackEmails().filter(email => 
+        email.status === 'unread' && 
+        email.category !== 'sent' && 
+        email.category !== 'drafts'
+      ).length;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error in getUnreadEmailCount:', error);
+    // Fallback to counting from hardcoded emails
+    return getFallbackEmails().filter(email => 
+      email.status === 'unread' && 
+      email.category !== 'sent' && 
+      email.category !== 'drafts'
+    ).length;
+  }
+}
+
 // Fallback data for when database is unavailable
 function getFallbackEmails(): EmailData[] {
   return [
