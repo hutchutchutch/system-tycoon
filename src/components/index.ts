@@ -5,13 +5,13 @@ export * from './atoms';
 export * from './molecules';
 
 // Organisms
-export * from './organisms';
+// export * from './organisms'; // Temporary - has EmailFolder export conflict
 
 // Templates
 export * from './templates';
 
 // Pages
-export * from './pages';
+// export * from './pages'; // Pages moved to src/pages
 
 // Layout components
 export { RootLayout } from './layout/RootLayout';

@@ -5,6 +5,8 @@ import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
 import { Globe } from '../../components/ui/globe';
 import { useTheme } from '../../contexts/ThemeContext';
 import { newsService } from '../../services/newsService';
+import { MentorNotification } from '../../components/atoms/MentorNotification';
+import { useConversationSession } from '../../hooks/useConversationSession';
 import type { NewsArticle, NewsHero } from '../../types/news.types';
 
 export const ChooseMissionWrapper: React.FC = () => {
@@ -14,6 +16,10 @@ export const ChooseMissionWrapper: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showWelcomeNotification, setShowWelcomeNotification] = useState(true);
+  
+  // Get conversation session for mentor notifications
+  const conversationSessionId = useConversationSession();
 
 
 
@@ -114,10 +120,18 @@ export const ChooseMissionWrapper: React.FC = () => {
     try {
       await newsService.incrementContactCount(article.id);
       setEmailToOpen(article);
+      // Hide welcome notification when user takes action
+      setShowWelcomeNotification(false);
     } catch (error) {
       console.error('Error tracking contact:', error);
       setEmailToOpen(article);
+      // Hide welcome notification even if there's an error
+      setShowWelcomeNotification(false);
     }
+  }, []);
+
+  const handleNotificationDismiss = useCallback(() => {
+    setShowWelcomeNotification(false);
   }, []);
 
   const handleCloseEmailComposer = useCallback(() => {
@@ -271,6 +285,20 @@ export const ChooseMissionWrapper: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Welcome Notification */}
+      {showWelcomeNotification && !loading && (
+        <MentorNotification
+          title="Welcome to Mission Selection!"
+          message="Browse through these real-world challenges and find a mission that speaks to you. Each article represents a hero who needs your technical expertise to make a positive impact. Click 'Contact Hero' on any article that interests you to get started."
+          onClose={handleNotificationDismiss}
+          targetElement=".backdrop-blur-sm"
+          position="top"
+          actionLabel="Got it!"
+          conversationSessionId={conversationSessionId}
+          missionStageId="mission-selection"
+        />
+      )}
 
       {/* Email Composer */}
       {heroToShow && (

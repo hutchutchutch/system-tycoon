@@ -35,7 +35,7 @@ export type { AuthPromoBannerProps } from './AuthPromoBanner';
 
 // Keep existing organisms temporarily
 export { AchievementToast } from './AchievementToast';
-export * from './CareerMap';
+// export * from './CareerMap'; // Component doesn't exist
 export { ComponentDrawer } from './ComponentDrawer';
 export { GameHUD } from './GameHUD';
 export { MetricsDashboard } from './MetricsDashboard';
@@ -54,7 +54,7 @@ export type { BentoGridProps } from '../molecules/BentoGrid';
 
 // Game-specific organisms
 export { default as CrisisAlert } from './CrisisAlert/CrisisAlert';
-export { default as MissionShowcase } from './MissionShowcase/MissionShowcase';
+// export { default as MissionShowcase } from './MissionShowcase/MissionShowcase'; // Removed
 export { MentorSelectionModal } from './MentorSelectionModal';
 export type { MentorSelectionModalProps } from './MentorSelectionModal';
 export { EmailComposer } from './EmailComposer';

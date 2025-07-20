@@ -33,7 +33,7 @@ export const emailProgressionMiddleware: Middleware<{}, RootState> = (store) => 
 async function handleStageCompletion(store: any, payload: any) {
   try {
     const { dispatch } = store;
-    const state = store.getState() as RootState;
+    const _state = store.getState() as RootState; // TODO: Use state if needed
     
     // Simple payload extraction
     const playerId = payload?.playerId || 'default-player';

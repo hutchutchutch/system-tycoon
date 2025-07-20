@@ -29,7 +29,7 @@ export const CertificatePreview: React.FC = () => {
           </div>
         </div>
         
-        <Button variant="primary" fullWidth className="mt-4">
+        <Button variant="primary" className="mt-4 w-full">
           Verify Certificate
         </Button>
       </div>

@@ -54,7 +54,7 @@ const CrisisAlert: React.FC<CrisisAlertProps> = ({
             <div className={styles.alertActions}>
               <Button 
                 variant="primary" 
-                size="small"
+                size="sm"
                 onClick={handleJoinMission}
                 className={styles.joinButton}
               >

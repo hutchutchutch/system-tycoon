@@ -40,12 +40,12 @@ const MissionCard: React.FC<MissionCardProps> = ({
     );
   };
 
-  const statusVariant = status === 'URGENT' ? 'error' : status === 'NEW' ? 'success' : 'default';
+  const statusVariant = status === 'URGENT' ? 'destructive' : status === 'NEW' ? 'success' : 'default';
 
   return (
     <Card className={styles.missionCard}>
       <div className={styles.header}>
-        <Badge variant={statusVariant} size="small">
+        <Badge variant={statusVariant} size="sm">
           {status}
         </Badge>
         {renderDifficultyStars(difficulty)}
@@ -77,14 +77,14 @@ const MissionCard: React.FC<MissionCardProps> = ({
         <h4 className={styles.skillsLabel}>Skills You'll Learn:</h4>
         <div className={styles.skillsList}>
           {skills.map(skill => (
-            <Badge key={skill} variant="secondary" size="small">
+            <Badge key={skill} variant="secondary" size="sm">
               {skill}
             </Badge>
           ))}
         </div>
       </div>
 
-      <Button variant="primary" size="medium" className={styles.joinButton}>
+      <Button variant="primary" size="md" className={styles.joinButton}>
         Join Mission →
       </Button>
     </Card>

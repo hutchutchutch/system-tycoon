@@ -1,6 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { Email, EmailFilter, EmailSearchResult } from '../../types/email.types';
-import type { RootState } from '../index';
+// import type { RootState } from '../index'; // Unused
 
 // Types for API responses
 export interface EmailProgressionResponse {
@@ -44,7 +44,7 @@ export const emailApi = createApi({
   reducerPath: 'emailApi',
   baseQuery: fetchBaseQuery({
     baseUrl: (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api/emails',
-    prepareHeaders: (headers, { getState }) => {
+    prepareHeaders: (headers, { getState: _getState }) => {
       // Note: Auth token handling would need to be implemented based on your specific auth slice structure
       // const state = getState() as RootState;
       // Add auth header based on your auth implementation
@@ -57,7 +57,7 @@ export const emailApi = createApi({
     // Load user emails with progression state
     getUserEmails: builder.query<UserEmailsResponse, string>({
       query: (playerId) => `/user/${playerId}`,
-      providesTags: (result, error, playerId) => [
+      providesTags: (_result, _error, playerId) => [
         { type: 'Email', id: 'LIST' },
         { type: 'EmailProgress', id: playerId },
       ],
@@ -70,7 +70,7 @@ export const emailApi = createApi({
         method: 'POST',
         body: stageCompletion,
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: 'LIST' },
         { type: 'EmailProgress', id: arg.playerId },
         { type: 'MissionEmails', id: arg.missionId },
@@ -80,7 +80,7 @@ export const emailApi = createApi({
     // Get specific email details (only if accessible)
     getEmail: builder.query<Email, { emailId: string; playerId: string }>({
       query: ({ emailId, playerId }) => `/email/${emailId}?playerId=${playerId}`,
-      providesTags: (result, error, arg) => [{ type: 'Email', id: arg.emailId }],
+      providesTags: (_result, _error, arg) => [{ type: 'Email', id: arg.emailId }],
     }),
 
     // Mark email as read

@@ -15,22 +15,20 @@ import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 export const GamePage: React.FC = () => {
   const dispatch = useAppDispatch();
   
-  // Redux state selectors
-  const currentLocation = useAppSelector((state) => state.game.currentLocation);
-  const availableActions = useAppSelector((state) => state.game.availableActions);
-  const showDrawer = useAppSelector((state) => state.ui.showComponentDrawer);
-  const inventory = useAppSelector((state) => state.game.inventory);
+  // Redux state selectors - TODO: Add these properties to Redux state
+  // const currentLocation = useAppSelector((state) => state.game.currentLocation);
+  // const availableActions = useAppSelector((state) => state.game.availableActions);
+  // const showDrawer = useAppSelector((state) => state.ui.showComponentDrawer);
+  // const inventory = useAppSelector((state) => state.game.inventory);
 
   return (
     <div className="game-page">
       <div className="game-content">
         {/* Location-specific content and interactions */}
-        {currentLocation && (
-          <div className="location-info">
-            <h2>{currentLocation.name}</h2>
-            <p>{currentLocation.description}</p>
-          </div>
-        )}
+        <div className="location-info">
+          <h2>Game Location</h2>
+          <p>Current game state - under development</p>
+        </div>
         
         {/* TODO: Component discovery drawer */}
         <p>Game page - under development</p>

@@ -76,7 +76,7 @@ export const LearningTrackCard: React.FC<LearningTrackCardProps> = ({
         </div>
       </div>
       
-      <Button variant="primary" fullWidth className={styles.continueButton}>
+      <Button variant="primary" className={`${styles.continueButton} w-full`}>
         Continue Learning →
       </Button>
     </Card>

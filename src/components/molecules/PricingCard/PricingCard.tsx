@@ -63,7 +63,7 @@ export const PricingCard: React.FC<PricingCardProps> = ({
         <div className={styles.ctaWrapper}>
           <Button 
             variant={popular ? 'primary' : 'outline'} 
-            fullWidth
+            className="w-full"
           >
             {cta}
           </Button>

@@ -30,9 +30,9 @@ import { ComponentNode } from './nodes/ComponentNode';
 import styles from './SystemDesignCanvas.module.css';
 
 // Define custom node types
-const nodeTypes = {
-  component: ComponentNode,
-};
+  const nodeTypes = {
+    component: ComponentNode,
+  };
 
 // Component styling based on type
 const getNodeStyle = (type: string) => {
