@@ -233,8 +233,14 @@ const designSlice = createSlice({
       );
       
       if (!exists && connection.source && connection.target) {
-        // Check if this is a crisis edge (user nodes to system)
-        const isCrisisEdge = connection.source.startsWith('users-') || connection.source === 'families';
+        // Find source and target nodes to check if they're broken
+        const sourceNode = state.nodes.find(node => node.id === connection.source);
+        const targetNode = state.nodes.find(node => node.id === connection.target);
+        
+        // Check if this is a crisis edge (connecting to/from broken system nodes)
+        const sourceIsBroken = sourceNode?.data?.status === 'broken';
+        const targetIsBroken = targetNode?.data?.status === 'broken';
+        const isCrisisEdge = sourceIsBroken || targetIsBroken;
         
         const newEdge: Edge = {
           id: `edge-${connection.source}-${connection.target}-${Date.now()}`,

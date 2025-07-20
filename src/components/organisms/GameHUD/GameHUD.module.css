@@ -817,15 +817,7 @@
   flex-shrink: 0;
 }
 
-.dropdownDivider {
-  height: 1px;
-  background: var(--color-neutral-200);
-  margin: var(--space-1) 0;
-}
-
-[data-theme="dark"] .dropdownDivider {
-  background: var(--color-neutral-400);
-}
+/* Divider removed for cleaner look */
 
 /* Responsive */
 @media (max-width: 768px) {
