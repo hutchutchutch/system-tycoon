@@ -1,2 +1,3 @@
-export { MainMenuPage } from './MainMenuPage';
+import { MainMenuPage } from './MainMenuPage';
+export { MainMenuPage };
 export default MainMenuPage;

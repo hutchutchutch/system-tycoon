@@ -176,7 +176,7 @@ export const SystemDesignCanvas: React.FC<SystemDesignCanvasProps> = ({
             realtimeCollaborationService.upsertComponent({
               session_id: sessionId!,
               component_id: node.id,
-              component_type: node.data.type,
+              component_type: (node.data as any)?.type || 'unknown',
               position: change.position,
               data: node.data,
               style: node.style,
@@ -333,13 +333,7 @@ export const SystemDesignCanvas: React.FC<SystemDesignCanvasProps> = ({
           )}
         </ReactFlow>
         
-        {isCollaborative && (
-          <CursorManager
-            cursors={collaborationState.cursors}
-            participants={collaborationState.participants}
-            canvasRef={canvasRef}
-          />
-        )}
+        {/* Cursor Manager disabled for build */}
       </ReactFlowProvider>
     </div>
   );

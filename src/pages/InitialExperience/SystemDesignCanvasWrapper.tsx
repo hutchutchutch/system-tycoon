@@ -42,7 +42,7 @@ export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps>
 
   return (
     <div className={styles.systemDesignWrapper}>      
-      <CrisisSystemDesignCanvas emailId={emailId} />
+      <CrisisSystemDesignCanvas />
     </div>
   );
 };

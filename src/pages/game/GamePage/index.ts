@@ -1,2 +1,3 @@
-export { GamePage } from './GamePage';
+import { GamePage } from './GamePage';
+export { GamePage };
 export default GamePage;

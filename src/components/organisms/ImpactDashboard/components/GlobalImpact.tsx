@@ -22,7 +22,7 @@ export const GlobalImpact: React.FC = () => {
     <div>
       <div className="grid md:grid-cols-4 gap-4 mb-12">
         {globalStats.map((stat, index) => (
-          <MetricCard key={index} data={stat} />
+          <div key={index}>Metric: {stat.label}</div>
         ))}
       </div>
       

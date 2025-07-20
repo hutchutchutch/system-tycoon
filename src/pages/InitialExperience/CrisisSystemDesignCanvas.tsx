@@ -108,14 +108,14 @@ interface UserNodeData extends CustomNodeData {
   userCount: number;
 }
 
-// Get color based on user count
+// Get color based on user count - poker chip style colors
 const getUserCountColor = (count: number) => {
-  if (count >= 100000) return '#FF1744'; // Red - Critical mass
-  if (count >= 10000) return '#FF6B00'; // Orange - Very high
-  if (count >= 1000) return '#FFA726'; // Light orange - High
-  if (count >= 100) return '#FFD600'; // Yellow - Medium
-  if (count >= 10) return '#66BB6A'; // Green - Low
-  return '#4CAF50'; // Light green - Very low
+  if (count >= 100000) return '#1F2937'; // Black chip - Highest denomination
+  if (count >= 10000) return '#7C3AED'; // Purple chip
+  if (count >= 1000) return '#2563EB'; // Blue chip  
+  if (count >= 100) return '#F59E0B'; // Yellow/Gold chip
+  if (count >= 10) return '#6B7280'; // Gray chip
+  return '#E5E7EB'; // White chip - Lowest denomination
 };
 
 // User Node Component
@@ -233,10 +233,10 @@ const createUserNodeBreakdown = (totalUsers: number) => {
   for (const denom of denominations) {
     const count = Math.floor(remaining / denom);
     for (let i = 0; i < count; i++) {
-      const userType = denom >= 10000 ? 'Large Organizations' : 
+      const userType = denom >= 10000 ? 'Enterprise Users' : 
                        denom >= 1000 ? 'Organizations' : 
                        denom >= 100 ? 'Community Groups' : 
-                       denom >= 10 ? 'Family Groups' : 'Individuals';
+                       denom >= 10 ? 'Small Groups' : 'Individuals';
       
       breakdown.push({
         id: `users-${denom}-${i}`,

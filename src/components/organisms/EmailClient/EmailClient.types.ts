@@ -1,4 +1,42 @@
-import type { EmailData } from '../../molecules/EmailCard/EmailCard.types';
+// import type { EmailData } from '../../molecules/EmailCard/EmailCard.types'; // Not exported
+import type { EmailCategory, EmailStatus, EmailPriority } from '../../../types/email.types';
+
+// Temporary placeholder type matching Email interface
+interface EmailData {
+  id: string;
+  subject: string;
+  from: string;
+  body: string;
+  timestamp: string;
+  sender: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  preview: string;
+  category: EmailCategory;
+  status: EmailStatus;
+  content: string;
+  attachments?: any[];
+  isRead: boolean;
+  isStarred: boolean;
+  isImportant: boolean;
+  labels?: string[];
+  priority: EmailPriority;
+  sentAt: string;
+  isAccessible: boolean;
+  triggerType: 'manual' | 'mission_start' | 'stage_complete' | 'performance_based';
+  missionId?: string;
+  stageId?: string;
+  unlockCondition?: string;
+  responses?: any[];
+  actions?: any[];
+  hasAttachments: boolean;
+  isUrgent: boolean;
+  canReply: boolean;
+  canForward: boolean;
+  requiresAction: boolean;
+}
 
 export interface EmailFolder {
   id: string;
