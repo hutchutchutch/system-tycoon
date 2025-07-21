@@ -48,7 +48,8 @@ import {
   addEdge as addEdgeAction,
   setSystemRequirements,
   validateRequirements as validateRequirementsAction,
-  clearCanvas
+  clearCanvas,
+  updateRequirementValidationResults
 } from '../../features/design/designSlice';
 import {
   setActiveCanvas,
@@ -494,6 +495,17 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         }));
       
       setRequirements(convertedReqs);
+      
+      // Dispatch API validation results to Redux so MentorChat can access them
+      dispatch(updateRequirementValidationResults({
+        requirements: result.requirements,
+        summary: {
+          allCompleted: result.summary.allCompleted,
+          completedCount: result.summary.completedRequirements,
+          totalCount: result.summary.totalRequirements,
+          percentage: result.summary.completionPercentage
+        }
+      }));
 
       // Update metrics on completion
       if (result.summary.allCompleted) {

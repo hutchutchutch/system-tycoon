@@ -9,6 +9,13 @@ import { mentorChatService, type MentorChatSession, collectPageContext } from '.
 import type { RootState } from '../../../store';
 import { supabase } from '../../../services/supabase';
 import { useConversationSession } from '../../../hooks/useConversationSession';
+import { useAppSelector } from '../../../hooks/redux';
+import { 
+  selectRequirementsStatus,
+  selectCanvasValidation,
+  selectNodes,
+  selectEdges
+} from '../../../features/design/designSlice';
 import styles from './MentorChat.module.css';
 
 // Global conversation session ID that other components can access
@@ -45,6 +52,19 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastMessageRef = useRef<HTMLDivElement>(null);
   const chatMessagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Get canvas state and requirements from Redux
+  const reduxNodes = useAppSelector(selectNodes);
+  const reduxEdges = useAppSelector(selectEdges);
+  const requirementsStatus = useAppSelector(selectRequirementsStatus);
+  const canvasValidation = useAppSelector(selectCanvasValidation);
+  
+  // Use Redux state if available, fall back to props
+  const nodes = reduxNodes.length > 0 ? reduxNodes : canvasNodes;
+  const edges = reduxEdges.length > 0 ? reduxEdges : canvasEdges;
+  const currentRequirements = requirementsStatus.requirements.length > 0 
+    ? requirementsStatus.requirements 
+    : requirements;
 
   // Update global session ID when it changes
   useEffect(() => {
@@ -371,7 +391,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     try {
       // Enhanced canvas state for mentor context
       const enhancedCanvasState = {
-        nodes: canvasNodes.map(node => ({
+        nodes: nodes.map(node => ({
           id: node.id,
           type: node.type || 'custom',
           position: node.position,
@@ -390,65 +410,87 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           isConnectable: true,
           nodeType: 'canvas_component'
         })),
-        edges: canvasEdges.map(edge => ({
+        edges: edges.map(edge => ({
           id: edge.id,
           source: edge.source,
           target: edge.target,
           sourceHandle: edge.sourceHandle,
           targetHandle: edge.targetHandle,
           type: 'canvas_connection',
-          sourceNode: canvasNodes.find(n => n.id === edge.source)?.data?.label || edge.source,
-          targetNode: canvasNodes.find(n => n.id === edge.target)?.data?.label || edge.target
+          sourceNode: nodes.find(n => n.id === edge.source)?.data?.label || edge.source,
+          targetNode: nodes.find(n => n.id === edge.target)?.data?.label || edge.target
         })),
         connectionSummary: {
-          totalNodes: canvasNodes.length,
-          totalConnections: canvasEdges.length,
-          nodesByCategory: canvasNodes.reduce((acc, node) => {
+          totalNodes: nodes.length,
+          totalConnections: edges.length,
+          nodesByCategory: nodes.reduce((acc, node) => {
             const category = node.data?.category || 'unknown';
             acc[category] = (acc[category] || 0) + 1;
             return acc;
           }, {} as Record<string, number>),
-          connectionPairs: canvasEdges.map(edge => {
-            const sourceNode = canvasNodes.find(n => n.id === edge.source);
-            const targetNode = canvasNodes.find(n => n.id === edge.target);
+          connectionPairs: edges.map(edge => {
+            const sourceNode = nodes.find(n => n.id === edge.source);
+            const targetNode = nodes.find(n => n.id === edge.target);
             return `${sourceNode?.data?.label || edge.source} → ${targetNode?.data?.label || edge.target}`;
           })
         },
         systemAnalysis: {
           userLoad: {
-            totalUsers: canvasNodes.filter(n => n.type === 'user').reduce((sum, n) => sum + (n.data?.userCount || 0), 0),
-            userNodeCount: canvasNodes.filter(n => n.type === 'user').length,
-            largestUserGroup: Math.max(...canvasNodes.filter(n => n.type === 'user').map(n => n.data?.userCount || 0), 0)
+            totalUsers: nodes.filter(n => n.type === 'user').reduce((sum, n) => sum + (n.data?.userCount || 0), 0),
+            userNodeCount: nodes.filter(n => n.type === 'user').length,
+            largestUserGroup: Math.max(...nodes.filter(n => n.type === 'user').map(n => n.data?.userCount || 0), 0)
           },
           systemComponents: {
-            brokenComponents: canvasNodes.filter(n => n.data?.status === 'broken').map(n => ({
+            brokenComponents: nodes.filter(n => n.data?.status === 'broken').map(n => ({
               name: n.data?.label,
               category: n.data?.category,
               description: n.data?.description
             })),
-            healthyComponents: canvasNodes.filter(n => n.data?.status !== 'broken' && n.type !== 'user').map(n => ({
+            healthyComponents: nodes.filter(n => n.data?.status !== 'broken' && n.type !== 'user').map(n => ({
               name: n.data?.label,
               category: n.data?.category
             }))
           },
           criticalIssues: {
-            singlePointsOfFailure: canvasNodes.filter(n => {
-              const incomingConnections = canvasEdges.filter(e => e.target === n.id).length;
-              const outgoingConnections = canvasEdges.filter(e => e.source === n.id).length;
+            singlePointsOfFailure: nodes.filter(n => {
+              const incomingConnections = edges.filter(e => e.target === n.id).length;
+              const outgoingConnections = edges.filter(e => e.source === n.id).length;
               return incomingConnections > 3 || outgoingConnections > 3; // High traffic nodes
             }).map(n => n.data?.label),
-            overloadedSystems: canvasNodes.filter(n => {
-              const userConnections = canvasEdges.filter(e => {
-                const sourceNode = canvasNodes.find(sn => sn.id === e.source);
+            overloadedSystems: nodes.filter(n => {
+              const userConnections = edges.filter(e => {
+                const sourceNode = nodes.find(sn => sn.id === e.source);
                 return sourceNode?.type === 'user' && e.target === n.id;
               });
               const totalUserLoad = userConnections.reduce((sum, edge) => {
-                const sourceNode = canvasNodes.find(sn => sn.id === edge.source);
+                const sourceNode = nodes.find(sn => sn.id === edge.source);
                 return sum + (sourceNode?.data?.userCount || 0);
               }, 0);
               return totalUserLoad > 100; // Systems with more than 100 users
             }).map(n => ({ name: n.data?.label, category: n.data?.category }))
           }
+        },
+        requirementValidation: {
+          // Include requirement validation status from Redux
+          allRequirementsMet: requirementsStatus.allMet,
+          completedCount: requirementsStatus.completedCount,
+          totalCount: requirementsStatus.totalCount,
+          completionPercentage: requirementsStatus.percentage,
+          unmetRequirements: currentRequirements
+            .filter(req => !req.completed)
+            .map(req => ({
+              id: req.id,
+              description: req.description
+            })),
+          metRequirements: currentRequirements
+            .filter(req => req.completed)
+            .map(req => ({
+              id: req.id,
+              description: req.description
+            })),
+          nextSuggestedAction: !requirementsStatus.allMet && currentRequirements.length > 0
+            ? currentRequirements.find(req => !req.completed)?.description
+            : 'All requirements are met! Test your system to ensure it handles the load.'
         }
       };
 
@@ -456,7 +498,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       const contextData = collectPageContext(location.pathname, {
         missionStage: missionStageId ? { id: missionStageId, title: missionTitle, description: problemDescription } : undefined,
         mission: missionTitle ? { title: missionTitle, description: problemDescription } : undefined,
-        requirements: requirements,
+        requirements: currentRequirements,
         components: availableComponents,
         canvasState: enhancedCanvasState,
         currentNodes: enhancedCanvasState.nodes,
@@ -498,7 +540,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription, location.pathname]);
+  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription, location.pathname, nodes, edges, currentRequirements, availableComponents, requirementsStatus]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {

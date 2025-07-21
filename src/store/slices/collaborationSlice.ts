@@ -80,11 +80,11 @@ export const sendCollaborationInvitation = createAsyncThunk(
         throw new Error('User not authenticated');
       }
 
-      // Find the recipient by email/username
+      // Find the recipient by email/username (case-insensitive)
       const { data: recipientData, error: recipientError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url')
-        .eq('username', params.inviteeEmail)
+        .ilike('username', params.inviteeEmail)
         .single();
 
       if (recipientError || !recipientData) {
@@ -96,7 +96,7 @@ export const sendCollaborationInvitation = createAsyncThunk(
         if (!count || count === 0) {
           throw new Error('No users found in the database. Make sure users have completed profile setup.');
         } else {
-          throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (searching profiles.username field).`);
+          throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (case-insensitive search in profiles.username field).`);
         }
       }
 

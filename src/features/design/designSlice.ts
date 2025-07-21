@@ -468,6 +468,46 @@ const designSlice = createSlice({
       state.validationErrors = errors;
       state.isValidDesign = errors.filter(e => e.severity === 'error').length === 0;
     },
+    
+    // Update requirement validation results from API
+    updateRequirementValidationResults: (state, action: PayloadAction<{
+      requirements: Array<{
+        id: string;
+        description: string;
+        completed: boolean;
+        visible?: boolean;
+      }>;
+      summary: {
+        allCompleted: boolean;
+        completedCount: number;
+        totalCount: number;
+        percentage: number;
+      };
+    }>) => {
+      const { requirements, summary } = action.payload;
+      
+      // Transform API response to match our state structure
+      state.requirementValidationResults = requirements
+        .filter(req => req.visible !== false) // Only include visible requirements
+        .map(req => ({
+          id: req.id,
+          description: req.description,
+          completed: req.completed,
+          validationDetails: {} // API doesn't provide details, but we keep structure consistent
+        }));
+      
+      // Update progress metrics from API summary
+      state.requirementProgress = {
+        completed: summary.completedCount,
+        total: summary.totalCount,
+        percentage: summary.percentage
+      };
+      
+      state.allRequirementsMet = summary.allCompleted;
+      
+      // Also trigger design validation to keep everything in sync
+      designSlice.caseReducers.validateDesign(state);
+    },
   },
 });
 
@@ -488,6 +528,7 @@ export const {
   setSystemRequirements,
   validateRequirements,
   clearCanvas,
+  updateRequirementValidationResults,
 } = designSlice.actions;
 
 export default designSlice.reducer;

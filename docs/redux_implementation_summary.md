@@ -347,6 +347,145 @@ dispatch(addNode({ component, position }));
 // 3. Requirements component re-renders with updated status
 ```
 
+### API-Based Requirements Validation Integration
+
+#### Dual Validation System
+The design slice supports both local validation (via `validateRequirements`) and API-based validation for mission stages:
+
+```typescript
+// New action for syncing API validation results to Redux
+updateRequirementValidationResults: (state, action: PayloadAction<{
+  requirements: Array<{
+    id: string;
+    description: string;
+    completed: boolean;
+    visible?: boolean;
+  }>;
+  summary: {
+    allCompleted: boolean;
+    completedCount: number;
+    totalCount: number;
+    percentage: number;
+  };
+}>) => {
+  // Transform API response to match Redux state structure
+  state.requirementValidationResults = requirements
+    .filter(req => req.visible !== false)
+    .map(req => ({
+      id: req.id,
+      description: req.description,
+      completed: req.completed,
+      validationDetails: {}
+    }));
+  
+  // Update progress metrics from API
+  state.requirementProgress = {
+    completed: summary.completedCount,
+    total: summary.totalCount,
+    percentage: summary.percentage
+  };
+  
+  state.allRequirementsMet = summary.allCompleted;
+}
+```
+
+#### Integration Flow
+```typescript
+// In CrisisSystemDesignCanvas.tsx
+const { isValidating, validateRequirements } = useRequirementValidation({
+  stageId: missionStageData?.id || '',
+  onValidationComplete: (result: ValidationResponse) => {
+    // 1. Update local state for UI
+    setRequirements(convertedReqs);
+    
+    // 2. Sync to Redux for global access
+    dispatch(updateRequirementValidationResults({
+      requirements: result.requirements,
+      summary: {
+        allCompleted: result.summary.allCompleted,
+        completedCount: result.summary.completedRequirements,
+        totalCount: result.summary.totalRequirements,
+        percentage: result.summary.completionPercentage
+      }
+    }));
+  }
+});
+```
+
+### MentorChat Redux Integration
+
+#### Direct Redux Access
+MentorChat now connects directly to Redux store for real-time requirement and canvas state:
+
+```typescript
+// MentorChat.tsx - Redux selectors
+const reduxNodes = useAppSelector(selectNodes);
+const reduxEdges = useAppSelector(selectEdges);
+const requirementsStatus = useAppSelector(selectRequirementsStatus);
+const canvasValidation = useAppSelector(selectCanvasValidation);
+
+// Intelligent fallback to props if Redux is empty
+const nodes = reduxNodes.length > 0 ? reduxNodes : canvasNodes;
+const edges = reduxEdges.length > 0 ? reduxEdges : canvasEdges;
+const currentRequirements = requirementsStatus.requirements.length > 0 
+  ? requirementsStatus.requirements 
+  : requirements;
+```
+
+#### Enhanced Context for AI Guidance
+MentorChat now includes comprehensive requirement validation context:
+
+```typescript
+const enhancedCanvasState = {
+  // ... existing canvas state
+  
+  requirementValidation: {
+    // Real-time validation status from Redux
+    allRequirementsMet: requirementsStatus.allMet,
+    completedCount: requirementsStatus.completedCount,
+    totalCount: requirementsStatus.totalCount,
+    completionPercentage: requirementsStatus.percentage,
+    
+    // Specific unmet requirements for targeted guidance
+    unmetRequirements: currentRequirements
+      .filter(req => !req.completed)
+      .map(req => ({ id: req.id, description: req.description })),
+    
+    // Next suggested action based on requirements
+    nextSuggestedAction: !requirementsStatus.allMet && currentRequirements.length > 0
+      ? currentRequirements.find(req => !req.completed)?.description
+      : 'All requirements are met! Test your system to ensure it handles the load.'
+  }
+};
+```
+
+#### Benefits of MentorChat Redux Integration
+1. **Real-time Awareness**: Mentor knows exactly which requirements are met/unmet
+2. **Contextual Guidance**: Can suggest specific actions based on validation state
+3. **No Prop Drilling**: Direct Redux connection eliminates complex prop passing
+4. **Consistent State**: All components see the same validation results
+5. **Performance**: Memoized selectors prevent unnecessary AI API calls
+
+### Validation State Flow Summary
+```
+User Action → Canvas Change → Two Validation Paths:
+  
+  Path 1 (Local):
+  ├── designSlice.validateRequirements() 
+  └── Immediate UI feedback
+  
+  Path 2 (API):
+  ├── User clicks "Test System"
+  ├── API validates against mission_state_requirements
+  ├── Results dispatched via updateRequirementValidationResults
+  └── Redux state updated globally
+  
+Both paths → Redux Store → All Components Updated:
+  ├── Requirements component (visual feedback)
+  ├── MentorChat (contextual AI guidance)
+  └── GameHUD (progress tracking)
+```
+
 ## Collaboration Slice Implementation
 
 ### Invitation System Architecture
