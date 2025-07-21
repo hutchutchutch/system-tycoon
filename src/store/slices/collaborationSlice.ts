@@ -71,6 +71,8 @@ export const sendCollaborationInvitation = createAsyncThunk(
     missionStageId: string;
     missionId: string;
   }, { getState, rejectWithValue }) => {
+    const startTime = Date.now();
+    
     try {
       console.log('🚀 [CollaborationSlice] Starting invitation process...');
       console.log('📍 [CollaborationSlice] Parameters:', {
@@ -94,265 +96,83 @@ export const sendCollaborationInvitation = createAsyncThunk(
         throw new Error('User not authenticated. Please log in to send invitations.');
       }
 
-      // Find the recipient by email/username (case-insensitive)
-      console.log('🔍 [CollaborationSlice] Searching for user:', params.inviteeEmail);
+      // Step 1: Find the recipient by username (simple and fast)
+      console.log('🔍 [CollaborationSlice] Step 1: Searching for user:', params.inviteeEmail);
+      const userSearchStart = Date.now();
       
       const { data: recipientData, error: recipientError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url')
-        .ilike('username', params.inviteeEmail);
+        .ilike('username', params.inviteeEmail)
+        .limit(1)
+        .single();
       
+      const userSearchEnd = Date.now();
+      console.log(`⏱️ [CollaborationSlice] User search took: ${userSearchEnd - userSearchStart}ms`);
       console.log('🔍 [CollaborationSlice] Search results:', { 
         recipientData, 
         recipientError,
-        resultCount: recipientData?.length || 0
+        hasRecipient: !!recipientData
       });
-      
-      // Handle the array response from ilike
-      const recipient = recipientData?.[0];
-      const finalError = recipientError || (!recipient && !recipientError ? new Error('Not found') : null);
 
-      if (finalError || !recipient) {
-        console.log('❌ [CollaborationSlice] User not found, checking database state...');
+      if (recipientError || !recipientData) {
+        console.error('❌ [CollaborationSlice] User not found:', {
+          error: recipientError,
+          searchTerm: params.inviteeEmail
+        });
         
-        // Check if any users exist in the database
-        const { count, error: countError } = await supabase
+        // Quick availability check
+        const { data: availableUsers } = await supabase
           .from('profiles')
-          .select('*', { count: 'exact', head: true });
-        
-        console.log('🔍 [CollaborationSlice] Total users in database:', { count, countError });
-        
-        if (countError) {
-          console.error('❌ [CollaborationSlice] Error checking user count:', countError);
-          throw new Error(`Database error while searching for users: ${countError.message}`);
-        }
-        
-        if (!count || count === 0) {
-          console.error('❌ [CollaborationSlice] No users in database');
-          throw new Error('No users found in the database. Make sure users have completed profile setup.');
-        } else {
-          // Also check if there's an RLS issue by trying a different query
-          const { data: testQuery, error: testError } = await supabase
-            .from('profiles')
-            .select('username')
-            .limit(5);
+          .select('username')
+          .limit(5);
           
-          console.log('🔍 [CollaborationSlice] Test query results:', { 
-            testQuery, 
-            testError,
-            canReadProfiles: !!testQuery && testQuery.length > 0
-          });
-          
-          if (testError) {
-            console.error('❌ [CollaborationSlice] RLS/Permission error:', testError);
-            throw new Error(`Permission error accessing user profiles: ${testError.message}. Check RLS policies.`);
-          }
-          
-          if (!testQuery || testQuery.length === 0) {
-            throw new Error(`You don't have permission to search for other users. Check with admin about profile visibility policies.`);
-          }
-          
-          // Show available usernames for debugging
-          const availableUsernames = testQuery.map(u => u.username).filter(Boolean);
-          console.log('🔍 [CollaborationSlice] Available usernames:', availableUsernames);
-          
-          throw new Error(`User "${params.inviteeEmail}" not found. Available users: ${availableUsernames.join(', ')}`);
-        }
+        const usernames = availableUsers?.map(u => u.username).join(', ') || 'None';
+        throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (case-insensitive search in profiles.username field). Available users: ${usernames}`);
       }
 
-      console.log('✅ [CollaborationSlice] Recipient found:', {
-        id: recipient.id,
-        username: recipient.username
-      });
-
-      // Prevent self-invitation
-      if (recipient.id === senderId) {
+      // Step 2: Prevent self-invitation
+      if (recipientData.id === senderId) {
         console.log('❌ [CollaborationSlice] Self-invitation attempt');
         throw new Error('You cannot invite yourself to collaborate.');
       }
 
-      // Check for existing invitation
-      console.log('🔍 [CollaborationSlice] Checking for existing invitations...');
-      const { data: existingInvitation, error: existingError } = await supabase
-        .from('collaboration_invitations')
-        .select('id, status')
-        .eq('sender_id', senderId)
-        .eq('invited_id', recipient.id)
-        .eq('mission_stage_id', params.missionStageId)
-        .single();
-
-      console.log('🔍 [CollaborationSlice] Existing invitation check:', {
-        existingInvitation,
-        existingError
-      });
-
-      if (existingInvitation) {
-        if (existingInvitation.status === 'pending') {
-          console.log('❌ [CollaborationSlice] Invitation already exists');
-          throw new Error('You have already sent an invitation to this user for this mission.');
-        }
-      }
-
-      // Get mission stage details for the invitation
-      console.log('🔍 [CollaborationSlice] Getting mission stage details...');
-      const { data: stageData, error: stageError } = await supabase
-        .from('mission_stages')
-        .select(`
-          id,
-          title,
-          mission:missions!inner(
-            id,
-            title
-          )
-        `)
-        .eq('id', params.missionStageId)
-        .single();
-
-      console.log('🔍 [CollaborationSlice] Mission stage data:', {
-        stageData,
-        stageError
-      });
-
-      if (stageError || !stageData) {
-        console.error('❌ [CollaborationSlice] Mission stage not found');
-        throw new Error('Mission stage not found. Please check the mission ID.');
-      }
-
-      // Create the collaboration invitation
-      console.log('💾 [CollaborationSlice] Creating collaboration invitation...');
+      // Step 3: Create the collaboration invitation (core operation)
+      console.log('💾 [CollaborationSlice] Step 3: Creating collaboration invitation...');
+      const inviteCreateStart = Date.now();
+      
       const { data: invitation, error: invitationError } = await supabase
         .from('collaboration_invitations')
         .insert({
           sender_id: senderId,
-          invited_id: recipient.id,
+          invited_id: recipientData.id,
           mission_stage_id: params.missionStageId,
           status: 'pending'
         })
-        .select()
+        .select('*')
         .single();
 
+      const inviteCreateEnd = Date.now();
+      console.log(`⏱️ [CollaborationSlice] Invitation creation took: ${inviteCreateEnd - inviteCreateStart}ms`);
       console.log('💾 [CollaborationSlice] Invitation creation result:', {
         invitation,
-        invitationError
+        invitationError,
+        hasInvitation: !!invitation
       });
 
       if (invitationError) {
         console.error('❌ [CollaborationSlice] Failed to create invitation:', invitationError);
-        throw invitationError;
+        
+        // Check if it's a duplicate invitation error
+        if (invitationError.code === '23505') { // Unique constraint violation
+          throw new Error('You have already sent an invitation to this user for this mission stage.');
+        }
+        
+        throw new Error(`Failed to create invitation: ${invitationError.message}`);
       }
 
-      // Create email for sender (Sent folder)
-      console.log('📧 [CollaborationSlice] Creating sender email...');
-      const { error: senderEmailError } = await supabase
-        .from('mission_emails')
-        .insert({
-          mission_id: params.missionId,
-          stage_id: params.missionStageId,
-          recipient_id: senderId, // Sender sees this in their Sent folder
-          subject: `Collaboration Invitation Sent to ${recipient.username}`,
-          preview: `You invited ${recipient.username} to collaborate on ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}`,
-          body: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563EB;">Collaboration Invitation Sent</h2>
-              <p>You have successfully sent a collaboration invitation to <strong>${recipient.username}</strong>.</p>
-              
-              <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin: 16px 0;">
-                <h3 style="margin: 0 0 8px 0; color: #374151;">Mission Details:</h3>
-                <p style="margin: 4px 0;"><strong>Mission:</strong> ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}</p>
-                <p style="margin: 4px 0;"><strong>Stage:</strong> ${stageData.title}</p>
-              </div>
-              
-              <p>They will receive an invitation in their inbox and can choose to accept or decline.</p>
-              <p style="color: #6B7280; font-size: 14px;">
-                This invitation will expire in 7 days if not responded to.
-              </p>
-            </div>
-          `,
-          sender_name: 'System',
-          sender_email: 'system@system-tycoon.com',
-          sender_avatar: '/system-avatar.png',
-          content: `Collaboration invitation sent to ${recipient.username}`,
-          category: 'collaboration',
-          priority: 'normal',
-          is_read: true, // Sender's copy is marked as read
-          personalization_tokens: {
-            type: 'collaboration_sent',
-            invitation_id: invitation.id,
-            recipient_username: recipient.username,
-            mission_title: (stageData.mission as any)?.[0]?.title || 'Unknown Mission',
-            stage_title: stageData.title
-          }
-        });
-
-      if (senderEmailError) {
-        console.error('⚠️ [CollaborationSlice] Failed to create sender email:', senderEmailError);
-      } else {
-        console.log('✅ [CollaborationSlice] Sender email created successfully');
-      }
-
-      // Create email for recipient (Inbox)
-      console.log('📧 [CollaborationSlice] Creating recipient email...');
-      const { error: recipientEmailError } = await supabase
-        .from('mission_emails')
-        .insert({
-          mission_id: params.missionId,
-          stage_id: params.missionStageId,
-          recipient_id: recipient.id,
-          subject: `${senderProfile.username} invited you to collaborate!`,
-          preview: `Join ${senderProfile.username} to work together on ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}`,
-          body: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #2563EB;">You're Invited to Collaborate!</h2>
-              <p>Hi ${recipient.username}!</p>
-              <p><strong>${senderProfile.username}</strong> has invited you to collaborate on their system design mission.</p>
-              
-              <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin: 16px 0;">
-                <h3 style="margin: 0 0 8px 0; color: #374151;">Mission Details:</h3>
-                <p style="margin: 4px 0;"><strong>Mission:</strong> ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}</p>
-                <p style="margin: 4px 0;"><strong>Stage:</strong> ${stageData.title}</p>
-                <p style="margin: 4px 0;"><strong>Invited by:</strong> ${senderProfile.username}</p>
-              </div>
-              
-              <div style="margin: 20px 0; text-align: center;">
-                <a href="/game/crisis-design/${params.missionStageId}?invitation=${invitation.id}" 
-                   style="background: #2563EB; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block;">
-                  Accept Invitation & Join Mission
-                </a>
-              </div>
-              
-              <p>You'll be able to see each other's cursor movements and component additions in real-time as you work together to solve the crisis!</p>
-              
-              <div style="margin-top: 20px; padding: 12px; background: #FEF3C7; border-radius: 8px;">
-                <p style="margin: 0; color: #92400E; font-size: 14px;">
-                  <strong>Note:</strong> This invitation will expire in 7 days. You can accept or decline at any time.
-                </p>
-              </div>
-            </div>
-          `,
-          sender_name: senderProfile.username,
-          sender_email: `${senderProfile.username}@system-tycoon.com`,
-          sender_avatar: senderProfile.avatar_url || '/default-avatar.png',
-          content: `Collaboration invitation from ${senderProfile.username}`,
-          category: 'collaboration',
-          priority: 'high',
-          is_read: false, // Recipient's copy is unread
-          personalization_tokens: {
-            type: 'collaboration_invitation',
-            invitation_id: invitation.id,
-            sender_id: senderId,
-            sender_username: senderProfile.username,
-            mission_title: (stageData.mission as any)?.[0]?.title || 'Unknown Mission',
-            stage_title: stageData.title
-          }
-        });
-
-      if (recipientEmailError) {
-        console.error('⚠️ [CollaborationSlice] Failed to create recipient email:', recipientEmailError);
-      } else {
-        console.log('✅ [CollaborationSlice] Recipient email created successfully');
-      }
-
-      console.log('🎉 [CollaborationSlice] Invitation process completed successfully!');
+      const totalTime = Date.now() - startTime;
+      console.log(`🎉 [CollaborationSlice] Invitation process completed successfully in ${totalTime}ms!`);
 
       return {
         invitation: {
@@ -362,33 +182,23 @@ export const sendCollaborationInvitation = createAsyncThunk(
             username: senderProfile.username!,
             avatar_url: senderProfile.avatar_url
           },
-          invited_profile: recipient,
-          mission_stage: stageData
+          invited_profile: recipientData
         }
       };
     } catch (error) {
-      console.error('❌ [CollaborationSlice] Failed to send collaboration invitation:', error);
+      const totalTime = Date.now() - startTime;
+      console.error(`❌ [CollaborationSlice] Failed to send collaboration invitation (${totalTime}ms):`, error);
       
-      // Enhanced error handling with more specific messages
-      if (error instanceof Error) {
-        // Check for specific database errors
-        if (error.message?.includes('permission denied') || error.message?.includes('RLS')) {
-          return rejectWithValue('Permission denied: Unable to access user profiles. Please contact support.');
-        }
-        
-        if (error.message?.includes('duplicate key')) {
-          return rejectWithValue('An invitation for this user and mission already exists.');
-        }
-        
-        if (error.message?.includes('foreign key')) {
-          return rejectWithValue('Invalid mission or user reference. Please refresh and try again.');
-        }
-        
-        // Return the original error message for known errors
-        return rejectWithValue(error.message);
-      }
+      // Enhanced error reporting
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error('❌ [CollaborationSlice] Error details:', {
+        message: errorMessage,
+        params,
+        senderId: (getState() as RootState).auth.user?.id,
+        timestamp: new Date().toISOString()
+      });
       
-      return rejectWithValue('Failed to send invitation. Please try again.');
+      return rejectWithValue(errorMessage);
     }
   }
 );

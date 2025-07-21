@@ -201,83 +201,8 @@ export const loadEmailsByCategory = createAsyncThunk(
   }
 );
 
-// New async thunk for sending collaboration invitations
-export const sendCollaborationInvitation = createAsyncThunk(
-  'email/sendCollaborationInvitation',
-  async (params: { 
-    username: string; 
-    missionStageId: string; 
-    stageName: string 
-  }, { rejectWithValue }) => {
-    try {
-      // Import supabase dynamically to avoid circular dependencies
-      const { supabase } = await import('../../services/supabase');
-      
-      // Search for user with case-insensitive username match
-      const { data: profiles, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, username')
-        .ilike('username', params.username.trim());
-      
-      if (profileError) {
-        throw new Error('Error searching for user');
-      }
-      
-      if (!profiles || profiles.length === 0) {
-        throw new Error('User not found');
-      }
-      
-      const invitedUser = profiles[0];
-      
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('You must be logged in to send invitations');
-      }
-      
-      // Create collaboration invitation
-      const { data: invitation, error: inviteError } = await supabase
-        .from('collaboration_invitations')
-        .insert({
-          sender_id: user.id,
-          invited_id: invitedUser.id,
-          mission_stage_id: params.missionStageId,
-          status: 'pending'
-        })
-        .select()
-        .single();
-      
-      if (inviteError) {
-        throw new Error('Failed to create invitation');
-      }
-      
-      // Create an email for the invited user
-      const { error: emailError } = await supabase
-        .from('mission_emails')
-        .insert({
-          subject: `Collaboration Invitation: ${params.stageName}`,
-          preview: `You've been invited to collaborate on a system design`,
-          body: `
-            <p>Hey! I'd like you to help me with the "${params.stageName}" mission stage.</p>
-            <p>Click the button below to join the collaborative canvas:</p>
-            <button data-action="open-canvas" data-stage-id="${params.missionStageId}" data-collaboration-id="${invitation.id}">
-              Open System Design Canvas
-            </button>
-          `,
-          sender_name: user.email?.split('@')[0] || 'A Fellow Designer',
-          sender_email: user.email || 'noreply@systemtycoon.com',
-          recipient_email: invitedUser.username + '@systemtycoon.com',
-          recipient_name: invitedUser.username,
-          category: 'primary',
-          priority: 'high',
-          trigger_type: 'user_sent'
-        });
-      
-      if (emailError) {
-        throw new Error('Failed to send invitation email');
-      }
-      
-      return {
+// NOTE: sendCollaborationInvitation has been moved to collaborationSlice.ts
+// This removes the duplicate function that was causing conflicts
         invitation,
         invitedUser
       };

@@ -381,6 +381,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     console.log('📍 Connecting:', sourceNode?.data.label, '→', targetNode?.data.label);
     console.log('📊 Node IDs:', { sourceId: params.source, targetId: params.target });
     
+    // Track user interaction
+    setHasUserInteracted(true);
+    setLastUserActionTimestamp(Date.now());
+    console.log('👤 User connected components - marking for validation');
+    
     dispatch(addEdgeAction(params));
   }, [dispatch, nodes]);
 
@@ -415,6 +420,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       x: event.clientX,
       y: event.clientY,
     });
+
+    // Track user interaction
+    setHasUserInteracted(true);
+    setLastUserActionTimestamp(Date.now());
+    console.log('👤 User added component via drag & drop - marking for validation');
 
     dispatch(addNode({ component, position }));
   }, [screenToFlowPosition, dispatch, availableComponents]);
@@ -571,16 +581,27 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Load initial system state from database and set nodes/edges
   const loadInitialSystemState = async (stageId: string) => {
     try {
+      console.log('🔄 Loading initial system state for stage:', stageId);
+      console.log('🎯 Expected for Alex Gonzalez mission: Only Alex\'s laptop and user nodes');
+      
       const { data: stageData, error } = await supabase
         .from('mission_stages')
-        .select('initial_system_state')
+        .select('initial_system_state, title, mission_id')
         .eq('id', stageId)
         .single();
 
       if (error) {
-        console.warn('Failed to load initial system state:', error);
+        console.error('❌ Failed to load initial system state:', error);
         return;
       }
+
+      console.log('📄 Database response for initial_system_state:', {
+        stageId,
+        stageTitle: stageData?.title,
+        missionId: stageData?.mission_id,
+        hasInitialState: !!stageData?.initial_system_state,
+        initialStateKeys: stageData?.initial_system_state ? Object.keys(stageData.initial_system_state) : []
+      });
 
       // Calculate center position for better layout
       const centerX = 400;
@@ -589,14 +610,50 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       if (stageData?.initial_system_state) {
         const { nodes: initialNodes = [], edges: initialEdges = [] } = stageData.initial_system_state;
         
-        console.log('Loading initial system state:', { 
-          nodes: initialNodes.length, 
-          edges: initialEdges.length 
+        console.log('📊 Initial system state breakdown:', { 
+          totalNodes: initialNodes.length, 
+          totalEdges: initialEdges.length
         });
+        
+        // Debug each initial node
+        console.log('🔍 Detailed initial nodes analysis:');
+        initialNodes.forEach((node: any, index: number) => {
+          console.log(`Initial Node ${index + 1}:`, {
+            id: node.id,
+            type: node.type,
+            label: node.data?.label,
+            category: node.data?.category,
+            description: node.data?.description,
+            position: node.position
+          });
+        });
+        
+        // Validate no Margaret nodes in initial state
+        const margaretNodes = initialNodes.filter((node: any) => 
+          node.data?.label?.includes('Margaret') || 
+          node.data?.description?.includes('Margaret') ||
+          node.id?.includes('margaret')
+        );
+        
+        if (margaretNodes.length > 0) {
+          console.error('❌ CONTAMINATION IN DATABASE: Margaret nodes found in Alex mission initial state:', {
+            contaminatedNodes: margaretNodes,
+            stageId: stageId,
+            stageTitle: stageData.title
+          });
+        } else {
+          console.log('✅ Initial state validation passed: No Margaret nodes detected');
+        }
 
         // Break down user count into multiple nodes with different capacities
         const totalUsers = 200;
         const userNodes = createUserNodeBreakdown(totalUsers);
+        
+        console.log('👥 Creating user nodes:', {
+          totalUsers,
+          userNodesCount: userNodes.length,
+          userBreakdown: userNodes.map(un => ({ id: un.id, label: un.label, count: un.userCount }))
+        });
         
         userNodes.forEach((userNode, index) => {
           // UserNode height is ~122px (90px + 32px padding)
@@ -612,6 +669,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           // Position nodes starting from top, with proper spacing
           const startY = centerY - (totalHeight / 2);
           const yPosition = startY + (index * nodeSpacing);
+          
+          console.log(`👤 Adding user node ${index + 1}:`, {
+            id: userNode.id,
+            label: userNode.label,
+            userCount: userNode.userCount,
+            position: { x: centerX - 400, y: yPosition }
+          });
           
           dispatch(addNode({
             component: {
@@ -643,9 +707,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
         // Set the initial nodes from database
         if (initialNodes.length > 0) {
+          console.log('💻 Adding initial system nodes from database:');
           initialNodes.forEach((node: any, index: number) => {
             // Position nodes in a layout - system nodes go to the right
             let position = node.position || { x: centerX + 100, y: centerY };
+            
+            console.log(`🖥️ Adding initial system node ${index + 1}:`, {
+              id: node.id,
+              label: node.data?.label || 'Current System',
+              category: node.data?.category || 'compute',
+              position: position,
+              type: node.type || 'custom'
+            });
             
             // Regular component node - mark as broken
             dispatch(addNode({
@@ -789,8 +862,49 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       console.log('✅ Initial system state loaded successfully:', { 
         nodesDispatched: 'User nodes + system nodes', 
         edgesDispatched: 'User to system connections',
-        totalUsers: 200 
+        totalUsers: 200,
+        expectedResult: 'Only Alex\'s laptop + user nodes should be visible'
       });
+      
+      // Final validation - check what's actually in Redux after loading
+      setTimeout(() => {
+        const finalNodes = selectNodes(store.getState());
+        const finalEdges = selectEdges(store.getState());
+        
+        console.log('🎯 Final canvas state after loading initial system:', {
+          totalNodes: finalNodes.length,
+          totalEdges: finalEdges.length,
+          nodeBreakdown: finalNodes.map(n => ({
+            id: n.id,
+            label: n.data?.label,
+            type: n.type,
+            category: n.data?.category
+          })),
+          anyMargaretNodes: finalNodes.some(n => 
+            n.data?.label?.includes('Margaret') || 
+            n.data?.name?.includes('Margaret')
+          )
+        });
+        
+        // Alert if Margaret nodes are still present
+        const margaretNodesInFinal = finalNodes.filter(n => 
+          n.data?.label?.includes('Margaret') || 
+          n.data?.name?.includes('Margaret')
+        );
+        
+        if (margaretNodesInFinal.length > 0) {
+          console.error('🚨 MARGARET NODES STILL PRESENT AFTER LOADING INITIAL STATE:', {
+            margaretNodes: margaretNodesInFinal.map(n => ({
+              id: n.id,
+              label: n.data?.label,
+              name: n.data?.name
+            }))
+          });
+        } else {
+          console.log('✅ SUCCESS: No Margaret nodes detected in final state');
+        }
+      }, 100);
+    }
     } catch (error) {
       console.error('Failed to load initial system state:', error);
     }
@@ -1116,14 +1230,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   // Removed automatic validation - now using on-demand API validation
 
-  // Handle starting the design process
+  // Handle starting the design process - manual validation via "Test System" button
   const handleRunTest = useCallback(async () => {
     if (!missionStageData?.id) {
       console.warn('No stage ID available for validation');
       return;
     }
     
+    console.log('🧪 Manual validation triggered via "Test System" button');
     await validateRequirements(nodes, edges);
+    
+    // Reset interaction flag since we just validated
+    setHasUserInteracted(false);
   }, [validateRequirements, nodes, edges, missionStageData?.id]);
 
   // Get timer test triggered state from Redux
@@ -1139,26 +1257,29 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   }, [timerTestTriggered, missionStageData?.id, handleRunTest, dispatch]);
 
-  // Trigger validation when canvas changes or stage loads
+  // User-interaction-based validation - only validate after user actions
   useEffect(() => {
-    if (missionStageData?.id && nodes.length > 0) {
-      // Add a small delay to ensure Redux state is updated
-      const timer = setTimeout(() => {
-        console.log('🔍 Auto-validating requirements for canvas changes...');
-        validateRequirements(nodes, edges);
-      }, 500);
+    if (!hasUserInteracted || !missionStageData?.id) return;
+    
+    // Debounce validation to avoid excessive calls during rapid user actions
+    const timer = setTimeout(() => {
+      console.log('🎯 Validating requirements after user interaction...');
+      validateRequirements(nodes, edges);
       
-      return () => clearTimeout(timer);
-    }
-  }, [nodes.length, edges.length, missionStageData?.id, validateRequirements]);
+      // Reset interaction flag after validation
+      setHasUserInteracted(false);
+    }, 800); // Slightly longer delay to ensure all actions are complete
+    
+    return () => clearTimeout(timer);
+  }, [hasUserInteracted, lastUserActionTimestamp, missionStageData?.id, validateRequirements, nodes, edges]);
 
-  // Trigger initial validation when stage loads (even with empty canvas)
+  // Only run initial validation once when stage first loads (not repeatedly)
   useEffect(() => {
     if (missionStageData?.id) {
       console.log('📋 Running initial requirements validation for stage...');
       validateRequirements([], []);
     }
-  }, [missionStageData?.id, validateRequirements]);
+  }, [missionStageData?.id]); // Removed validateRequirements dependency to prevent loops
 
   // Handle closing mentor notification
   const handleCloseMentorNotification = useCallback(() => {
@@ -1202,6 +1323,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   // Track if notification flow has been started to prevent restart
   const [notificationFlowStarted, setNotificationFlowStarted] = useState(false);
+  
+  // Track user interactions to only validate when user has actually modified the canvas
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [lastUserActionTimestamp, setLastUserActionTimestamp] = useState<number>(0);
 
   // Show mentor notification for specific email ID
   useEffect(() => {
@@ -1246,6 +1371,39 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // RTK Query mutation for saving canvas state
   const [saveCanvasStateMutation, { isLoading: isSaving }] = useSaveCanvasStateMutation();
 
+  // Function to clear corrupted saved canvas state
+  const clearCorruptedCanvasState = useCallback(async (stageId: string) => {
+    if (!user?.id) return;
+    
+    try {
+      console.log('🧹 Clearing corrupted saved canvas state for stage:', stageId);
+      
+      // Delete the saved canvas state from Supabase
+      const { error } = await supabase
+        .from('user_canvas_states')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('stage_id', stageId);
+      
+      if (error) {
+        console.error('❌ Failed to clear corrupted canvas state:', error);
+      } else {
+        console.log('✅ Successfully cleared corrupted canvas state from database');
+      }
+      
+      // Also clear it from Redux state
+      dispatch(updateCanvasState({
+        stageId: stageId,
+        nodes: [],
+        edges: [],
+        viewport: { x: 0, y: 0, zoom: 0.6 }
+      }));
+      
+    } catch (error) {
+      console.error('❌ Error clearing corrupted canvas state:', error);
+    }
+  }, [user?.id, dispatch]);
+
   // Redux-based canvas state management following established patterns
   const initializeCanvasForStage = useCallback(() => {
     if (!missionStageData?.id) return;
@@ -1261,7 +1419,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     const currentEdges = selectEdges(store.getState());
     
     console.log('🎨 Initializing canvas for stage:', missionStageData.id);
-    console.log('Current nodes in canvas:', currentNodes.length);
+    console.log('📊 Current canvas state:', {
+      currentNodesCount: currentNodes.length,
+      missionTitle: missionStageData.mission.title,
+      stageTitle: missionStageData.title,
+      expectedMissionId: missionStageData.mission.id
+    });
     
     // Mark as initialized
     canvasInitializedRef.current = true;
@@ -1269,13 +1432,61 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     // Set this as the active canvas
     dispatch(setActiveCanvas({ stageId: missionStageData.id }));
     
-    // Check if we have saved canvas state for this stage
-    if (savedCanvasData?.canvasState && savedCanvasData.canvasState.nodes.length > 0) {
-      console.log('📂 Loading saved canvas state into design slice');
-      console.log('Saved nodes count:', savedCanvasData.canvasState.nodes.length);
+    // Debug saved canvas state in detail
+    if (savedCanvasData?.canvasState) {
+      console.log('📂 Saved canvas state analysis:', {
+        hasState: !!savedCanvasData.canvasState,
+        nodeCount: savedCanvasData.canvasState.nodes?.length || 0,
+        edgeCount: savedCanvasData.canvasState.edges?.length || 0,
+        timestamp: savedCanvasData.canvasState.timestamp,
+        stageId: missionStageData.id
+      });
       
-      // Only load if canvas is empty to prevent duplicates
-      if (currentNodes.length === 0) {
+      // Debug each saved node in detail
+      if (savedCanvasData.canvasState.nodes?.length > 0) {
+        console.log('🔍 Detailed saved node analysis:');
+        savedCanvasData.canvasState.nodes.forEach((node: any, index: number) => {
+          console.log(`Node ${index + 1}:`, {
+            id: node.id,
+            type: node.type,
+            label: node.data?.label,
+            category: node.data?.category,
+            name: node.data?.name,
+            position: node.position,
+            nodeData: node.data
+          });
+        });
+        
+        // Validate that saved nodes belong to this mission/stage
+        const potentialCrossMissionNodes = savedCanvasData.canvasState.nodes.filter((node: any) => 
+          node.data?.label?.includes('Margaret') || 
+          node.data?.name?.includes('Margaret') ||
+          (node.data?.description && node.data.description.includes('Margaret'))
+        );
+        
+                 if (potentialCrossMissionNodes.length > 0) {
+           console.error('❌ CROSS-MISSION CONTAMINATION DETECTED:', {
+             contaminatedNodes: potentialCrossMissionNodes.map((n: any) => ({
+               id: n.id,
+               label: n.data?.label,
+               name: n.data?.name
+             })),
+             currentMission: missionStageData.mission.title,
+             currentStage: missionStageData.title
+           });
+           
+           // Clear invalid saved state from database and Redux, then load fresh initial state
+           console.log('🧹 Clearing contaminated saved state and loading fresh initial state');
+           await clearCorruptedCanvasState(missionStageData.id);
+           loadInitialSystemState(missionStageData.id);
+           return;
+         }
+      }
+      
+      // Only load saved state if canvas is empty and state is valid
+      if (savedCanvasData.canvasState.nodes.length > 0 && currentNodes.length === 0) {
+        console.log('✅ Loading validated saved canvas state into design slice');
+        
         // Load saved nodes into design slice
         savedCanvasData.canvasState.nodes.forEach((node: any) => {
           // Validate node has required data
@@ -1283,6 +1494,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             console.warn('⚠️ Skipping invalid node:', node);
             return;
           }
+          
+          console.log('➕ Adding saved node:', {
+            id: node.id,
+            label: node.data.label,
+            type: node.type,
+            category: node.data.category
+          });
           
           dispatch(addNode({ 
             component: node.data, 
@@ -1300,6 +1518,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             return;
           }
           
+          console.log('🔗 Adding saved edge:', {
+            source: edge.source,
+            target: edge.target
+          });
+          
           dispatch(addEdgeAction({
             source: edge.source,
             target: edge.target,
@@ -1307,17 +1530,17 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             targetHandle: edge.targetHandle
           }));
         });
+        
+        // Also update canvas slice for persistence tracking
+        dispatch(loadCanvasState({
+          stageId: missionStageData.id,
+          nodes: savedCanvasData.canvasState.nodes,
+          edges: savedCanvasData.canvasState.edges,
+          viewport: savedCanvasData.canvasState.viewport
+        }));
       } else {
-        console.log('⚠️ Skipping saved state load - nodes already exist in canvas');
+        console.log('⚠️ Skipping saved state load - nodes already exist in canvas or no saved state');
       }
-      
-      // Also update canvas slice for persistence tracking
-      dispatch(loadCanvasState({
-        stageId: missionStageData.id,
-        nodes: savedCanvasData.canvasState.nodes,
-        edges: savedCanvasData.canvasState.edges,
-        viewport: savedCanvasData.canvasState.viewport
-      }));
     } else if (missionStageData.id && !savedCanvasData?.canvasState && currentNodes.length === 0) {
       console.log('🆕 No saved canvas state and canvas is empty, will load initial system state');
       
@@ -1333,7 +1556,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         viewport: { x: 0, y: 0, zoom: 0.6 }
       }));
     }
-  }, [dispatch, missionStageData?.id, savedCanvasData]);
+  }, [dispatch, missionStageData?.id, savedCanvasData, clearCorruptedCanvasState]);
 
   // Auto-save canvas state when nodes/edges change
   const persistCanvasState = useCallback(async () => {
@@ -1598,8 +1821,34 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={(changes) => dispatch(onNodesChange(changes))}
-            onEdgesChange={(changes) => dispatch(onEdgesChange(changes))}
+            onNodesChange={(changes) => {
+              // Track user interactions for node changes (move, select, delete, etc.)
+              const userActionChanges = changes.filter(change => 
+                change.type === 'position' || change.type === 'remove' || change.type === 'select'
+              );
+              
+              if (userActionChanges.length > 0) {
+                setHasUserInteracted(true);
+                setLastUserActionTimestamp(Date.now());
+                console.log('👤 User modified nodes - marking for validation');
+              }
+              
+              dispatch(onNodesChange(changes));
+            }}
+            onEdgesChange={(changes) => {
+              // Track user interactions for edge changes (delete, select, etc.)
+              const userActionChanges = changes.filter(change => 
+                change.type === 'remove' || change.type === 'select'
+              );
+              
+              if (userActionChanges.length > 0) {
+                setHasUserInteracted(true);
+                setLastUserActionTimestamp(Date.now());
+                console.log('👤 User modified edges - marking for validation');
+              }
+              
+              dispatch(onEdgesChange(changes));
+            }}
             onConnect={onConnect}
             onDrop={onDrop}
             onDragOver={onDragOver}
