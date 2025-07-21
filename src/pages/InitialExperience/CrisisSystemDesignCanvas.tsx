@@ -1432,12 +1432,59 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               }
             });
             setCursors(newCursors);
+            
+            // Notify GameHUD about existing collaborators on initial sync
+            if ((window as any).handleCollaboratorPresence) {
+              // First clear all collaborators
+              collaboratorList.forEach((collab: any) => {
+                if (collab.userId !== user.id) {
+                  (window as any).handleCollaboratorPresence('left', {
+                    id: collab.userId,
+                    username: collab.username || 'Anonymous'
+                  });
+                }
+              });
+              
+              // Then add current collaborators
+              collaboratorList.forEach((collab: any) => {
+                if (collab.userId !== user.id) {
+                  (window as any).handleCollaboratorPresence('joined', {
+                    id: collab.userId,
+                    username: collab.username || 'Anonymous'
+                  });
+                }
+              });
+            }
           })
           .on('presence', { event: 'join' }, ({ key, newPresences }) => {
             console.log('User joined:', newPresences);
+            // Notify GameHUD of new collaborator
+            newPresences.forEach((presence: any) => {
+              if (presence.userId !== user.id) {
+                const username = presence.username || 'Anonymous';
+                if ((window as any).handleCollaboratorPresence) {
+                  (window as any).handleCollaboratorPresence('joined', {
+                    id: presence.userId,
+                    username: username
+                  });
+                }
+              }
+            });
           })
           .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
             console.log('User left:', leftPresences);
+            // Notify GameHUD of collaborator leaving
+            leftPresences.forEach((presence: any) => {
+              if (presence.userId !== user.id) {
+                const username = presence.username || 'Anonymous';
+                if ((window as any).handleCollaboratorPresence) {
+                  (window as any).handleCollaboratorPresence('left', {
+                    id: presence.userId,
+                    username: username
+                  });
+                }
+              }
+            });
           })
           .subscribe(async (status) => {
             if (status === 'SUBSCRIBED') {

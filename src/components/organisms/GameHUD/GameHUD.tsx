@@ -39,6 +39,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   // Mentor notification progress state
   const [mentorNotificationProgress, setMentorNotificationProgress] = useState<{[stageId: string]: number}>({});
   
+  // Collaboration notification state
+  const [activeCollaborators, setActiveCollaborators] = useState<{id: string; username: string}[]>([]);
+  const [showCollaboratorNotification, setShowCollaboratorNotification] = useState(false);
+  const [latestCollaborator, setLatestCollaborator] = useState<string | null>(null);
+  
   // Check if we're on the crisis system design canvas
   const isOnCrisisCanvas = location.pathname.includes('/crisis-design/') || location.pathname.includes('/game/email/');
   
@@ -94,15 +99,38 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     }));
   };
   
+  // Function to handle collaborator presence
+  const handleCollaboratorPresence = (type: 'joined' | 'left', collaborator: {id: string; username: string}) => {
+    if (type === 'joined') {
+      setActiveCollaborators(prev => {
+        // Avoid duplicates
+        if (prev.some(c => c.id === collaborator.id)) return prev;
+        return [...prev, collaborator];
+      });
+      
+      // Show notification
+      setLatestCollaborator(collaborator.username);
+      setShowCollaboratorNotification(true);
+      setTimeout(() => {
+        setShowCollaboratorNotification(false);
+      }, 5000); // Show for 5 seconds
+    } else {
+      // Remove collaborator when they leave
+      setActiveCollaborators(prev => prev.filter(c => c.id !== collaborator.id));
+    }
+  };
+  
   // Expose the progress update function globally so other components can use it
   useEffect(() => {
     (window as any).updateMentorNotificationProgress = updateMentorNotificationProgress;
+    (window as any).handleCollaboratorPresence = handleCollaboratorPresence;
     
     return () => {
       delete (window as any).updateMentorNotificationProgress;
+      delete (window as any).handleCollaboratorPresence;
     };
   }, []);
-
+  
   // Timer countdown effect - pause when invite modal is open
   useEffect(() => {
     if (isTimerActive && timerSeconds > 0 && !isInviteModalOpen) {
@@ -532,6 +560,23 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 )}
               </button>
             </div>
+            
+            {/* Collaborator Notification */}
+            {showCollaboratorNotification && latestCollaborator && (
+              <div className={styles.collaboratorNotification}>
+                <Users size={12} />
+                <span>{latestCollaborator} is in the canvas</span>
+              </div>
+            )}
+            
+            {/* Active Collaborators Display */}
+            {activeCollaborators.length > 0 && isOnCrisisCanvas && (
+              <div className={styles.activeCollaborators}>
+                <Users size={14} />
+                <span>{activeCollaborators.length}</span>
+              </div>
+            )}
+            
             <button 
               className={clsx(styles.actionButton, {
                 [styles['actionButton--collaborate']]: isOnCrisisCanvas
