@@ -22,7 +22,7 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
   currentDesignSessionId
 }) => {
   const dispatch = useAppDispatch();
-  const [inviteEmail, setInviteEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [success, setSuccess] = useState(false);
   
   // Redux state
@@ -38,11 +38,11 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
   }, [isOpen, dispatch]);
 
   const handleInvite = async () => {
-    if (!inviteEmail.trim()) return;
+    if (!username.trim()) return;
     
     try {
       const result = await dispatch(sendCollaborationInvitation({
-        inviteeEmail: inviteEmail.trim(),
+        inviteeEmail: username.trim(),
         missionStageId: stageId,
         missionId: missionId
       })).unwrap();
@@ -54,7 +54,7 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
       setTimeout(() => {
         onClose();
         setSuccess(false);
-        setInviteEmail('');
+        setUsername('');
       }, 2000);
       
     } catch (error) {
@@ -89,8 +89,8 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
                 id="invite-email"
                 type="text"
                 placeholder="Enter username"
-                value={inviteEmail}
-                onChange={setInviteEmail}
+                value={username}
+                onChange={setUsername}
                 disabled={isSending}
               />
               {sendError && <p className={styles.error}>{sendError}</p>}
@@ -107,7 +107,7 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
               <Button
                 variant="primary"
                 onClick={handleInvite}
-                disabled={!inviteEmail || isSending}
+                disabled={!username || isSending}
               >
                 {isSending ? 'Sending...' : 'Send Invitation'}
               </Button>

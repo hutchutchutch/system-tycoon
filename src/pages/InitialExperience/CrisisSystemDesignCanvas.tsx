@@ -46,7 +46,7 @@ import {
   selectEdges,
   addEdge as addEdgeAction,
   setSystemRequirements,
-  validateRequirements
+  validateRequirements as validateRequirementsAction
 } from '../../features/design/designSlice';
 import {
   setActiveCanvas,
@@ -871,9 +871,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         console.log('Using stage-specific requirements:', stageData.system_requirements);
         
         // Dispatch system requirements to Redux (Redux best practice)
-        if (stageData.system_requirements && stageData.system_requirements.length > 0) {
+        if (stageData.system_requirements) {
           dispatch(setSystemRequirements(stageData.system_requirements));
           console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+          
+          // Trigger initial validation to populate requirementValidationResults
+          dispatch(validateRequirementsAction());
         }
         
         // Load initial requirements when stage data is available (fallback for legacy components)

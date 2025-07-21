@@ -3,62 +3,95 @@
 }
 
 .modalContent {
-  padding: var(--spacing-lg);
+  padding: var(--space-4);
 }
 
 .modalTitle {
-  font-size: var(--font-size-xl);
-  font-weight: 600;
+  font-size: var(--text-xl);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--space-3);
+  letter-spacing: -0.025em;
 }
 
 .description {
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xl);
-  font-size: var(--font-size-sm);
-  line-height: 1.6;
+  margin-bottom: var(--space-4);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
 }
 
 .inputGroup {
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--space-4);
 }
 
 .inputGroup label {
   display: block;
-  margin-bottom: var(--spacing-xs);
-  font-weight: 500;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--text-sm);
 }
 
 .error {
-  color: var(--color-danger);
-  font-size: var(--font-size-xs);
-  margin-top: var(--spacing-xs);
+  color: var(--color-accent-error);
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.error::before {
+  content: '⚠️';
+  font-size: var(--text-sm);
 }
 
 .actions {
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--space-2);
   justify-content: flex-end;
+  margin-top: var(--space-5);
 }
 
 .successMessage {
   text-align: center;
-  padding: var(--spacing-xl) 0;
+  padding: var(--space-6) 0;
 }
 
 .successIcon {
   width: 64px;
   height: 64px;
-  background: var(--color-success);
-  color: white;
+  background: var(--color-accent-success);
+  color: var(--color-white);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 32px;
-  font-weight: bold;
-  margin: 0 auto var(--spacing-lg);
+  font-weight: var(--font-weight-bold);
+  margin: 0 auto var(--space-3);
+  box-shadow: var(--shadow-lg);
+  animation: successBounce 0.5s ease-out;
+}
+
+@keyframes successBounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.successMessage p {
+  font-size: var(--text-lg);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
 } 

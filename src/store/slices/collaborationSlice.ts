@@ -88,7 +88,16 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .single();
 
       if (recipientError || !recipientData) {
-        throw new Error('User not found. Please check the username.');
+        // Check if any users exist in the database
+        const { count } = await supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+        
+        if (!count || count === 0) {
+          throw new Error('No users found in the database. Make sure users have completed profile setup.');
+        } else {
+          throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (searching profiles.username field).`);
+        }
       }
 
       // Prevent self-invitation
