@@ -54,8 +54,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   };
   
   const emailId = getEmailIdFromPath();
-  // For now, use emailId as stageId since they're related
-  const stageId = emailId;
+  
+  // Get the correct stage ID - FIXED: was incorrectly using emailId as stageId
+  const stageId = (() => {
+    // First, try to get stage ID from current database mission
+    const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+    if (currentStageId) {
+      return currentStageId;
+    }
+    
+    // Fallback: if we have valid email and mission context, use the first available stage
+    // This ensures we always have a valid stage ID for invitations
+    if (emailId && currentDatabaseMission?.id === '11111111-1111-1111-1111-111111111111') {
+      // For Community Health Tracker mission, use first stage
+      return '550e8400-e29b-41d4-a716-446655440001'; // "Separate Database from Web Server"
+    }
+    
+    return null;
+  })();
+  
   const missionId = currentDatabaseMission?.id || currentMission?.id;
   
   // Handle clicking outside to close dropdown

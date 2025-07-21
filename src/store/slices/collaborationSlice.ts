@@ -163,9 +163,31 @@ export const sendCollaborationInvitation = createAsyncThunk(
       if (invitationError) {
         console.error('❌ [CollaborationSlice] Failed to create invitation:', invitationError);
         
-        // Check if it's a duplicate invitation error
+        // Enhanced error handling for common database constraints
         if (invitationError.code === '23505') { // Unique constraint violation
           throw new Error('You have already sent an invitation to this user for this mission stage.');
+        }
+        
+        if (invitationError.code === '23503') { // Foreign key constraint violation
+          if (invitationError.message.includes('mission_stage_id')) {
+            // Get valid stages for debugging
+            const { data: validStages } = await supabase
+              .from('mission_stages')
+              .select('id, title')
+              .eq('mission_id', params.missionId)
+              .limit(5);
+            
+            const stageList = validStages?.map(s => `${s.title} (${s.id})`).join(', ') || 'None found';
+            throw new Error(`Mission stage not found. The stage ID "${params.missionStageId}" does not exist for mission "${params.missionId}". Valid stages: ${stageList}`);
+          }
+          
+          if (invitationError.message.includes('invited_id')) {
+            throw new Error('The invited user does not exist in the system.');
+          }
+          
+          if (invitationError.message.includes('sender_id')) {
+            throw new Error('Invalid sender - please log out and log back in.');
+          }
         }
         
         throw new Error(`Failed to create invitation: ${invitationError.message}`);

@@ -881,15 +881,15 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             category: n.data?.category
           })),
           anyMargaretNodes: finalNodes.some(n => 
-            n.data?.label?.includes('Margaret') || 
-            n.data?.name?.includes('Margaret')
+            (typeof n.data?.label === 'string' && n.data.label.includes('Margaret')) || 
+            (typeof n.data?.name === 'string' && n.data.name.includes('Margaret'))
           )
         });
         
         // Alert if Margaret nodes are still present
         const margaretNodesInFinal = finalNodes.filter(n => 
-          n.data?.label?.includes('Margaret') || 
-          n.data?.name?.includes('Margaret')
+          (typeof n.data?.label === 'string' && n.data.label.includes('Margaret')) || 
+          (typeof n.data?.name === 'string' && n.data.name.includes('Margaret'))
         );
         
         if (margaretNodesInFinal.length > 0) {
@@ -904,7 +904,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           console.log('✅ SUCCESS: No Margaret nodes detected in final state');
         }
       }, 100);
-    }
     } catch (error) {
       console.error('Failed to load initial system state:', error);
     }
@@ -1244,6 +1243,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     setHasUserInteracted(false);
   }, [validateRequirements, nodes, edges, missionStageData?.id]);
 
+  // Track user interactions to only validate when user has actually modified the canvas
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [lastUserActionTimestamp, setLastUserActionTimestamp] = useState<number>(0);
+
   // Get timer test triggered state from Redux
   const timerTestTriggered = useAppSelector(state => state.mission.timerTestTriggered);
   
@@ -1320,10 +1323,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   // Track if notification flow has been started to prevent restart
   const [notificationFlowStarted, setNotificationFlowStarted] = useState(false);
-  
-  // Track user interactions to only validate when user has actually modified the canvas
-  const [hasUserInteracted, setHasUserInteracted] = useState(false);
-  const [lastUserActionTimestamp, setLastUserActionTimestamp] = useState<number>(0);
 
   // Show mentor notification for specific email ID
   useEffect(() => {
@@ -1402,7 +1401,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   }, [user?.id, dispatch]);
 
   // Redux-based canvas state management following established patterns
-  const initializeCanvasForStage = useCallback(() => {
+  const initializeCanvasForStage = useCallback(async () => {
     if (!missionStageData?.id) return;
     
     // Check if we've already initialized for this stage

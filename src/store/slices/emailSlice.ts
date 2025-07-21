@@ -203,14 +203,6 @@ export const loadEmailsByCategory = createAsyncThunk(
 
 // NOTE: sendCollaborationInvitation has been moved to collaborationSlice.ts
 // This removes the duplicate function that was causing conflicts
-        invitation,
-        invitedUser
-      };
-    } catch (error) {
-      return rejectWithValue(error instanceof Error ? error.message : 'Unknown error');
-    }
-  }
-);
 
 const emailSlice = createSlice({
   name: 'email',
@@ -492,21 +484,7 @@ const emailSlice = createSlice({
         state.error = action.payload as string;
       });
     
-    // Send collaboration invitation
-    builder
-      .addCase(sendCollaborationInvitation.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(sendCollaborationInvitation.fulfilled, (state) => {
-        state.isLoading = false;
-        // The email will be delivered to the invited user
-        // We could add a sent email to the current user's sent folder if needed
-      })
-      .addCase(sendCollaborationInvitation.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      });
+
   },
 });
 
