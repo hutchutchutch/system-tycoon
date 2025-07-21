@@ -81,10 +81,14 @@ export const sendCollaborationInvitation = createAsyncThunk(
       }
 
       // Find the recipient by email/username (case-insensitive)
+      console.log('🔍 Searching for user:', params.inviteeEmail);
+      
       const { data: recipientData, error: recipientError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url')
         .ilike('username', params.inviteeEmail);
+      
+      console.log('🔍 Search results:', { recipientData, recipientError });
       
       // Handle the array response from ilike
       const recipient = recipientData?.[0];
@@ -95,6 +99,8 @@ export const sendCollaborationInvitation = createAsyncThunk(
         const { count } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
+        
+        console.log('🔍 Total users in database:', count);
         
         if (!count || count === 0) {
           throw new Error('No users found in the database. Make sure users have completed profile setup.');

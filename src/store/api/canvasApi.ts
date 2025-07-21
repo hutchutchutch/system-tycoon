@@ -72,27 +72,48 @@ export const canvasApi = createApi({
     saveCanvasState: builder.mutation<void, SaveCanvasStateRequest>({
       queryFn: async ({ userId, missionId, stageId, canvasState }) => {
         try {
-          // Use upsert to handle both insert and update cases
-          // This prevents duplicate key errors when mission progress already exists
-          const { error } = await supabase
+          // First check if record exists
+          const { data: existing } = await supabase
             .from('user_mission_progress')
-            .upsert({
-              user_id: userId,
-              mission_id: missionId,
-              stage_id: stageId,
-              canvas_state: canvasState,
-              status: 'in_progress',
-              current_stage_id: stageId,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'user_id,stage_id',
-              // Only update these fields if record exists
-              ignoreDuplicates: false
-            });
+            .select('id')
+            .eq('user_id', userId)
+            .eq('stage_id', stageId)
+            .maybeSingle();
 
-          if (error) {
-            console.error('Supabase canvas save error:', error);
-            return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+          if (existing) {
+            // Update existing record - only update canvas_state and updated_at
+            const { error } = await supabase
+              .from('user_mission_progress')
+              .update({
+                canvas_state: canvasState,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', userId)
+              .eq('stage_id', stageId);
+
+            if (error) {
+              console.error('Supabase canvas update error:', error);
+              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+            }
+          } else {
+            // Insert new record with all required fields
+            const { error } = await supabase
+              .from('user_mission_progress')
+              .insert({
+                user_id: userId,
+                mission_id: missionId,
+                stage_id: stageId,
+                canvas_state: canvasState,
+                status: 'in_progress',
+                current_stage_id: stageId,
+                started_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              });
+
+            if (error) {
+              console.error('Supabase canvas insert error:', error);
+              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+            }
           }
 
           return { data: undefined };
