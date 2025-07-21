@@ -1,3 +1,11 @@
+# ⚠️ **DEPRECATED - Content Consolidated**
+
+**This document has been consolidated into [redux_implementation_summary.md](../redux_implementation_summary.md)**
+
+All state flow documentation, validation patterns, and architecture information from this document have been merged into the comprehensive Redux implementation summary. Please refer to that document for the latest state management guidance.
+
+---
+
 # System Tycoon - State Flow Documentation
 
 ## Overview

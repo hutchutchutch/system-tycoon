@@ -1257,7 +1257,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   }, [timerTestTriggered, missionStageData?.id, handleRunTest, dispatch]);
 
-  // User-interaction-based validation - only validate after user actions
+  // User-interaction-based validation - ONLY validate after user actions
   useEffect(() => {
     if (!hasUserInteracted || !missionStageData?.id) return;
     
@@ -1273,13 +1273,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     return () => clearTimeout(timer);
   }, [hasUserInteracted, lastUserActionTimestamp, missionStageData?.id, validateRequirements, nodes, edges]);
 
-  // Only run initial validation once when stage first loads (not repeatedly)
-  useEffect(() => {
-    if (missionStageData?.id) {
-      console.log('📋 Running initial requirements validation for stage...');
-      validateRequirements([], []);
-    }
-  }, [missionStageData?.id]); // Removed validateRequirements dependency to prevent loops
+  // NO AUTOMATIC VALIDATION - Requirements are validated only when:
+  // 1. User interacts with canvas (above useEffect)
+  // 2. User clicks "Test System" button (handleRunTest)
+  // 3. Timer test is triggered from GameHUD (timerTestTriggered useEffect)
 
   // Handle closing mentor notification
   const handleCloseMentorNotification = useCallback(() => {
