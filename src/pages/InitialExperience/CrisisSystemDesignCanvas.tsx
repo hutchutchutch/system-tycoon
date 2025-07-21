@@ -35,6 +35,7 @@ import { realtimeCollaborationService } from '../../services/realtimeCollaborati
 // Redux imports following the established patterns
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { skipToken } from '@reduxjs/toolkit/query';
+import { store } from '../../store';
 import { completeStep, updateMetrics, setDatabaseMission, completeDatabaseStage, clearDatabaseMission, resetTimerTestTrigger } from '../../features/mission/missionSlice';
 import { loadCollaborationInvitations } from '../../store/slices/collaborationSlice';
 import { 
@@ -287,6 +288,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const [cursors, setCursors] = useState<Record<string, { x: number; y: number; timestamp: number }>>({});
   const collaborationChannelRef = useRef<any>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasInitializedRef = useRef<boolean>(false);
   
   // Canvas state from Redux (after missionStageData is available)
   const canvasState = useAppSelector(state => 
@@ -541,8 +543,8 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       if (stageData) {
         console.log('Successfully loaded mission stage from database:', stageData);
         
-        // Load initial system state from database
-        await loadInitialSystemState(emailData.stage_id);
+        // Don't load initial system state here - let initializeCanvasForStage handle it
+        // to prevent duplicate loading and infinite update loops
         
         return stageData;
       }
@@ -872,27 +874,29 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             requirements: stageData.system_requirements
           };
           
-                  setMissionStageData(stageData);
-        console.log('Using stage-specific requirements:', stageData.system_requirements);
-        
-        // Dispatch system requirements to Redux (Redux best practice)
-        if (stageData.system_requirements) {
-          dispatch(setSystemRequirements(stageData.system_requirements));
-          console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+          setMissionStageData(stageData);
+          console.log('Using stage-specific requirements:', stageData.system_requirements);
           
-          // Trigger initial validation to populate requirementValidationResults
-          dispatch(validateRequirementsAction());
-        }
-        
-        // Load initial requirements when stage data is available (fallback for legacy components)
-        if (stageData.id) {
-          const initialReqs = stageData.system_requirements.map(req => ({
-            id: req.id,
-            description: req.description,
-            completed: false
-          }));
-          setRequirements(initialReqs);
-        }
+          // Dispatch system requirements to Redux (Redux best practice)
+          if (stageData.system_requirements) {
+            dispatch(setSystemRequirements(stageData.system_requirements));
+            console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+            
+            // Trigger initial validation to populate requirementValidationResults
+            dispatch(validateRequirementsAction());
+          }
+          
+          // Load initial requirements when stage data is available (fallback for legacy components)
+          if (stageData.id) {
+            const initialReqs = stageData.system_requirements.map(req => ({
+              id: req.id,
+              description: req.description,
+              completed: false
+            }));
+            setRequirements(initialReqs);
+          }
+          
+          // Don't load initial system state here - let initializeCanvasForStage handle it
         }
       }
 
@@ -1069,11 +1073,15 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
   // Load mission stage data when emailId is provided
   useEffect(() => {
+    // Reset initialization flag when emailId changes
+    canvasInitializedRef.current = false;
+    
     loadMissionData();
     
     // Cleanup when component unmounts
     return () => {
       dispatch(clearDatabaseMission());
+      canvasInitializedRef.current = false;
     };
   }, [emailId, missionSlug, dispatch]);
 
@@ -1209,7 +1217,21 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const initializeCanvasForStage = useCallback(() => {
     if (!missionStageData?.id) return;
     
+    // Check if we've already initialized for this stage
+    if (canvasInitializedRef.current) {
+      console.log('⚠️ Canvas already initialized, skipping...');
+      return;
+    }
+    
+    // Get current state directly from Redux to avoid dependency issues
+    const currentNodes = selectNodes(store.getState());
+    const currentEdges = selectEdges(store.getState());
+    
     console.log('🎨 Initializing canvas for stage:', missionStageData.id);
+    console.log('Current nodes in canvas:', currentNodes.length);
+    
+    // Mark as initialized
+    canvasInitializedRef.current = true;
     
     // Set this as the active canvas
     dispatch(setActiveCanvas({ stageId: missionStageData.id }));
@@ -1217,29 +1239,44 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     // Check if we have saved canvas state for this stage
     if (savedCanvasData?.canvasState && savedCanvasData.canvasState.nodes.length > 0) {
       console.log('📂 Loading saved canvas state into design slice');
+      console.log('Saved nodes count:', savedCanvasData.canvasState.nodes.length);
       
-      // Clear existing canvas first to ensure isolation
-      dispatch(clearCanvas({ keepRequirements: true }));
-      
-      // Load saved nodes into design slice
-      savedCanvasData.canvasState.nodes.forEach((node: any) => {
-        dispatch(addNode({ 
-          component: node.data, 
-          position: node.position,
-          nodeType: node.type,
-          nodeData: node.data
-        }));
-      });
-      
-      // Load saved edges into design slice
-      savedCanvasData.canvasState.edges.forEach((edge: any) => {
-        dispatch(addEdgeAction({
-          source: edge.source,
-          target: edge.target,
-          sourceHandle: edge.sourceHandle,
-          targetHandle: edge.targetHandle
-        }));
-      });
+      // Only load if canvas is empty to prevent duplicates
+      if (currentNodes.length === 0) {
+        // Load saved nodes into design slice
+        savedCanvasData.canvasState.nodes.forEach((node: any) => {
+          // Validate node has required data
+          if (!node.data || !node.position) {
+            console.warn('⚠️ Skipping invalid node:', node);
+            return;
+          }
+          
+          dispatch(addNode({ 
+            component: node.data, 
+            position: node.position,
+            nodeType: node.type || 'custom',
+            nodeData: node.data
+          }));
+        });
+        
+        // Load saved edges into design slice
+        savedCanvasData.canvasState.edges.forEach((edge: any) => {
+          // Validate edge has required fields
+          if (!edge.source || !edge.target) {
+            console.warn('⚠️ Skipping invalid edge:', edge);
+            return;
+          }
+          
+          dispatch(addEdgeAction({
+            source: edge.source,
+            target: edge.target,
+            sourceHandle: edge.sourceHandle,
+            targetHandle: edge.targetHandle
+          }));
+        });
+      } else {
+        console.log('⚠️ Skipping saved state load - nodes already exist in canvas');
+      }
       
       // Also update canvas slice for persistence tracking
       dispatch(loadCanvasState({
@@ -1248,22 +1285,22 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         edges: savedCanvasData.canvasState.edges,
         viewport: savedCanvasData.canvasState.viewport
       }));
-    } else if (missionStageData.id && !savedCanvasData?.canvasState) {
-      console.log('🆕 No saved canvas state, will load initial system state if available');
+    } else if (missionStageData.id && !savedCanvasData?.canvasState && currentNodes.length === 0) {
+      console.log('🆕 No saved canvas state and canvas is empty, will load initial system state');
       
       // Load initial system state for this stage
       loadInitialSystemState(missionStageData.id);
-    } else if (nodes.length > 0) {
+    } else if (currentNodes.length > 0) {
       console.log('📦 Syncing current design state to canvas slice');
       // Sync designSlice state to canvasSlice for persistence
       dispatch(updateCanvasState({
         stageId: missionStageData.id,
-        nodes: nodes.map(serializeNode),
-        edges: edges.map(serializeEdge),
+        nodes: currentNodes.map(serializeNode),
+        edges: currentEdges.map(serializeEdge),
         viewport: { x: 0, y: 0, zoom: 0.6 }
       }));
     }
-  }, [dispatch, missionStageData?.id, savedCanvasData, nodes, edges]);
+  }, [dispatch, missionStageData?.id, savedCanvasData]);
 
   // Auto-save canvas state when nodes/edges change
   const persistCanvasState = useCallback(async () => {
@@ -1299,9 +1336,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Initialize canvas when stage data is available
   useEffect(() => {
     if (user && missionStageData && !isLoadingCanvas) {
-      initializeCanvasForStage();
+      // Only initialize if we've finished loading canvas data or determined there is none
+      if (savedCanvasData !== undefined || canvasLoadError) {
+        initializeCanvasForStage();
+      }
     }
-  }, [user, missionStageData, isLoadingCanvas, initializeCanvasForStage]);
+  }, [user, missionStageData, isLoadingCanvas, savedCanvasData, canvasLoadError, initializeCanvasForStage]);
 
   // Auto-save with debouncing when nodes/edges change
   useEffect(() => {
