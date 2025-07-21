@@ -303,7 +303,7 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                 
                 {/* Show system design button for mission emails or crisis emails */}
                 {((selectedEmailDetail.missionId && selectedEmailDetail.stageId && 
-                   (selectedEmailDetail.triggerType === 'mission_start' || selectedEmailDetail.deliveryReason === 'mission_start')) ||
+                   selectedEmailDetail.triggerType === 'mission_start') ||
                   selectedEmailDetail.content?.includes('/?crisis=true')) && (
                   <div className={styles.systemDesignPrompt}>
                     <p>This email contains a critical mission that requires your system design expertise.</p>

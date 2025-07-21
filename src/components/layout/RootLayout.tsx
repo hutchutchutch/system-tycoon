@@ -13,11 +13,43 @@ export const RootLayout: React.FC = () => {
   const currentMission = useAppSelector(state => state.mission.currentDatabaseMission || state.mission.currentMission);
   const currentStageIndex = useAppSelector(state => state.mission.currentDatabaseMission?.currentStageIndex || 0);
   
-  const missionContext = {
-    missionStageId: currentMission?.stages?.[currentStageIndex]?.id || '',
-    missionTitle: currentMission?.title || '',
-    problemDescription: currentMission?.stages?.[currentStageIndex]?.content || ''
-  };
+  // Handle both Mission (with steps) and DatabaseMission (with stages)
+  const missionContext = (() => {
+    if (!currentMission) {
+      return {
+        missionStageId: '',
+        missionTitle: '',
+        problemDescription: ''
+      };
+    }
+    
+    // Check if it's a DatabaseMission (has stages)
+    if ('stages' in currentMission && currentMission.stages) {
+      const currentStage = currentMission.stages[currentStageIndex];
+      return {
+        missionStageId: currentStage?.id || '',
+        missionTitle: currentMission.title || '',
+        problemDescription: currentStage?.problem_description || ''
+      };
+    }
+    
+    // Otherwise it's a Mission (has steps)
+    if ('steps' in currentMission && currentMission.steps) {
+      const currentStep = currentMission.steps[currentMission.currentStepIndex || 0];
+      return {
+        missionStageId: currentStep?.id || '',
+        missionTitle: currentMission.title || '',
+        problemDescription: currentStep?.description || ''
+      };
+    }
+    
+    // Fallback
+    return {
+      missionStageId: '',
+      missionTitle: currentMission.title || '',
+      problemDescription: ''
+    };
+  })();
 
   useEffect(() => {
     // Check for existing session on mount
