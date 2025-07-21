@@ -298,13 +298,18 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
                 />
                 
                 {/* Check if this is a mission email and show the system design button */}
-                {(selectedEmail.missionId && selectedEmail.stageId && selectedEmail.triggerType === 'mission_start') || 
-                 (selectedEmail.tags.includes('crisis') || 
-                  selectedEmail.tags.includes('system-design') || 
-                  selectedEmail.tags.includes('healthcare') ||
-                  selectedEmail.body?.toLowerCase().includes('system design') ||
-                  selectedEmail.body?.toLowerCase().includes('crisis') ||
-                  selectedEmail.subject?.toLowerCase().includes('urgent')) && (
+                {(selectedEmail.missionId || 
+                 selectedEmail.stageId ||
+                 selectedEmail.triggerType === 'mission_start' ||
+                 selectedEmail.triggerType === 'stage_complete' ||
+                 selectedEmail.triggerType === 'performance_based' ||
+                 selectedEmail.tags?.includes('mission') ||
+                 selectedEmail.tags?.includes('crisis') || 
+                 selectedEmail.tags?.includes('system-design') || 
+                 selectedEmail.tags?.includes('healthcare') ||
+                 selectedEmail.body?.toLowerCase().includes('system design') ||
+                 selectedEmail.body?.toLowerCase().includes('crisis') ||
+                 selectedEmail.subject?.toLowerCase().includes('urgent')) && (
                   <div className={styles.missionActionSection}>
                     <hr className={styles.divider} />
                     <h3 className={styles.missionActionTitle}>🔧 System Design Required</h3>
