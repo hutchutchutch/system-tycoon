@@ -84,10 +84,13 @@ export const sendCollaborationInvitation = createAsyncThunk(
       const { data: recipientData, error: recipientError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url')
-        .ilike('username', params.inviteeEmail)
-        .single();
+        .ilike('username', params.inviteeEmail);
+      
+      // Handle the array response from ilike
+      const recipient = recipientData?.[0];
+      const finalError = recipientError || (!recipient && !recipientError ? new Error('Not found') : null);
 
-      if (recipientError || !recipientData) {
+      if (finalError || !recipient) {
         // Check if any users exist in the database
         const { count } = await supabase
           .from('profiles')
@@ -101,7 +104,7 @@ export const sendCollaborationInvitation = createAsyncThunk(
       }
 
       // Prevent self-invitation
-      if (recipientData.id === senderId) {
+      if (recipient.id === senderId) {
         throw new Error('You cannot invite yourself to collaborate.');
       }
 
@@ -110,7 +113,7 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .from('collaboration_invitations')
         .select('id, status')
         .eq('sender_id', senderId)
-        .eq('invited_id', recipientData.id)
+        .eq('invited_id', recipient.id)
         .eq('mission_stage_id', params.missionStageId)
         .single();
 
@@ -143,7 +146,7 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .from('collaboration_invitations')
         .insert({
           sender_id: senderId,
-          invited_id: recipientData.id,
+          invited_id: recipient.id,
           mission_stage_id: params.missionStageId,
           status: 'pending'
         })
@@ -161,12 +164,12 @@ export const sendCollaborationInvitation = createAsyncThunk(
           mission_id: params.missionId,
           stage_id: params.missionStageId,
           recipient_id: senderId, // Sender sees this in their Sent folder
-          subject: `Collaboration Invitation Sent to ${recipientData.username}`,
-          preview: `You invited ${recipientData.username} to collaborate on ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}`,
+          subject: `Collaboration Invitation Sent to ${recipient.username}`,
+          preview: `You invited ${recipient.username} to collaborate on ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}`,
           body: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563EB;">Collaboration Invitation Sent</h2>
-              <p>You have successfully sent a collaboration invitation to <strong>${recipientData.username}</strong>.</p>
+              <p>You have successfully sent a collaboration invitation to <strong>${recipient.username}</strong>.</p>
               
               <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin: 16px 0;">
                 <h3 style="margin: 0 0 8px 0; color: #374151;">Mission Details:</h3>
@@ -183,14 +186,14 @@ export const sendCollaborationInvitation = createAsyncThunk(
           sender_name: 'System',
           sender_email: 'system@system-tycoon.com',
           sender_avatar: '/system-avatar.png',
-          content: `Collaboration invitation sent to ${recipientData.username}`,
+          content: `Collaboration invitation sent to ${recipient.username}`,
           category: 'collaboration',
           priority: 'normal',
           is_read: true, // Sender's copy is marked as read
           personalization_tokens: {
             type: 'collaboration_sent',
             invitation_id: invitation.id,
-            recipient_username: recipientData.username,
+            recipient_username: recipient.username,
             mission_title: (stageData.mission as any)?.[0]?.title || 'Unknown Mission',
             stage_title: stageData.title
           }
@@ -206,13 +209,13 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .insert({
           mission_id: params.missionId,
           stage_id: params.missionStageId,
-          recipient_id: recipientData.id,
+          recipient_id: recipient.id,
           subject: `${senderProfile.username} invited you to collaborate!`,
           preview: `Join ${senderProfile.username} to work together on ${(stageData.mission as any)?.[0]?.title || 'Unknown Mission'}`,
           body: `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
               <h2 style="color: #2563EB;">You're Invited to Collaborate!</h2>
-              <p>Hi ${recipientData.username}!</p>
+              <p>Hi ${recipient.username}!</p>
               <p><strong>${senderProfile.username}</strong> has invited you to collaborate on their system design mission.</p>
               
               <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin: 16px 0;">
@@ -267,7 +270,7 @@ export const sendCollaborationInvitation = createAsyncThunk(
             username: senderProfile.username!,
             avatar_url: senderProfile.avatar_url
           },
-          invited_profile: recipientData,
+          invited_profile: recipient,
           mission_stage: stageData
         }
       };

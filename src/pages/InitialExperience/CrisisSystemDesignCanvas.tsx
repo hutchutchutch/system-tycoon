@@ -1139,6 +1139,27 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
   }, [timerTestTriggered, missionStageData?.id, handleRunTest, dispatch]);
 
+  // Trigger validation when canvas changes or stage loads
+  useEffect(() => {
+    if (missionStageData?.id && nodes.length > 0) {
+      // Add a small delay to ensure Redux state is updated
+      const timer = setTimeout(() => {
+        console.log('🔍 Auto-validating requirements for canvas changes...');
+        validateRequirements(nodes, edges);
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [nodes.length, edges.length, missionStageData?.id, validateRequirements]);
+
+  // Trigger initial validation when stage loads (even with empty canvas)
+  useEffect(() => {
+    if (missionStageData?.id) {
+      console.log('📋 Running initial requirements validation for stage...');
+      validateRequirements([], []);
+    }
+  }, [missionStageData?.id, validateRequirements]);
+
   // Handle closing mentor notification
   const handleCloseMentorNotification = useCallback(() => {
     setNotificationStep(0);

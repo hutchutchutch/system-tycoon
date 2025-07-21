@@ -651,6 +651,92 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
 - Related data (profiles, mission stages) populated via joins
 - Efficient data access patterns
 
+## Requirements Loading and Validation Issues (Fixed)
+
+### Problem Identified
+The Requirements component was not displaying any requirements, and the "Test System" button was disabled. Investigation revealed two key issues:
+
+1. **Database Schema Mismatch**: Requirements are stored in a separate `mission_stage_requirements` table, NOT in the `system_requirements` JSON field of `mission_stages` (which was `null`)
+2. **Validation Not Triggered**: Requirements were loaded but validation wasn't populating `requirementValidationResults`
+
+### Database Structure Discovery
+```sql
+-- Requirements are stored in mission_stage_requirements table
+CREATE TABLE mission_stage_requirements (
+  id UUID,
+  stage_id UUID,
+  requirement_type TEXT,  -- 'component_required', 'connection_required', etc.
+  title TEXT,            -- User-visible requirement description
+  description TEXT,      -- Detailed explanation
+  validation_config JSONB, -- Contains validation rules
+  error_message TEXT,
+  hint_message TEXT,
+  success_message TEXT,
+  priority INTEGER,
+  points_value INTEGER,
+  unlock_order INTEGER,
+  initially_visible BOOLEAN,
+  show_after_requirements ARRAY,
+  created_at TIMESTAMPTZ,
+  updated_at TIMESTAMPTZ
+);
+```
+
+### Fix Implementation
+The `missionService.loadMissionStageById()` already correctly loads requirements from `mission_stage_requirements` table and transforms them via `transformMissionStageRequirements()`. The issue was that initial validation wasn't being triggered after requirements were loaded.
+
+#### Data Flow Fix
+```typescript
+// In CrisisSystemDesignCanvas.tsx - loadMissionData()
+if (stageData.system_requirements) {
+  dispatch(setSystemRequirements(stageData.system_requirements));
+  console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+  
+  // FIX: Trigger initial validation to populate requirementValidationResults
+  dispatch(validateRequirementsAction());
+}
+```
+
+### Collaboration Invitation Fix
+The username search was failing because Supabase's `.eq()` operator is case-sensitive. Fixed by:
+
+```typescript
+// Before (case-sensitive)
+const { data: recipientData, error: recipientError } = await supabase
+  .from('profiles')
+  .select('id, username, avatar_url')
+  .eq('username', params.inviteeEmail)
+  .single();
+
+// After (case-insensitive)
+const { data: recipientData, error: recipientError } = await supabase
+  .from('profiles')
+  .select('id, username, avatar_url')
+  .ilike('username', params.inviteeEmail);
+
+// Handle array response
+const recipient = recipientData?.[0];
+```
+
+### Lessons Learned
+1. **Always verify database schema** - Don't assume field names match the code
+2. **Case sensitivity matters** - Supabase operators like `.eq()` are case-sensitive by default
+3. **Initial state population** - Validation functions need to be called after data loading
+4. **Separate concerns** - Requirements stored in dedicated table allows for better flexibility
+
+### Current Architecture
+```
+Requirements Loading Flow:
+1. Email clicked → Mission stage ID obtained
+2. missionService.loadMissionStageById() called
+3. Loads from mission_stage_requirements table (NOT mission_stages.system_requirements)
+4. transformMissionStageRequirements() converts to Redux format
+5. dispatch(setSystemRequirements()) updates Redux state
+6. dispatch(validateRequirementsAction()) triggers initial validation
+7. Requirements component receives data via selectors
+8. "Test System" button enabled when requirements populated
+```
+
 ## Email Slice Implementation
 
 ### Stage-Based Filtering Implementation

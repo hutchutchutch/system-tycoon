@@ -34,8 +34,8 @@ export const canvasApi = createApi({
       queryFn: async ({ userId, stageId }) => {
         try {
           const { data, error } = await supabase
-            .from('user_canvas_states')
-            .select('canvas_state, last_saved')
+            .from('user_mission_progress')
+            .select('canvas_state, updated_at')
             .eq('user_id', userId)
             .eq('stage_id', stageId)
             .single();
@@ -51,7 +51,7 @@ export const canvasApi = createApi({
           return {
             data: {
               canvasState: data?.canvas_state || null,
-              lastSaved: data?.last_saved || null,
+              lastSaved: data?.updated_at || null,
             },
           };
         } catch (error) {
@@ -72,45 +72,27 @@ export const canvasApi = createApi({
     saveCanvasState: builder.mutation<void, SaveCanvasStateRequest>({
       queryFn: async ({ userId, missionId, stageId, canvasState }) => {
         try {
-          // First check if a record exists
-          const { data: existingData } = await supabase
-            .from('user_canvas_states')
-            .select('id')
-            .eq('user_id', userId)
-            .eq('stage_id', stageId)
-            .single();
+          // Use upsert to handle both insert and update cases
+          // This prevents duplicate key errors when mission progress already exists
+          const { error } = await supabase
+            .from('user_mission_progress')
+            .upsert({
+              user_id: userId,
+              mission_id: missionId,
+              stage_id: stageId,
+              canvas_state: canvasState,
+              status: 'in_progress',
+              current_stage_id: stageId,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id,stage_id',
+              // Only update these fields if record exists
+              ignoreDuplicates: false
+            });
 
-          if (existingData) {
-            // Update existing record
-            const { error } = await supabase
-              .from('user_canvas_states')
-              .update({
-                canvas_state: canvasState,
-                last_saved: new Date().toISOString()
-              })
-              .eq('user_id', userId)
-              .eq('stage_id', stageId);
-
-            if (error) {
-              console.error('Supabase update error:', error);
-              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-            }
-          } else {
-            // Insert new record
-            const { error } = await supabase
-              .from('user_canvas_states')
-              .insert({
-                user_id: userId,
-                mission_id: missionId,
-                stage_id: stageId,
-                canvas_state: canvasState,
-                last_saved: new Date().toISOString()
-              });
-
-            if (error) {
-              console.error('Supabase insert error:', error);
-              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
-            }
+          if (error) {
+            console.error('Supabase canvas save error:', error);
+            return { error: { status: 'CUSTOM_ERROR', error: error.message } };
           }
 
           return { data: undefined };
@@ -132,9 +114,13 @@ export const canvasApi = createApi({
     }>({
       queryFn: async ({ userId, stageId }) => {
         try {
+          // Clear canvas_state from user_mission_progress
           const { error } = await supabase
-            .from('user_canvas_states')
-            .delete()
+            .from('user_mission_progress')
+            .update({ 
+              canvas_state: {},
+              updated_at: new Date().toISOString()
+            })
             .eq('user_id', userId)
             .eq('stage_id', stageId);
 
@@ -162,9 +148,11 @@ export const canvasApi = createApi({
       queryFn: async (userId) => {
         try {
           const { data, error } = await supabase
-            .from('user_canvas_states')
+            .from('user_mission_progress')
             .select('stage_id, canvas_state')
-            .eq('user_id', userId);
+            .eq('user_id', userId)
+            .not('canvas_state', 'is', null)
+            .neq('canvas_state', '{}');
 
           if (error) {
             return { error: { status: 'CUSTOM_ERROR', error: error.message } };
@@ -172,7 +160,7 @@ export const canvasApi = createApi({
 
           const canvasStates: Record<string, CanvasStateData> = {};
           data?.forEach((record) => {
-            if (record.canvas_state && record.stage_id) {
+            if (record.canvas_state && record.stage_id && Object.keys(record.canvas_state).length > 0) {
               canvasStates[record.stage_id] = record.canvas_state;
             }
           });
