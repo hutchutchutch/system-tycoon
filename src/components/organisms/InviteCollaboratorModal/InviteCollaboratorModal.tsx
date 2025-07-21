@@ -24,28 +24,51 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
   const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [success, setSuccess] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
   
   // Redux state
   const isSending = useAppSelector(selectIsSendingInvitation);
   const sendError = useAppSelector(selectSendError);
 
-  // Clear errors when modal opens
+  // Enhanced debugging function
+  const addDebugInfo = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`🔍 [${timestamp}] ${message}`);
+    setDebugInfo(prev => [...prev, `[${timestamp}] ${message}`]);
+  };
+
+  // Clear errors and debug info when modal opens
   useEffect(() => {
     if (isOpen) {
       dispatch(clearError());
       setSuccess(false);
+      setDebugInfo([]);
+      addDebugInfo('Modal opened - ready for collaboration invitation');
     }
   }, [isOpen, dispatch]);
 
   const handleInvite = async () => {
-    if (!username.trim()) return;
+    if (!username.trim()) {
+      addDebugInfo('❌ Username is empty');
+      return;
+    }
+    
+    addDebugInfo(`🚀 Starting invitation process for username: "${username.trim()}"`);
+    addDebugInfo(`📍 Mission ID: ${missionId}`);
+    addDebugInfo(`📍 Stage ID: ${stageId}`);
+    addDebugInfo(`📍 Design Session ID: ${currentDesignSessionId || 'None'}`);
     
     try {
+      addDebugInfo('💫 Dispatching sendCollaborationInvitation...');
+      
       const result = await dispatch(sendCollaborationInvitation({
         inviteeEmail: username.trim(),
         missionStageId: stageId,
         missionId: missionId
       })).unwrap();
+      
+      addDebugInfo('✅ Invitation sent successfully!');
+      addDebugInfo(`📧 Invitation ID: ${result?.invitation?.id || 'Unknown'}`);
       
       // Success - show success state
       setSuccess(true);
@@ -55,11 +78,22 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
         onClose();
         setSuccess(false);
         setUsername('');
+        setDebugInfo([]);
       }, 2000);
       
     } catch (error) {
-      // Error handling is managed by Redux state
-      console.error('Failed to send invitation:', error);
+      addDebugInfo(`❌ Invitation failed: ${error}`);
+      addDebugInfo(`🔍 Error type: ${typeof error}`);
+      addDebugInfo(`🔍 Error details: ${JSON.stringify(error, null, 2)}`);
+      
+      // Log additional debugging info
+      if (error instanceof Error) {
+        addDebugInfo(`🔍 Error name: ${error.name}`);
+        addDebugInfo(`🔍 Error message: ${error.message}`);
+        addDebugInfo(`🔍 Error stack: ${error.stack?.substring(0, 200)}...`);
+      }
+      
+      console.error('🚨 Complete error object:', error);
     }
   };
 
@@ -88,12 +122,30 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
               <Input
                 id="invite-email"
                 type="text"
-                placeholder="Enter username"
+                placeholder="Enter username (e.g., John, Ash, Heather)"
                 value={username}
                 onChange={setUsername}
                 disabled={isSending}
               />
-              {sendError && <p className={styles.error}>{sendError}</p>}
+              {sendError && (
+                <div className={styles.errorContainer}>
+                  <p className={styles.error}>{sendError}</p>
+                  
+                  {/* Enhanced debugging info */}
+                  {debugInfo.length > 0 && (
+                    <details className={styles.debugDetails}>
+                      <summary>🔧 Debug Information (Click to expand)</summary>
+                      <div className={styles.debugLog}>
+                        {debugInfo.map((info, index) => (
+                          <div key={index} className={styles.debugLine}>
+                            {info}
+                          </div>
+                        ))}
+                      </div>
+                    </details>
+                  )}
+                </div>
+              )}
             </div>
             
             <div className={styles.actions}>
@@ -112,6 +164,20 @@ export const InviteCollaboratorModal: React.FC<InviteCollaboratorModalProps> = (
                 {isSending ? 'Sending...' : 'Send Invitation'}
               </Button>
             </div>
+            
+            {/* Debug info when not in error state */}
+            {!sendError && debugInfo.length > 0 && (
+              <details className={styles.debugDetails}>
+                <summary>🔧 Debug Log</summary>
+                <div className={styles.debugLog}>
+                  {debugInfo.map((info, index) => (
+                    <div key={index} className={styles.debugLine}>
+                      {info}
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
           </>
         )}
       </div>

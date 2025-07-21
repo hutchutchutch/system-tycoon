@@ -72,50 +72,108 @@ export const sendCollaborationInvitation = createAsyncThunk(
     missionId: string;
   }, { getState, rejectWithValue }) => {
     try {
+      console.log('🚀 [CollaborationSlice] Starting invitation process...');
+      console.log('📍 [CollaborationSlice] Parameters:', {
+        inviteeEmail: params.inviteeEmail,
+        missionStageId: params.missionStageId,
+        missionId: params.missionId
+      });
+
       const state = getState() as RootState;
       const senderId = state.auth.user?.id;
       const senderProfile = state.auth.profile;
 
+      console.log('👤 [CollaborationSlice] Sender info:', {
+        senderId,
+        senderUsername: senderProfile?.username,
+        hasProfile: !!senderProfile
+      });
+
       if (!senderId || !senderProfile) {
-        throw new Error('User not authenticated');
+        console.error('❌ [CollaborationSlice] User not authenticated');
+        throw new Error('User not authenticated. Please log in to send invitations.');
       }
 
       // Find the recipient by email/username (case-insensitive)
-      console.log('🔍 Searching for user:', params.inviteeEmail);
+      console.log('🔍 [CollaborationSlice] Searching for user:', params.inviteeEmail);
       
       const { data: recipientData, error: recipientError } = await supabase
         .from('profiles')
         .select('id, username, avatar_url')
         .ilike('username', params.inviteeEmail);
       
-      console.log('🔍 Search results:', { recipientData, recipientError });
+      console.log('🔍 [CollaborationSlice] Search results:', { 
+        recipientData, 
+        recipientError,
+        resultCount: recipientData?.length || 0
+      });
       
       // Handle the array response from ilike
       const recipient = recipientData?.[0];
       const finalError = recipientError || (!recipient && !recipientError ? new Error('Not found') : null);
 
       if (finalError || !recipient) {
+        console.log('❌ [CollaborationSlice] User not found, checking database state...');
+        
         // Check if any users exist in the database
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from('profiles')
           .select('*', { count: 'exact', head: true });
         
-        console.log('🔍 Total users in database:', count);
+        console.log('🔍 [CollaborationSlice] Total users in database:', { count, countError });
+        
+        if (countError) {
+          console.error('❌ [CollaborationSlice] Error checking user count:', countError);
+          throw new Error(`Database error while searching for users: ${countError.message}`);
+        }
         
         if (!count || count === 0) {
+          console.error('❌ [CollaborationSlice] No users in database');
           throw new Error('No users found in the database. Make sure users have completed profile setup.');
         } else {
-          throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (case-insensitive search in profiles.username field).`);
+          // Also check if there's an RLS issue by trying a different query
+          const { data: testQuery, error: testError } = await supabase
+            .from('profiles')
+            .select('username')
+            .limit(5);
+          
+          console.log('🔍 [CollaborationSlice] Test query results:', { 
+            testQuery, 
+            testError,
+            canReadProfiles: !!testQuery && testQuery.length > 0
+          });
+          
+          if (testError) {
+            console.error('❌ [CollaborationSlice] RLS/Permission error:', testError);
+            throw new Error(`Permission error accessing user profiles: ${testError.message}. Check RLS policies.`);
+          }
+          
+          if (!testQuery || testQuery.length === 0) {
+            throw new Error(`You don't have permission to search for other users. Check with admin about profile visibility policies.`);
+          }
+          
+          // Show available usernames for debugging
+          const availableUsernames = testQuery.map(u => u.username).filter(Boolean);
+          console.log('🔍 [CollaborationSlice] Available usernames:', availableUsernames);
+          
+          throw new Error(`User "${params.inviteeEmail}" not found. Available users: ${availableUsernames.join(', ')}`);
         }
       }
 
+      console.log('✅ [CollaborationSlice] Recipient found:', {
+        id: recipient.id,
+        username: recipient.username
+      });
+
       // Prevent self-invitation
       if (recipient.id === senderId) {
+        console.log('❌ [CollaborationSlice] Self-invitation attempt');
         throw new Error('You cannot invite yourself to collaborate.');
       }
 
       // Check for existing invitation
-      const { data: existingInvitation } = await supabase
+      console.log('🔍 [CollaborationSlice] Checking for existing invitations...');
+      const { data: existingInvitation, error: existingError } = await supabase
         .from('collaboration_invitations')
         .select('id, status')
         .eq('sender_id', senderId)
@@ -123,13 +181,20 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .eq('mission_stage_id', params.missionStageId)
         .single();
 
+      console.log('🔍 [CollaborationSlice] Existing invitation check:', {
+        existingInvitation,
+        existingError
+      });
+
       if (existingInvitation) {
         if (existingInvitation.status === 'pending') {
+          console.log('❌ [CollaborationSlice] Invitation already exists');
           throw new Error('You have already sent an invitation to this user for this mission.');
         }
       }
 
       // Get mission stage details for the invitation
+      console.log('🔍 [CollaborationSlice] Getting mission stage details...');
       const { data: stageData, error: stageError } = await supabase
         .from('mission_stages')
         .select(`
@@ -143,11 +208,18 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .eq('id', params.missionStageId)
         .single();
 
+      console.log('🔍 [CollaborationSlice] Mission stage data:', {
+        stageData,
+        stageError
+      });
+
       if (stageError || !stageData) {
-        throw new Error('Mission stage not found');
+        console.error('❌ [CollaborationSlice] Mission stage not found');
+        throw new Error('Mission stage not found. Please check the mission ID.');
       }
 
       // Create the collaboration invitation
+      console.log('💾 [CollaborationSlice] Creating collaboration invitation...');
       const { data: invitation, error: invitationError } = await supabase
         .from('collaboration_invitations')
         .insert({
@@ -159,11 +231,18 @@ export const sendCollaborationInvitation = createAsyncThunk(
         .select()
         .single();
 
+      console.log('💾 [CollaborationSlice] Invitation creation result:', {
+        invitation,
+        invitationError
+      });
+
       if (invitationError) {
+        console.error('❌ [CollaborationSlice] Failed to create invitation:', invitationError);
         throw invitationError;
       }
 
       // Create email for sender (Sent folder)
+      console.log('📧 [CollaborationSlice] Creating sender email...');
       const { error: senderEmailError } = await supabase
         .from('mission_emails')
         .insert({
@@ -206,10 +285,13 @@ export const sendCollaborationInvitation = createAsyncThunk(
         });
 
       if (senderEmailError) {
-        console.error('Failed to create sender email:', senderEmailError);
+        console.error('⚠️ [CollaborationSlice] Failed to create sender email:', senderEmailError);
+      } else {
+        console.log('✅ [CollaborationSlice] Sender email created successfully');
       }
 
       // Create email for recipient (Inbox)
+      console.log('📧 [CollaborationSlice] Creating recipient email...');
       const { error: recipientEmailError } = await supabase
         .from('mission_emails')
         .insert({
@@ -265,8 +347,12 @@ export const sendCollaborationInvitation = createAsyncThunk(
         });
 
       if (recipientEmailError) {
-        console.error('Failed to create recipient email:', recipientEmailError);
+        console.error('⚠️ [CollaborationSlice] Failed to create recipient email:', recipientEmailError);
+      } else {
+        console.log('✅ [CollaborationSlice] Recipient email created successfully');
       }
+
+      console.log('🎉 [CollaborationSlice] Invitation process completed successfully!');
 
       return {
         invitation: {
@@ -281,8 +367,28 @@ export const sendCollaborationInvitation = createAsyncThunk(
         }
       };
     } catch (error) {
-      console.error('Failed to send collaboration invitation:', error);
-      return rejectWithValue(error instanceof Error ? error.message : 'Failed to send invitation');
+      console.error('❌ [CollaborationSlice] Failed to send collaboration invitation:', error);
+      
+      // Enhanced error handling with more specific messages
+      if (error instanceof Error) {
+        // Check for specific database errors
+        if (error.message?.includes('permission denied') || error.message?.includes('RLS')) {
+          return rejectWithValue('Permission denied: Unable to access user profiles. Please contact support.');
+        }
+        
+        if (error.message?.includes('duplicate key')) {
+          return rejectWithValue('An invitation for this user and mission already exists.');
+        }
+        
+        if (error.message?.includes('foreign key')) {
+          return rejectWithValue('Invalid mission or user reference. Please refresh and try again.');
+        }
+        
+        // Return the original error message for known errors
+        return rejectWithValue(error.message);
+      }
+      
+      return rejectWithValue('Failed to send invitation. Please try again.');
     }
   }
 );

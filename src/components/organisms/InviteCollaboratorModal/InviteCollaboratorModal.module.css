@@ -34,12 +34,54 @@
 }
 
 .error {
-  color: var(--color-accent-error);
-  font-size: var(--text-xs);
-  margin-top: var(--space-1);
-  display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.errorContainer {
+  margin-top: 0.5rem;
+}
+
+.debugDetails {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--color-surface-secondary);
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+}
+
+.debugDetails summary {
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.5rem;
+  user-select: none;
+}
+
+.debugDetails summary:hover {
+  color: var(--color-text-primary);
+}
+
+.debugLog {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--color-surface-tertiary);
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.debugLine {
+  font-family: monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.debugLine:last-child {
+  margin-bottom: 0;
 }
 
 .error::before {
