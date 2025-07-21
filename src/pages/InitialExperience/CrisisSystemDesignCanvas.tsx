@@ -46,7 +46,8 @@ import {
   selectEdges,
   addEdge as addEdgeAction,
   setSystemRequirements,
-  validateRequirements as validateRequirementsAction
+  validateRequirements as validateRequirementsAction,
+  clearCanvas
 } from '../../features/design/designSlice';
 import {
   setActiveCanvas,
@@ -849,6 +850,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       let mission: MissionData | null = null;
       let stageData: MissionStageData | null = null;
 
+      // Clear the canvas before loading new stage (Redux best practice - isolation)
+      dispatch(clearCanvas({ keepRequirements: false }));
+      console.log('🧹 Canvas cleared for new mission stage');
+
       // If we have an emailId, try to load the specific stage data
       if (emailId) {
         console.log('Loading mission stage data from email ID:', emailId);
@@ -1204,21 +1209,52 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const initializeCanvasForStage = useCallback(() => {
     if (!missionStageData?.id) return;
     
+    console.log('🎨 Initializing canvas for stage:', missionStageData.id);
+    
     // Set this as the active canvas
     dispatch(setActiveCanvas({ stageId: missionStageData.id }));
     
-    // IMPORTANT: Only load saved canvas state if there are no nodes in designSlice
-    // This ensures initial system state takes precedence over saved empty state
-    if (savedCanvasData?.canvasState && nodes.length === 0) {
-      console.log('Loading saved canvas state (no initial state exists)');
+    // Check if we have saved canvas state for this stage
+    if (savedCanvasData?.canvasState && savedCanvasData.canvasState.nodes.length > 0) {
+      console.log('📂 Loading saved canvas state into design slice');
+      
+      // Clear existing canvas first to ensure isolation
+      dispatch(clearCanvas({ keepRequirements: true }));
+      
+      // Load saved nodes into design slice
+      savedCanvasData.canvasState.nodes.forEach((node: any) => {
+        dispatch(addNode({ 
+          component: node.data, 
+          position: node.position,
+          nodeType: node.type,
+          nodeData: node.data
+        }));
+      });
+      
+      // Load saved edges into design slice
+      savedCanvasData.canvasState.edges.forEach((edge: any) => {
+        dispatch(addEdgeAction({
+          source: edge.source,
+          target: edge.target,
+          sourceHandle: edge.sourceHandle,
+          targetHandle: edge.targetHandle
+        }));
+      });
+      
+      // Also update canvas slice for persistence tracking
       dispatch(loadCanvasState({
         stageId: missionStageData.id,
         nodes: savedCanvasData.canvasState.nodes,
         edges: savedCanvasData.canvasState.edges,
         viewport: savedCanvasData.canvasState.viewport
       }));
+    } else if (missionStageData.id && !savedCanvasData?.canvasState) {
+      console.log('🆕 No saved canvas state, will load initial system state if available');
+      
+      // Load initial system state for this stage
+      loadInitialSystemState(missionStageData.id);
     } else if (nodes.length > 0) {
-      console.log('Keeping current designSlice state (initial system state loaded)');
+      console.log('📦 Syncing current design state to canvas slice');
       // Sync designSlice state to canvasSlice for persistence
       dispatch(updateCanvasState({
         stageId: missionStageData.id,

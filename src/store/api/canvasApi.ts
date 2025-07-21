@@ -34,8 +34,8 @@ export const canvasApi = createApi({
       queryFn: async ({ userId, stageId }) => {
         try {
           const { data, error } = await supabase
-            .from('user_mission_progress')
-            .select('canvas_state, updated_at')
+            .from('user_canvas_states')
+            .select('canvas_state, last_saved')
             .eq('user_id', userId)
             .eq('stage_id', stageId)
             .single();
@@ -51,7 +51,7 @@ export const canvasApi = createApi({
           return {
             data: {
               canvasState: data?.canvas_state || null,
-              lastSaved: data?.updated_at || null,
+              lastSaved: data?.last_saved || null,
             },
           };
         } catch (error) {
@@ -72,22 +72,45 @@ export const canvasApi = createApi({
     saveCanvasState: builder.mutation<void, SaveCanvasStateRequest>({
       queryFn: async ({ userId, missionId, stageId, canvasState }) => {
         try {
-          // Upsert pattern for canvas state persistence with correct conflict resolution
-          const { error } = await supabase
-            .from('user_mission_progress')
-            .upsert({
-              user_id: userId,
-              mission_id: missionId,
-              stage_id: stageId,
-              canvas_state: canvasState,
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'user_id,stage_id' // Updated to use the correct constraint
-            });
+          // First check if a record exists
+          const { data: existingData } = await supabase
+            .from('user_canvas_states')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('stage_id', stageId)
+            .single();
 
-          if (error) {
-            console.error('Supabase upsert error:', error);
-            return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+          if (existingData) {
+            // Update existing record
+            const { error } = await supabase
+              .from('user_canvas_states')
+              .update({
+                canvas_state: canvasState,
+                last_saved: new Date().toISOString()
+              })
+              .eq('user_id', userId)
+              .eq('stage_id', stageId);
+
+            if (error) {
+              console.error('Supabase update error:', error);
+              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+            }
+          } else {
+            // Insert new record
+            const { error } = await supabase
+              .from('user_canvas_states')
+              .insert({
+                user_id: userId,
+                mission_id: missionId,
+                stage_id: stageId,
+                canvas_state: canvasState,
+                last_saved: new Date().toISOString()
+              });
+
+            if (error) {
+              console.error('Supabase insert error:', error);
+              return { error: { status: 'CUSTOM_ERROR', error: error.message } };
+            }
           }
 
           return { data: undefined };
@@ -96,8 +119,8 @@ export const canvasApi = createApi({
           return { error: { status: 'CUSTOM_ERROR', error: String(error) } };
         }
       },
-      invalidatesTags: (result, error, { stageId }) => [
-        { type: 'CanvasState', id: stageId },
+      invalidatesTags: (result, error, { userId, stageId }) => [
+        { type: 'CanvasState', id: `${userId}-${stageId}` },
         'UserProgress'
       ],
     }),
@@ -110,11 +133,8 @@ export const canvasApi = createApi({
       queryFn: async ({ userId, stageId }) => {
         try {
           const { error } = await supabase
-            .from('user_mission_progress')
-            .update({
-              canvas_state: null,
-              updated_at: new Date().toISOString(),
-            })
+            .from('user_canvas_states')
+            .delete()
             .eq('user_id', userId)
             .eq('stage_id', stageId);
 

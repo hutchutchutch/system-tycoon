@@ -22,6 +22,125 @@ src/features/design/
 - **Middleware**: Default RTK middleware with proper serialization
 - **DevTools**: Redux DevTools enabled for development debugging
 
+## Canvas State Isolation Implementation
+
+### Problem Solved
+When switching between mission stages, the canvas retained components from previous stages instead of loading the correct isolated state for each stage.
+
+### Solution Architecture
+
+#### 1. Database Integration
+- **Table**: `user_canvas_states` - Stores canvas state per user per stage
+- **Schema**:
+  ```sql
+  CREATE TABLE user_canvas_states (
+    id UUID,
+    user_id UUID,
+    mission_id UUID,
+    stage_id UUID,
+    canvas_state JSONB,  -- Stores nodes, edges, viewport
+    last_saved TIMESTAMP WITH TIME ZONE,
+    stage_title TEXT,
+    mission_title TEXT
+  );
+  ```
+
+#### 2. Canvas API Updates
+```typescript
+// Updated to use user_canvas_states table instead of user_mission_progress
+loadCanvasState: builder.query({
+  queryFn: async ({ userId, stageId }) => {
+    const { data, error } = await supabase
+      .from('user_canvas_states')
+      .select('canvas_state, last_saved')
+      .eq('user_id', userId)
+      .eq('stage_id', stageId)
+      .single();
+    // ...
+  }
+})
+```
+
+#### 3. Design Slice Enhancement
+```typescript
+// New action for clearing canvas state
+clearCanvas: (state, action: PayloadAction<{ keepRequirements?: boolean }>) => {
+  // Clear nodes and edges
+  state.nodes = [];
+  state.edges = [];
+  state.selectedNodeId = null;
+  
+  // Clear drag state and validation
+  state.draggedComponent = null;
+  state.isDragging = false;
+  state.totalCost = 0;
+  state.isValidDesign = false;
+  state.validationErrors = [];
+  
+  // Reset viewport
+  state.canvasViewport = { x: 0, y: 0, zoom: 1 };
+  
+  // Optionally preserve requirements when switching stages
+  if (!keepRequirements) {
+    state.systemRequirements = [];
+    state.requirementValidationResults = [];
+    // ...
+  }
+}
+```
+
+#### 4. Canvas Initialization Flow
+```typescript
+// In CrisisSystemDesignCanvas.tsx
+const initializeCanvasForStage = useCallback(() => {
+  // 1. Clear canvas when loading new stage
+  dispatch(clearCanvas({ keepRequirements: false }));
+  
+  // 2. Check for saved canvas state
+  if (savedCanvasData?.canvasState) {
+    // Load saved state into design slice
+    savedCanvasData.canvasState.nodes.forEach(node => {
+      dispatch(addNode({ component: node.data, position: node.position }));
+    });
+    savedCanvasData.canvasState.edges.forEach(edge => {
+      dispatch(addEdgeAction(edge));
+    });
+  } else {
+    // 3. Load initial system state if no saved state
+    loadInitialSystemState(missionStageData.id);
+  }
+}, [dispatch, missionStageData, savedCanvasData]);
+```
+
+### Redux Best Practices Applied
+
+#### ✅ State Isolation
+- Each mission stage has completely isolated canvas state
+- Canvas is cleared before loading new stage data
+- Prevents state pollution between stages
+
+#### ✅ Automatic Persistence
+- Canvas state auto-saves on changes with debouncing
+- Uses RTK Query for optimized caching and updates
+- Preserves user work between sessions
+
+#### ✅ Clear Data Flow
+1. **Stage Change**: Email clicked → New stage ID
+2. **Clear Canvas**: Previous state cleared via Redux action
+3. **Load State**: Saved state OR initial state loaded
+4. **Auto-Save**: Changes persist automatically
+
+#### ✅ Performance Optimization
+- Debounced saves prevent excessive API calls
+- Canvas state only loads when stage changes
+- Memoized selectors prevent unnecessary re-renders
+
+### Benefits
+1. **User Experience**: Each stage starts with correct components
+2. **Data Integrity**: No mixing of components between stages
+3. **Progress Tracking**: User work is preserved per stage
+4. **Scalability**: Easy to add new stages without conflicts
+
 ## Design Slice Implementation (Requirements Validation)
 
 ### State Shape

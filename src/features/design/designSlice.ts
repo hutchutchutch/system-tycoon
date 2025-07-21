@@ -305,6 +305,40 @@ const designSlice = createSlice({
       }, 0);
     },
     
+    // Clear canvas state - used when switching between mission stages
+    clearCanvas: (state, action: PayloadAction<{ keepRequirements?: boolean }>) => {
+      const { keepRequirements = false } = action.payload || {};
+      
+      // Clear nodes and edges
+      state.nodes = [];
+      state.edges = [];
+      state.selectedNodeId = null;
+      
+      // Clear drag state
+      state.draggedComponent = null;
+      state.isDragging = false;
+      
+      // Clear validation state
+      state.totalCost = 0;
+      state.isValidDesign = false;
+      state.validationErrors = [];
+      
+      // Reset viewport
+      state.canvasViewport = { x: 0, y: 0, zoom: 1 };
+      
+      // Optionally clear requirements
+      if (!keepRequirements) {
+        state.systemRequirements = [];
+        state.requirementValidationResults = [];
+        state.allRequirementsMet = false;
+        state.requirementProgress = {
+          total: 0,
+          completed: 0,
+          percentage: 0
+        };
+      }
+    },
+    
     // Set system requirements (called when mission stage data loads)
     setSystemRequirements: (state, action: PayloadAction<SystemRequirement[]>) => {
       state.systemRequirements = action.payload;
@@ -453,6 +487,7 @@ export const {
   validateDesign,
   setSystemRequirements,
   validateRequirements,
+  clearCanvas,
 } = designSlice.actions;
 
 export default designSlice.reducer;
