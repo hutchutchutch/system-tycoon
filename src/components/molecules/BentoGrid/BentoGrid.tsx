@@ -137,17 +137,24 @@ const BentoCardBase: React.FC<{
         position: 'relative',
         borderRadius: 'var(--radius-lg)',
         padding: 'var(--space-4)',
-        background: 'var(--color-surface-secondary)',
-        border: '1px solid var(--color-border-primary)',
+        background: actuallyHovered 
+          ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%)' 
+          : 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 100%)',
+        border: actuallyHovered 
+          ? '1px solid rgba(59, 130, 246, 0.3)' 
+          : '1px solid var(--color-border-primary)',
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
         transition: 'all var(--transition-normal)',
         cursor: 'pointer',
         transform: actuallyHovered ? 'translateY(-2px)' : 'translateY(0)',
-        boxShadow: actuallyHovered ? '0 0 20px rgba(59, 130, 246, 0.3), var(--shadow-lg)' : 'var(--shadow-sm)',
+        boxShadow: actuallyHovered 
+          ? '0 0 30px rgba(59, 130, 246, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)' 
+          : '0 4px 20px rgba(0, 0, 0, 0.2)',
         height,
-        minHeight: height
+        minHeight: height,
+        backdropFilter: 'blur(10px)'
       }}
     >
       {background}
@@ -172,7 +179,7 @@ const BentoCardBase: React.FC<{
               {displayCategory && (
                 <span style={{
                   fontSize: 'var(--text-xs)',
-                  color: 'var(--color-text-tertiary)',
+                  color: actuallyHovered ? 'rgba(147, 197, 253, 0.9)' : 'rgba(148, 163, 184, 0.9)',
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
                   fontWeight: 'var(--font-weight-medium)'
@@ -183,7 +190,7 @@ const BentoCardBase: React.FC<{
               {displayTime && (
                 <span style={{
                   fontSize: 'var(--text-xs)',
-                  color: 'var(--color-text-secondary)',
+                  color: actuallyHovered ? 'rgba(147, 197, 253, 0.7)' : 'rgba(148, 163, 184, 0.7)',
                   marginLeft: 'auto'
                 }}>
                   {displayTime}
@@ -193,31 +200,48 @@ const BentoCardBase: React.FC<{
           )}
         </div>
 
-        {/* Content */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          {children}
+        {/* Spacer to push content to bottom */}
+        <div style={{ flex: 1 }} />
+
+        {/* Content container with slide effect */}
+        <div style={{
+          position: 'relative',
+          transition: 'transform 0.3s ease',
+          transform: actuallyHovered && article && onContact ? 'translateY(-60px)' : 'translateY(0)'
+        }}>
+          {/* Content */}
+          <div>
+            {children}
+          </div>
         </div>
 
-                {/* Contact button for articles */}
-        {actuallyHovered && article && onContact && (
-          <div style={{ marginTop: 'var(--space-3)' }}>
+        {/* Contact button - positioned absolutely at bottom */}
+        {article && onContact && (
+          <div style={{ 
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: 'var(--space-4)',
+            opacity: actuallyHovered ? 1 : 0,
+            transition: 'opacity 0.3s ease',
+            pointerEvents: actuallyHovered ? 'auto' : 'none'
+          }}>
             <button
               onClick={handleContactClick}
               style={{
                 position: 'relative',
-                padding: '16px 32px',
+                padding: '12px 24px',
                 background: 'linear-gradient(to right, #3B82F6, #A855F7)',
                 color: 'white',
                 fontWeight: '600',
-                fontSize: '1.125rem',
+                fontSize: '1rem',
                 borderRadius: '9999px',
                 border: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                 transition: 'all 0.3s',
                 overflow: 'hidden',
-                pointerEvents: 'auto',
-                zIndex: 10,
                 width: '100%'
               }}
               onMouseOver={(e) => {
@@ -253,19 +277,21 @@ const BentoCardBase: React.FC<{
 // Small Card - Just headline
 const BentoCardSmall: React.FC<BentoCardSmallProps> = (props) => {
   const displayName = props.article ? props.article.headline : props.name;
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <BentoCardBase {...props} height="192px">
+    <BentoCardBase {...props} height="192px" isHovered={isHovered} onHover={setIsHovered}>
       <h3 style={{
         fontSize: 'var(--text-lg)',
         fontWeight: 'var(--font-weight-semibold)',
-        color: 'var(--color-text-primary)',
+        color: isHovered ? 'rgba(255, 255, 255, 0.95)' : 'rgba(241, 245, 249, 0.9)',
         lineHeight: '1.3',
         margin: 0,
         display: '-webkit-box',
         WebkitLineClamp: 3,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displayName}
       </h3>
@@ -277,34 +303,37 @@ const BentoCardSmall: React.FC<BentoCardSmallProps> = (props) => {
 const BentoCardMedium: React.FC<BentoCardMediumProps> = (props) => {
   const displayName = props.article ? props.article.headline : props.name;
   const displaySubheadline = props.article ? props.article.preview_text : (props.subheadline || props.description);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <BentoCardBase {...props} height="384px">
+    <BentoCardBase {...props} height="384px" isHovered={isHovered} onHover={setIsHovered}>
       <h3 style={{
         fontSize: 'var(--text-lg)',
         fontWeight: 'var(--font-weight-semibold)',
-        color: 'var(--color-text-primary)',
+        color: isHovered ? 'rgba(255, 255, 255, 0.95)' : 'rgba(241, 245, 249, 0.9)',
         lineHeight: '1.3',
         margin: 0,
         marginBottom: 'var(--space-3)',
         display: '-webkit-box',
         WebkitLineClamp: 3,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displayName}
       </h3>
       
       <p style={{
         fontSize: 'var(--text-sm)',
-        color: 'var(--color-text-secondary)',
+        color: isHovered ? 'rgba(226, 232, 240, 0.9)' : 'rgba(203, 213, 225, 0.9)',
         lineHeight: '1.5',
         margin: 0,
         flex: 1,
         display: '-webkit-box',
         WebkitLineClamp: 8,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displaySubheadline}
       </p>
@@ -317,20 +346,22 @@ const BentoCardLarge: React.FC<BentoCardLargeProps> = (props) => {
   const displayName = props.article ? props.article.headline : props.name;
   const displaySubheadline = props.article ? props.article.preview_text.slice(0, 100) + '...' : (props.subheadline || props.description);
   const displayPreviewText = props.article ? props.article.preview_text : (props.previewText || props.description);
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <BentoCardBase {...props} height="592px">
+    <BentoCardBase {...props} height="592px" isHovered={isHovered} onHover={setIsHovered}>
       <h3 style={{
         fontSize: 'var(--text-xl)',
         fontWeight: 'var(--font-weight-semibold)',
-        color: 'var(--color-text-primary)',
+        color: isHovered ? 'rgba(255, 255, 255, 0.95)' : 'rgba(241, 245, 249, 0.9)',
         lineHeight: '1.3',
         margin: 0,
         marginBottom: 'var(--space-3)',
         display: '-webkit-box',
         WebkitLineClamp: 3,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displayName}
       </h3>
@@ -338,28 +369,30 @@ const BentoCardLarge: React.FC<BentoCardLargeProps> = (props) => {
       <h4 style={{
         fontSize: 'var(--text-md)',
         fontWeight: 'var(--font-weight-medium)',
-        color: 'var(--color-text-secondary)',
+        color: isHovered ? 'rgba(226, 232, 240, 0.9)' : 'rgba(203, 213, 225, 0.9)',
         lineHeight: '1.4',
         margin: 0,
         marginBottom: 'var(--space-3)',
         display: '-webkit-box',
         WebkitLineClamp: 3,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displaySubheadline}
       </h4>
 
       <p style={{
         fontSize: 'var(--text-sm)',
-        color: 'var(--color-text-tertiary)',
+        color: isHovered ? 'rgba(203, 213, 225, 0.8)' : 'rgba(148, 163, 184, 0.8)',
         lineHeight: '1.6',
         margin: 0,
         flex: 1,
         display: '-webkit-box',
         WebkitLineClamp: 12,
         WebkitBoxOrient: 'vertical',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transition: 'color 0.3s ease'
       }}>
         {displayPreviewText}
       </p>

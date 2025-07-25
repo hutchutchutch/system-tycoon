@@ -1013,7 +1013,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               validation_type: req.validation_type || '',
               required_nodes: req.required_nodes || [],
               min_nodes_of_type: req.min_nodes_of_type || {},
-              required_connection: req.required_connection || null,
+              required_connection: req.required_connection || undefined,
               forbidden_nodes: [],
               target_value: req.target_value || 0,
               target_metric: req.target_metric || ''
