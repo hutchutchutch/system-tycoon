@@ -45,7 +45,7 @@ export default function Globe3D({ onStartMission }: Globe3DProps) {
             <span className="text-[#9b87f5]">AI-Powered</span> Learning
           </h1>
           <p className="mx-auto mb-10 max-w-2xl text-lg text-white/60 md:text-xl">
-            System Tycoon combines gamification with cutting-edge educational
+            Service as a Software combines gamification with cutting-edge educational
             strategies to help you master system architecture through
             real-world scenarios and hands-on experience.
           </p>

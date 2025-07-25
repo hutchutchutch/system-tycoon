@@ -6,7 +6,7 @@ Refactoring `/src/components/ui` folder to follow the established atomic design 
 ## Component Categorization
 
 ### Atoms (Basic Building Blocks)
-- `button.tsx` → `atoms/Button/`
+- `button.ts` → `atoms/Button/`
 - `field.tsx` → `atoms/Field/`
 - `tag-group.tsx` → `atoms/TagGroup/`
 - `tag-group-design-system.tsx` → `atoms/TagGroup/` (as TagGroup.tsx using design tokens)

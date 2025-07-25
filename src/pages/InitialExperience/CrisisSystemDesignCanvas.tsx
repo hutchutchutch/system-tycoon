@@ -1003,12 +1003,29 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           console.log('Using stage-specific requirements:', stageData.system_requirements);
           
           // Dispatch system requirements to Redux (Redux best practice)
-          if (stageData.system_requirements) {
-            dispatch(setSystemRequirements(stageData.system_requirements));
-            console.log('✅ System requirements dispatched to Redux:', stageData.system_requirements.length);
+          if (stageData.system_requirements && stageData.system_requirements.length > 0) {
+            // Map Requirement to SystemRequirement format
+            const systemReqs = stageData.system_requirements.map(req => ({
+              id: req.id,
+              type: req.type || '',
+              priority: req.priority || '',
+              description: req.description,
+              validation_type: req.validation_type || '',
+              required_nodes: req.required_nodes || [],
+              min_nodes_of_type: req.min_nodes_of_type || {},
+              required_connection: req.required_connection || null,
+              forbidden_nodes: [],
+              target_value: req.target_value || 0,
+              target_metric: req.target_metric || ''
+            }));
+            
+            dispatch(setSystemRequirements(systemReqs));
+            console.log('✅ System requirements dispatched to Redux:', systemReqs.length);
             
             // Trigger initial validation to populate requirementValidationResults
-            dispatch(validateRequirementsAction());
+            setTimeout(() => {
+              dispatch(validateRequirementsAction());
+            }, 100); // Small delay to ensure state is updated
           }
           
           // Load initial requirements when stage data is available (fallback for legacy components)
@@ -1758,6 +1775,15 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       });
     }
   }, [missionStageData, nodes, edges]);
+  
+  // Trigger requirement validation when nodes or edges change
+  useEffect(() => {
+    // Only validate if we have system requirements set
+    const systemReqs = store.getState().design.systemRequirements;
+    if (systemReqs && systemReqs.length > 0) {
+      dispatch(validateRequirementsAction());
+    }
+  }, [nodes, edges, dispatch]);
 
   if (loading) {
     return (

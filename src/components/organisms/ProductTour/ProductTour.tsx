@@ -22,7 +22,7 @@ interface ProductTourProps {
 const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
-    title: 'Welcome to System Tycoon! 🎉',
+    title: 'Welcome to Service as a Software! 🎉',
     content: 'I\'m your mentor! I\'ll guide you through this powerful interface where you\'ll use your system design skills to help real communities.',
     position: 'bottom',
     autoHideDuration: 0 // Manual advance

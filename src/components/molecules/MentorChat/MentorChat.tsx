@@ -186,7 +186,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   useEffect(() => {
     if (isAuthenticated && user && location.pathname === '/game') {
       // Check if user has seen the tour before
-      const hasSeenTour = localStorage.getItem('systemTycoon_hasSeenProductTour');
+      const hasSeenTour = localStorage.getItem('saas_hasSeenProductTour');
       
       if (!hasSeenTour) {
         // Start tour after a brief delay to ensure components are rendered
@@ -212,11 +212,11 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       // Reset notifications with Ctrl+Shift+R (or Cmd+Shift+R on Mac)
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
         event.preventDefault();
-        localStorage.removeItem('systemTycoon_hasSeenNewsNotification');
-        localStorage.removeItem('systemTycoon_hasSeenEmailNotification');
-        localStorage.removeItem('systemTycoon_hasSeenDesignNotification');
-        localStorage.removeItem('systemTycoon_hasSeenGameNotification');
-        localStorage.removeItem('systemTycoon_hasSeenProductTour');
+        localStorage.removeItem('saas_hasSeenNewsNotification');
+        localStorage.removeItem('saas_hasSeenEmailNotification');
+        localStorage.removeItem('saas_hasSeenDesignNotification');
+        localStorage.removeItem('saas_hasSeenGameNotification');
+        localStorage.removeItem('saas_hasSeenProductTour');
         console.log('All mentor notifications and tour state reset!');
         // Reload page to show notifications again
         window.location.reload();
@@ -246,7 +246,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       switch (location.pathname) {
         case '/browser/news':
           // Today's News page notification
-          const hasSeenNewsNotification = localStorage.getItem('systemTycoon_hasSeenNewsNotification');
+          const hasSeenNewsNotification = localStorage.getItem('saas_hasSeenNewsNotification');
           if (!hasSeenNewsNotification) {
             setTimeout(() => {
               const title = 'Explore and Discover! 🔍';
@@ -266,7 +266,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         
         case '/email':
           // Email page notification
-          const hasSeenEmailNotification = localStorage.getItem('systemTycoon_hasSeenEmailNotification');
+          const hasSeenEmailNotification = localStorage.getItem('saas_hasSeenEmailNotification');
           if (!hasSeenEmailNotification) {
             setTimeout(() => {
               const title = 'Check Your Inbox! 📧';
@@ -286,7 +286,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         
         case '/crisis-design':
           // Crisis design page notification  
-          const hasSeenDesignNotification = localStorage.getItem('systemTycoon_hasSeenDesignNotification');
+          const hasSeenDesignNotification = localStorage.getItem('saas_hasSeenDesignNotification');
           if (!hasSeenDesignNotification) {
             setTimeout(() => {
               const title = 'Design Your Solution! 🎨';
@@ -306,7 +306,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
         case '/game':
           // Game/Mission Selection page notification
-          const hasSeenGameNotification = localStorage.getItem('systemTycoon_hasSeenGameNotification');
+          const hasSeenGameNotification = localStorage.getItem('saas_hasSeenGameNotification');
           if (!hasSeenGameNotification) {
             setTimeout(() => {
               const title = 'Welcome to Mission Selection! 🚀';
@@ -560,7 +560,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const handleTourComplete = useCallback(() => {
     setShowProductTour(false);
     // Mark that user has seen the tour
-    localStorage.setItem('systemTycoon_hasSeenProductTour', 'true');
+    localStorage.setItem('saas_hasSeenProductTour', 'true');
     console.log('Product tour completed!');
   }, []);
 
@@ -570,16 +570,16 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       // Mark the current page notification as seen
       switch (location.pathname) {
         case '/browser/news':
-          localStorage.setItem('systemTycoon_hasSeenNewsNotification', 'true');
+          localStorage.setItem('saas_hasSeenNewsNotification', 'true');
           break;
         case '/email':
-          localStorage.setItem('systemTycoon_hasSeenEmailNotification', 'true');
+          localStorage.setItem('saas_hasSeenEmailNotification', 'true');
           break;
         case '/crisis-design':
-          localStorage.setItem('systemTycoon_hasSeenDesignNotification', 'true');
+          localStorage.setItem('saas_hasSeenDesignNotification', 'true');
           break;
         case '/game':
-          localStorage.setItem('systemTycoon_hasSeenGameNotification', 'true');
+          localStorage.setItem('saas_hasSeenGameNotification', 'true');
           break;
       }
       setCurrentNotification(null);
@@ -639,59 +639,69 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
   if (!isExpanded) {
     return (
-      <div 
-        style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '20px',
-          zIndex: 99999,
-          pointerEvents: 'auto'
-        }}
-      >
-        <button
-          onClick={() => setIsExpanded(true)}
+      <>
+        <div 
           style={{
-            width: '60px',
-            height: '60px',
-            background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-            border: '3px solid white',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            cursor: 'pointer',
-            boxShadow: currentNotification 
-              ? '0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.6)' 
-              : '0 8px 25px rgba(0, 0, 0, 0.15)',
-            transition: 'all 0.3s ease',
-            animation: currentNotification ? 'mentorPulse 2s infinite' : 'none'
+            position: 'fixed',
+            bottom: '20px',
+            left: '20px',
+            zIndex: 99999,
+            pointerEvents: 'auto'
           }}
-          title="Open Mentor Chat"
         >
-          <MessageCircle size={24} />
-          {(messages.length > 1 || currentNotification) && (
-            <div style={{
-              position: 'absolute',
-              top: '-4px',
-              right: '-4px',
-              background: currentNotification ? '#22c55e' : '#ef4444',
-              color: 'white',
+          <button
+            onClick={() => setIsExpanded(true)}
+            style={{
+              width: '60px',
+              height: '60px',
+              background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
+              border: '3px solid white',
               borderRadius: '50%',
-              minWidth: '20px',
-              height: '20px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '11px',
-              fontWeight: '600',
-              border: '2px solid white'
-            }}>
-              {currentNotification ? '!' : messages.length - 1}
-            </div>
-          )}
-        </button>
-      </div>
+              color: 'white',
+              cursor: 'pointer',
+              boxShadow: currentNotification 
+                ? '0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.6)' 
+                : '0 8px 25px rgba(0, 0, 0, 0.15)',
+              transition: 'all 0.3s ease',
+              animation: currentNotification ? 'mentorPulse 2s infinite' : 'none'
+            }}
+            title="Open Mentor Chat"
+          >
+            <MessageCircle size={24} />
+            {(messages.length > 1 || currentNotification) && (
+              <div style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: currentNotification ? '#22c55e' : '#ef4444',
+                color: 'white',
+                borderRadius: '50%',
+                minWidth: '20px',
+                height: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '11px',
+                fontWeight: '600',
+                border: '2px solid white'
+              }}>
+                {currentNotification ? '!' : messages.length - 1}
+              </div>
+            )}
+          </button>
+        </div>
+        
+        {/* ProductTour - renders globally */}
+        {showProductTour && (
+          <ProductTour
+            isActive={showProductTour}
+            onComplete={handleTourComplete}
+          />
+        )}
+      </>
     );
   }
 
@@ -827,14 +837,6 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           </div>
         </div>
       </div>
-
-      {/* ProductTour - renders globally */}
-      {showProductTour && (
-        <ProductTour
-          isActive={showProductTour}
-          onComplete={handleTourComplete}
-        />
-      )}
 
       {/* Custom Card Notification - positioned next to MentorChat icon */}
       {currentNotification && !isExpanded && (
