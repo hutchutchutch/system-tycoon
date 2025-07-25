@@ -152,7 +152,9 @@ const BentoCardBase: React.FC<{
         boxShadow: actuallyHovered 
           ? '0 0 30px rgba(59, 130, 246, 0.4), 0 10px 40px rgba(0, 0, 0, 0.3)' 
           : '0 4px 20px rgba(0, 0, 0, 0.2)',
-        height,
+        height: actuallyHovered && article && onContact 
+          ? `calc(${height} + 60px)` 
+          : height,
         minHeight: height,
         backdropFilter: 'blur(10px)'
       }}
@@ -203,11 +205,9 @@ const BentoCardBase: React.FC<{
         {/* Spacer to push content to bottom */}
         <div style={{ flex: 1 }} />
 
-        {/* Content container with slide effect */}
+        {/* Content container */}
         <div style={{
-          position: 'relative',
-          transition: 'transform 0.3s ease',
-          transform: actuallyHovered && article && onContact ? 'translateY(-60px)' : 'translateY(0)'
+          position: 'relative'
         }}>
           {/* Content */}
           <div>
@@ -215,16 +215,14 @@ const BentoCardBase: React.FC<{
           </div>
         </div>
 
-        {/* Contact button - positioned absolutely at bottom */}
+        {/* Contact button - shows on hover */}
         {article && onContact && (
           <div style={{ 
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            padding: 'var(--space-4)',
+            marginTop: 'var(--space-3)',
+            maxHeight: actuallyHovered ? '100px' : '0',
             opacity: actuallyHovered ? 1 : 0,
-            transition: 'opacity 0.3s ease',
+            overflow: 'hidden',
+            transition: 'all 0.3s ease',
             pointerEvents: actuallyHovered ? 'auto' : 'none'
           }}>
             <button
@@ -430,14 +428,16 @@ const BentoGrid: React.FC<BentoGridProps> = ({
           gap: 'var(--space-4)',
           alignItems: 'start',
           maxWidth: '1200px',
-          margin: '0 auto'
+          margin: '0 auto',
+          paddingBottom: '60px' // Extra space for expansion
         }}
       >
         {/* Column 1: Medium + Small cards with 16px gap */}
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: '16px' 
+          gap: '16px',
+          alignItems: 'stretch' 
         }}>
           <BentoCardMedium
             article={articles[0]}
@@ -467,7 +467,8 @@ const BentoGrid: React.FC<BentoGridProps> = ({
         <div style={{ 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: '16px' 
+          gap: '16px',
+          alignItems: 'stretch' 
         }}>
           <BentoCardSmall
             article={articles[3]}
@@ -494,7 +495,8 @@ const BentoGrid: React.FC<BentoGridProps> = ({
         display: 'grid',
         gap: 'var(--space-4)',
         gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        alignItems: 'start'
+        alignItems: 'start',
+        paddingBottom: '60px' // Extra space for expansion
       }}
     >
       {children}

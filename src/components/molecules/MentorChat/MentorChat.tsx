@@ -712,7 +712,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         bottom: '20px',
         left: '20px',
         zIndex: 99999,
-        width: '360px',
+        width: '420px',
         height: '500px',
         pointerEvents: 'auto'
       }}
@@ -821,7 +821,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               value={currentInput}
               onChange={(e) => setCurrentInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Ask me about system design, architecture patterns, or this mission..."
+              placeholder="Any questions?"
               className={styles.messageInput}
               rows={1}
               disabled={isLoading}
