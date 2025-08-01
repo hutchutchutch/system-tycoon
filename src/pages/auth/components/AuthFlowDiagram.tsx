@@ -302,6 +302,13 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
 
   useEffect(() => {
     if (animationPhase === 'success') {
+      // Double-check no auth error before proceeding
+      if (authError) {
+        console.warn('Auth error present, preventing success animation');
+        setAnimationPhase('error');
+        return;
+      }
+      
       // Flash all nodes green
       setNodes((nds) =>
         nds.map((node) => ({
@@ -320,7 +327,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         }
       }, 1500);
     }
-  }, [animationPhase, onAuthSuccess]);
+  }, [animationPhase, onAuthSuccess, authError]);
 
   // Handle authentication service error state
   useEffect(() => {
@@ -406,10 +413,11 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
 
   // Handle successful authentication
   useEffect(() => {
-    if (isAuthenticated && !hasDatabaseError && !hasAuthServiceError) {
+    // Only trigger success animation if authenticated AND no auth error
+    if (isAuthenticated && !hasDatabaseError && !hasAuthServiceError && !authError) {
       setAnimationPhase('success');
     }
-  }, [isAuthenticated, hasDatabaseError, hasAuthServiceError]);
+  }, [isAuthenticated, hasDatabaseError, hasAuthServiceError, authError]);
 
   // Update auth card node with functions and error
   useEffect(() => {

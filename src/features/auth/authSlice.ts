@@ -254,6 +254,9 @@ const authSlice = createSlice({
       .addCase(signInWithEmail.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to sign in';
+        state.isAuthenticated = false;
+        state.user = null;
+        state.profile = null;
       });
     
     // Sign up with email
@@ -271,6 +274,9 @@ const authSlice = createSlice({
       .addCase(signUpWithEmail.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'Failed to sign up';
+        state.isAuthenticated = false;
+        state.user = null;
+        state.profile = null;
       });
     
     // OAuth sign in
