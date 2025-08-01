@@ -584,6 +584,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       console.log('🔄 Loading initial system state for stage:', stageId);
       console.log('🎯 Expected for Alex Gonzalez mission: Only Alex\'s laptop and user nodes');
       
+      // Clear existing nodes before loading
+      const existingNodes = selectNodes(store.getState());
+      if (existingNodes.length > 0) {
+        console.log('🧹 Clearing existing nodes before loading initial state');
+        dispatch(clearCanvas({ keepRequirements: true }));
+      }
+      
       const { data: stageData, error } = await supabase
         .from('mission_stages')
         .select('initial_system_state, title, mission_id')
@@ -592,6 +599,8 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 
       if (error) {
         console.error('❌ Failed to load initial system state:', error);
+        console.log('📦 Loading default fallback state');
+        loadDefaultSystemState();
         return;
       }
 
@@ -906,7 +915,94 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       }, 100);
     } catch (error) {
       console.error('Failed to load initial system state:', error);
+      console.log('📦 Loading default fallback state due to error');
+      loadDefaultSystemState();
     }
+  };
+
+  // Load a default system state as fallback
+  const loadDefaultSystemState = () => {
+    console.log('🔧 Loading default system state as fallback');
+    
+    const centerX = 400;
+    const centerY = 300;
+    
+    // Add a default broken system node
+    dispatch(addNode({
+      component: {
+        id: 'current-system-fallback',
+        name: "Current System",
+        type: 'custom',
+        category: 'compute',
+        cost: 0,
+        capacity: 1000,
+        description: 'The current overloaded system',
+        icon: 'server'
+      },
+      position: { x: centerX + 100, y: centerY },
+      nodeData: {
+        id: 'current-system-fallback',
+        name: "Current System",
+        type: 'custom',
+        category: 'compute',
+        cost: 0,
+        capacity: 1000,
+        description: 'The current overloaded system',
+        label: "Current System",
+        icon: 'server',
+        status: 'broken'
+      }
+    }));
+    
+    // Add user nodes
+    const totalUsers = 200;
+    const userNodes = createUserNodeBreakdown(totalUsers);
+    
+    userNodes.forEach((userNode, index) => {
+      const nodeHeight = 122;
+      const nodeGap = nodeHeight / 2;
+      const nodeSpacing = nodeHeight + nodeGap;
+      const totalHeight = (userNodes.length - 1) * nodeSpacing;
+      const startY = centerY - (totalHeight / 2);
+      const yPosition = startY + (index * nodeSpacing);
+      
+      dispatch(addNode({
+        component: {
+          id: userNode.id,
+          name: userNode.name,
+          type: 'user',
+          category: 'stakeholder',
+          cost: 0,
+          capacity: userNode.userCount,
+          description: userNode.description,
+          icon: 'users'
+        },
+        position: { x: centerX - 400, y: yPosition },
+        nodeType: 'user',
+        nodeData: {
+          id: userNode.id,
+          name: userNode.name,
+          type: 'user',
+          category: 'stakeholder',
+          cost: 0,
+          capacity: userNode.userCount,
+          description: userNode.description,
+          label: userNode.label,
+          icon: 'users',
+          userCount: userNode.userCount
+        }
+      }));
+    });
+    
+    // Connect users to system
+    userNodes.forEach((userNode) => {
+      dispatch(addEdgeAction({
+        source: userNode.id,
+        target: 'current-system-fallback',
+        sourceHandle: `${userNode.id}-output`,
+        targetHandle: 'current-system-fallback-input'
+      }));
+    });
   };
 
   // Fetch components from database based on mission stage requirements
@@ -1421,8 +1517,15 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const initializeCanvasForStage = useCallback(async () => {
     if (!missionStageData?.id) return;
     
+    // For email navigation, always clear and reload
+    const isFromEmail = !!emailId;
+    if (isFromEmail) {
+      console.log('📧 Navigation from email detected - forcing fresh load');
+      canvasInitializedRef.current = false;
+    }
+    
     // Check if we've already initialized for this stage
-    if (canvasInitializedRef.current) {
+    if (canvasInitializedRef.current && !isFromEmail) {
       console.log('⚠️ Canvas already initialized, skipping...');
       return;
     }
@@ -1559,6 +1662,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       
       // Load initial system state for this stage
       loadInitialSystemState(missionStageData.id);
+    } else if (isFromEmail && currentNodes.length === 0) {
+      // Special case: email navigation to empty canvas should always load initial state
+      console.log('📧 Email navigation to empty canvas - loading initial state');
+      loadInitialSystemState(missionStageData.id);
     } else if (currentNodes.length > 0) {
       console.log('📦 Syncing current design state to canvas slice');
       // Sync designSlice state to canvasSlice for persistence
@@ -1569,7 +1676,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         viewport: { x: 0, y: 0, zoom: 0.6 }
       }));
     }
-  }, [dispatch, missionStageData?.id, savedCanvasData, clearCorruptedCanvasState]);
+  }, [dispatch, missionStageData?.id, savedCanvasData, clearCorruptedCanvasState, emailId]);
 
   // Auto-save canvas state when nodes/edges change
   const persistCanvasState = useCallback(async () => {

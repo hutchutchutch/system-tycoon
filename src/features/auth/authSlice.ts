@@ -46,6 +46,17 @@ export const signInWithEmail = createAsyncThunk(
 export const signUpWithEmail = createAsyncThunk(
   'auth/signUpWithEmail',
   async ({ email, password, username }: { email: string; password: string; username: string }) => {
+    // First check if username already exists
+    const { data: existingProfile, error: checkError } = await supabase
+      .from('profiles')
+      .select('username')
+      .eq('username', username)
+      .single();
+    
+    if (existingProfile) {
+      throw new Error('Username already taken. Please choose a different username.');
+    }
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -54,7 +65,13 @@ export const signUpWithEmail = createAsyncThunk(
       },
     });
     
-    if (error) throw error;
+    if (error) {
+      // Better error messages for common issues
+      if (error.message.includes('Database error saving new user')) {
+        throw new Error('Unable to create account. This might be due to a username conflict or database issue. Please try a different username.');
+      }
+      throw error;
+    }
     
     if (data.user) {
       // Profile creation is handled automatically by database trigger
