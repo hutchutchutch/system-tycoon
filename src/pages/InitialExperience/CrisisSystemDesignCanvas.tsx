@@ -80,6 +80,7 @@ interface MissionStageData {
   title: string;
   problem_description: string;
   system_requirements: Requirement[];
+  initial_system_state?: any;
   mission: {
     id: string;
     title: string;
@@ -579,7 +580,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   };
 
   // Load initial system state from database and set nodes/edges
-  const loadInitialSystemState = async (stageId: string) => {
+  const loadInitialSystemState = async (stageId: string, initialSystemState: any) => {
     try {
       console.log('🔄 Loading initial system state for stage:', stageId);
       console.log('🎯 Expected for Alex Gonzalez mission: Only Alex\'s laptop and user nodes');
@@ -591,33 +592,18 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         dispatch(clearCanvas({ keepRequirements: true }));
       }
       
-      const { data: stageData, error } = await supabase
-        .from('mission_stages')
-        .select('initial_system_state, title, mission_id')
-        .eq('id', stageId)
-        .single();
-
-      if (error) {
-        console.error('❌ Failed to load initial system state:', error);
-        console.log('📦 Loading default fallback state');
-        loadDefaultSystemState();
-        return;
-      }
-
-      console.log('📄 Database response for initial_system_state:', {
+      console.log('📄 Initial system state from mission data:', {
         stageId,
-        stageTitle: stageData?.title,
-        missionId: stageData?.mission_id,
-        hasInitialState: !!stageData?.initial_system_state,
-        initialStateKeys: stageData?.initial_system_state ? Object.keys(stageData.initial_system_state) : []
+        hasInitialState: !!initialSystemState,
+        initialStateKeys: initialSystemState ? Object.keys(initialSystemState) : []
       });
 
       // Calculate center position for better layout
       const centerX = 400;
       const centerY = 300;
 
-      if (stageData?.initial_system_state) {
-        const { nodes: initialNodes = [], edges: initialEdges = [] } = stageData.initial_system_state;
+      if (initialSystemState) {
+        const { nodes: initialNodes = [], edges: initialEdges = [] } = initialSystemState;
         
         console.log('📊 Initial system state breakdown:', { 
           totalNodes: initialNodes.length, 
@@ -1594,7 +1580,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
            // Clear invalid saved state from database and Redux, then load fresh initial state
            console.log('🧹 Clearing contaminated saved state and loading fresh initial state');
            await clearCorruptedCanvasState(missionStageData.id);
-           loadInitialSystemState(missionStageData.id);
+           loadInitialSystemState(missionStageData.id, missionStageData.initial_system_state);
            return;
          }
       }
@@ -1661,11 +1647,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       console.log('🆕 No saved canvas state and canvas is empty, will load initial system state');
       
       // Load initial system state for this stage
-      loadInitialSystemState(missionStageData.id);
+      loadInitialSystemState(missionStageData.id, missionStageData.initial_system_state);
     } else if (isFromEmail && currentNodes.length === 0) {
       // Special case: email navigation to empty canvas should always load initial state
       console.log('📧 Email navigation to empty canvas - loading initial state');
-      loadInitialSystemState(missionStageData.id);
+      loadInitialSystemState(missionStageData.id, missionStageData.initial_system_state);
     } else if (currentNodes.length > 0) {
       console.log('📦 Syncing current design state to canvas slice');
       // Sync designSlice state to canvasSlice for persistence

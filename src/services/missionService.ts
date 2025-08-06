@@ -49,6 +49,7 @@ interface MissionStageData {
   title: string;
   problem_description: string;
   system_requirements: Requirement[];
+  initial_system_state?: any; // Add initial_system_state to the interface
   mission: {
     id: string;
     title: string;
@@ -322,6 +323,7 @@ export class MissionService {
           id,
           title,
           problem_description,
+          initial_system_state,
           missions!inner(
             id,
             title,
@@ -356,6 +358,7 @@ export class MissionService {
         title: stageData.title,
         problem_description: stageData.problem_description,
         system_requirements: transformedRequirements,
+        initial_system_state: stageData.initial_system_state,
         mission: Array.isArray(stageData.missions) ? stageData.missions[0] : stageData.missions
       };
     } catch (error) {
