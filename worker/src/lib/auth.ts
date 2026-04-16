@@ -10,6 +10,12 @@ import { sendEmail, renderEmail } from './email';
  * Must be created per-request because Workers don't share state across requests.
  */
 export function createAuth(env: Env) {
+  if (!env.JWT_SECRET) {
+    throw new Error(
+      'JWT_SECRET is not set. Run `wrangler secret put JWT_SECRET` to configure it in production.'
+    );
+  }
+
   const db = new Kysely<any>({
     dialect: new D1Dialect({ database: env.DB }),
   });

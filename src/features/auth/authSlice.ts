@@ -131,14 +131,14 @@ export const demoSignIn = createAsyncThunk(
 export const updateOnboardingStatus = createAsyncThunk(
   'auth/updateOnboardingStatus',
   async (completed: boolean) => {
-    return api.patch<Profile>('/profile/profile', { onboarding_completed: completed });
+    return api.patch<Profile>('/profile', { onboarding_completed: completed });
   }
 );
 
 export const updatePreferredMentor = createAsyncThunk(
   'auth/updatePreferredMentor',
   async (mentorId: string) => {
-    return api.patch<Profile>('/profile/profile', { preferred_mentor_id: mentorId });
+    return api.patch<Profile>('/profile', { preferred_mentor_id: mentorId });
   }
 );
 

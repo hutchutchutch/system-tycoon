@@ -29,9 +29,9 @@ authRoutes.get('/me', async (c) => {
 });
 
 /**
- * PATCH /profile — update profile fields
+ * PATCH / — update profile fields (mounted at /api/profile)
  */
-authRoutes.patch('/profile', async (c) => {
+authRoutes.patch('/', async (c) => {
   const profile = c.get('profile') as Profile | undefined;
   if (!profile) {
     return c.json({ error: 'Profile not found' }, 404);
