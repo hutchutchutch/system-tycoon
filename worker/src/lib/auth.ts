@@ -134,6 +134,11 @@ export function createAuth(env: Env) {
         enabled: false,
       },
       useSecureCookies: env.ENVIRONMENT === 'production',
+      // Cloudflare sets the real client IP in this header; without telling
+      // Better Auth about it, rate limiting can't key per-IP and warns.
+      ipAddress: {
+        ipAddressHeaders: ['cf-connecting-ip'],
+      },
     },
     databaseHooks: {
       user: {
