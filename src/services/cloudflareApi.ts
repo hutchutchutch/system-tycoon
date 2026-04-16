@@ -145,7 +145,9 @@ export async function signIn(email: string, password: string) {
 export function signInWithGoogle() {
   authClient.signIn.social({
     provider: 'google',
-    callbackURL: '/game',
+    // Return to /auth so the AuthFlowDiagram can play its success animation
+    // before navigating the user onward to /onboarding or /game.
+    callbackURL: '/auth',
   });
 }
 

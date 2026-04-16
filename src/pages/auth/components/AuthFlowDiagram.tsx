@@ -413,11 +413,23 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
 
   // Handle successful authentication
   useEffect(() => {
-    // Only trigger success animation if authenticated AND no auth error
-    if (isAuthenticated && !hasDatabaseError && !hasAuthServiceError && !authError) {
+    if (!isAuthenticated || hasDatabaseError || hasAuthServiceError || authError) {
+      return;
+    }
+
+    if (animationPhase === 'none') {
+      // Fresh auth with no animation in flight — e.g., returning from Google
+      // OAuth, or a restored session on page load. Play the full sequence
+      // (AuthCard → AuthService → Database → flash green) so the user sees
+      // the handshake visualization.
+      setIsAnimating(true);
+      setAnimationPhase('left');
+    } else if (animationPhase !== 'success' && animationPhase !== 'error') {
+      // Animation already in flight (e.g., email/password submission in
+      // progress). Jump ahead to the success flash.
       setAnimationPhase('success');
     }
-  }, [isAuthenticated, hasDatabaseError, hasAuthServiceError, authError]);
+  }, [isAuthenticated, hasDatabaseError, hasAuthServiceError, authError, animationPhase]);
 
   // Update auth card node with functions and error
   useEffect(() => {

@@ -16,16 +16,10 @@ export const AuthFlowPage: React.FC = () => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  // Only redirect an already-authenticated user AFTER the server confirms the session.
-  useEffect(() => {
-    if (!isLoading && isAuthenticated && profile) {
-      if (profile.onboarding_completed) {
-        navigate('/game', { replace: true });
-      } else {
-        navigate('/onboarding', { replace: true });
-      }
-    }
-  }, [isLoading, isAuthenticated, profile, navigate]);
+  // Note: we intentionally don't auto-redirect here when the user becomes
+  // authenticated. The AuthFlowDiagram plays its success animation and then
+  // calls handleAuthSuccess to navigate — that's the single source of truth
+  // for the authenticated-redirect.
 
   const handleAuthSuccess = () => {
     if (profile?.onboarding_completed) {
