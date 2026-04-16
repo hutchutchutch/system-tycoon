@@ -96,7 +96,12 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   onHideRequirements,
   onHideComponentDrawer,
   missionStageId,
-  conversationSessionId
+  conversationSessionId,
+  currentStep,
+  totalSteps,
+  completedStep,
+  onSkip,
+  skipLabel = 'Skip Tour'
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [highlightBounds, setHighlightBounds] = useState<DOMRect | null>(null);
@@ -252,15 +257,48 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         <div className={styles.content}>
           <h3 className={styles.title}>{title}</h3>
           <p className={styles.message}>{message}</p>
-          
-          {(onAction || actionLabel) && (
-            <button
-              onClick={handleAction}
-              className={styles.actionButton}
-            >
-              {actionLabel}
-              <ChevronRight size={16} />
-            </button>
+
+          {(totalSteps || onAction) && (
+            <div className={styles.footer}>
+              <div className={styles.footerLeft}>
+                {totalSteps && totalSteps > 1 && (
+                  <div className={styles.progressSteps}>
+                    {Array.from({ length: totalSteps }).map((_, index) => (
+                      <span
+                        key={index}
+                        className={`${styles.progressStep} ${
+                          index === currentStep ? styles.progressStepActive : ''
+                        } ${
+                          completedStep !== undefined && index < completedStep
+                            ? styles.progressStepCompleted
+                            : ''
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+                {onSkip && (
+                  <button
+                    type="button"
+                    onClick={onSkip}
+                    className={styles.skipButton}
+                    aria-label={skipLabel}
+                  >
+                    {skipLabel}
+                  </button>
+                )}
+              </div>
+
+              {(onAction || actionLabel) && (
+                <button
+                  onClick={handleAction}
+                  className={styles.actionButton}
+                >
+                  {actionLabel}
+                  <ChevronRight size={16} />
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

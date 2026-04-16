@@ -16,6 +16,12 @@ export interface MentorNotificationProps {
   onHideComponentDrawer?: () => void;
   missionStageId?: string;
   conversationSessionId?: string;
+  // Step progress + skip (used by ProductTour)
+  currentStep?: number;      // zero-indexed
+  totalSteps?: number;
+  completedStep?: number;    // highest completed step (green dots up to this)
+  onSkip?: () => void;
+  skipLabel?: string;
 }
 
 export interface HighlightOverlayProps {

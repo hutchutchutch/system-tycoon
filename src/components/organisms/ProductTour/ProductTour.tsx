@@ -133,28 +133,12 @@ export const ProductTour: React.FC<ProductTourProps> = ({
         actionLabel={isLastStep ? 'Start Exploring' : 'Next'}
         onAction={handleNextStep}
         onClose={handleNotificationClose}
+        currentStep={currentStepIndex}
+        completedStep={currentStepIndex}
+        totalSteps={TOUR_STEPS.length}
+        onSkip={isLastStep ? undefined : handleCompleteTour}
+        skipLabel="Skip Tour"
       />
-      
-      {/* Progress indicator */}
-      <div className={styles.tourProgress}>
-        <div className={styles.progressSteps}>
-          {TOUR_STEPS.map((step, index) => (
-            <div
-              key={step.id}
-              className={`${styles.progressStep} ${
-                index === currentStepIndex ? styles.active : ''
-              } ${index < currentStepIndex ? styles.completed : ''}`}
-            />
-          ))}
-        </div>
-        <button
-          onClick={handleCompleteTour}
-          className={styles.skipButton}
-          aria-label="Skip tour"
-        >
-          Skip Tour
-        </button>
-      </div>
     </div>
   );
 };

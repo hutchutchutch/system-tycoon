@@ -155,6 +155,68 @@
   line-height: 1.5;
 }
 
+/* Footer row — step indicator/skip on the left, action on the right */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.footerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Progress dots */
+.progressSteps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progressStep {
+  width: 6px;
+  height: 6px;
+  background: rgba(100, 116, 139, 0.4);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.progressStepActive {
+  width: 20px;
+  height: 6px;
+  background: #3b82f6;
+  border-radius: 3px;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.5);
+}
+
+.progressStepCompleted {
+  background: #22c55e;
+}
+
+/* Skip button */
+.skipButton {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.skipButton:hover {
+  background: rgba(100, 116, 139, 0.2);
+  color: #e2e8f0;
+}
+
 /* Action button */
 .actionButton {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
