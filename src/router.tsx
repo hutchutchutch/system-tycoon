@@ -9,6 +9,7 @@ import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { SimpleLanding } from './pages/SimpleLanding';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
+import { OAuthCallback } from './pages/auth/OAuthCallback';
 import { InitialExperience } from './pages/InitialExperience';
 import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
 
@@ -193,7 +194,7 @@ export const router = createBrowserRouter([
   },
   {
     path: 'auth/callback',
-    element: <div>Processing authentication...</div>,
+    element: <OAuthCallback />,
   },
   // Legacy auth redirects
   {

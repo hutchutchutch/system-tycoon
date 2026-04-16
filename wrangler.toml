@@ -1,0 +1,41 @@
+name = "system-tycoon-api"
+main = "worker/src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "system-tycoon-db"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+migrations_dir = "worker/migrations"
+
+# KV Namespace for caching
+[[kv_namespaces]]
+binding = "CACHE"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Durable Objects for realtime collaboration
+[[durable_objects.bindings]]
+name = "DESIGN_SESSION"
+class_name = "DesignSessionDO"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["DesignSessionDO"]
+
+# Environment variables
+[vars]
+ENVIRONMENT = "development"
+GOOGLE_REDIRECT_URI = "http://localhost:8787/api/auth/google/callback"
+
+# Secrets (set via `wrangler secret put`):
+#   JWT_SECRET
+#   GOOGLE_CLIENT_ID
+#   GOOGLE_CLIENT_SECRET
+
+# Production overrides
+[env.production]
+[env.production.vars]
+ENVIRONMENT = "production"
+GOOGLE_REDIRECT_URI = "https://saas.game/api/auth/google/callback"

@@ -57,7 +57,7 @@ export const useCanvasState = ({ stageId, userId, missionId }: UseCanvasStatePro
     error: canvasLoadError,
     refetch: refetchCanvasState,
   } = useLoadCanvasStateQuery(
-    userId ? { userId, stageId } : skipToken
+    stageId ? { stageId } : skipToken
   );
   
   const [saveCanvasStateMutation, { isLoading: isSaving }] = useSaveCanvasStateMutation();
@@ -111,7 +111,6 @@ export const useCanvasState = ({ stageId, userId, missionId }: UseCanvasStatePro
     
     try {
       await saveCanvasStateMutation({
-        userId,
         missionId,
         stageId,
         canvasState: {

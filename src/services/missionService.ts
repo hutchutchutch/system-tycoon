@@ -1,5 +1,4 @@
-import { supabase } from './supabase';
-import { deliverMissionEmails } from './emailService';
+import { api } from './cloudflareApi';
 
 export interface Requirement {
   id: string;
@@ -98,51 +97,22 @@ export class MissionService {
 
   async loadMissionBySlug(slug: string): Promise<MissionData | null> {
     try {
-      // Load mission with stages and their requirements
-      const { data: missionData, error: missionError } = await supabase
-        .from('missions')
-        .select(`
-          *,
-          mission_stages!inner(
-            id,
-            stage_number,
-            title,
-            problem_description,
-            system_requirements
-          )
-        `)
-        .eq('slug', slug)
-        .single();
+      const missionData = await api.get<MissionData>('/missions/' + slug);
 
-      if (missionError) {
-        console.warn(`Mission '${slug}' not found:`, missionError);
+      if (!missionData) {
         return this.getFallbackMission(slug);
       }
 
-      // Load available components
-      const { data: componentsData, error: componentsError } = await supabase
-        .from('components')
-        .select('*')
-        .order('sort_order');
+      // Attach validator functions to requirements
+      const requirements = missionData.requirements.map((req) => ({
+        ...req,
+        completed: false,
+        validator: this.createValidatorFunction(req),
+      }));
 
-      if (componentsError) {
-        console.warn('Failed to load components:', componentsError);
-      }
-
-      // Use requirements from the first stage (or combine all stages)
-      const firstStage = missionData.mission_stages[0];
-      const requirements = this.transformDatabaseRequirements(firstStage?.system_requirements || []);
-
-      // Transform to our interface
       const mission: MissionData = {
-        id: missionData.id,
-        slug: missionData.slug,
-        title: missionData.title,
-        description: missionData.description,
-        crisis_description: missionData.crisis_description,
-        stages: missionData.mission_stages || [],
-        components: this.transformComponents(componentsData || []),
-        requirements: requirements
+        ...missionData,
+        requirements,
       };
 
       this.activeMission = mission;
@@ -177,9 +147,9 @@ export class MissionService {
         // Parse validation_config for validator creation
         required_nodes: req.validation_config?.required_components || undefined,
         min_nodes: req.validation_config?.min_instances || undefined,
-        min_nodes_of_type: req.validation_config?.min_instances ? 
+        min_nodes_of_type: req.validation_config?.min_instances ?
           { [req.validation_config.required_components?.[0] || 'unknown']: req.validation_config.min_instances } : undefined,
-        required_connection: req.validation_config?.source_types && req.validation_config?.target_types ? 
+        required_connection: req.validation_config?.source_types && req.validation_config?.target_types ?
           { from: req.validation_config.source_types[0], to: req.validation_config.target_types[0] } : undefined,
         target_metric: req.validation_config?.max_monthly_cost ? 'cost' : undefined,
         target_value: req.validation_config?.max_monthly_cost || undefined,
@@ -187,7 +157,7 @@ export class MissionService {
           validation_type: req.requirement_type,
           required_nodes: req.validation_config?.required_components,
           min_nodes: req.validation_config?.min_instances,
-          required_connection: req.validation_config?.source_types && req.validation_config?.target_types ? 
+          required_connection: req.validation_config?.source_types && req.validation_config?.target_types ?
             { from: req.validation_config.source_types[0], to: req.validation_config.target_types[0] } : undefined,
           target_metric: req.validation_config?.max_monthly_cost ? 'cost' : undefined,
           target_value: req.validation_config?.max_monthly_cost
@@ -198,13 +168,13 @@ export class MissionService {
   // Create validator function based on database validation criteria
   private createValidatorFunction(requirement: any): (nodes: any[], edges: any[]) => boolean {
     const { validation_type, required_nodes, min_nodes, required_connection, min_nodes_of_type, target_metric, target_value } = requirement;
-    
+
     return (nodes: any[], edges: any[]) => {
       switch (validation_type) {
         case 'node_categories':
           if (min_nodes && nodes.length < min_nodes) return false;
           if (required_nodes) {
-            return required_nodes.every((category: string) => 
+            return required_nodes.every((category: string) =>
               nodes.some(n => n.data.category === category)
             );
           }
@@ -223,18 +193,18 @@ export class MissionService {
         case 'node_and_connection':
           // First check if required nodes exist
           if (required_nodes) {
-            const hasRequiredNodes = required_nodes.every((category: string) => 
+            const hasRequiredNodes = required_nodes.every((category: string) =>
               nodes.some(n => n.data.category === category)
             );
             if (!hasRequiredNodes) return false;
           }
-          
+
           // Then check the connection
           if (required_connection) {
             return edges.some((e) => {
               const sourceNode = nodes.find(n => n.id === e.source);
               const targetNode = nodes.find(n => n.id === e.target);
-              
+
               return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
                      (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
             });
@@ -246,12 +216,12 @@ export class MissionService {
             return edges.some((e) => {
               const sourceNode = nodes.find(n => n.id === e.source);
               const targetNode = nodes.find(n => n.id === e.target);
-              
+
               if (required_connection.from === 'families' || required_connection.to === 'families') {
                 return (sourceNode?.data.label === 'Families' && targetNode?.data.category === required_connection.to) ||
                        (sourceNode?.data.category === required_connection.from && targetNode?.data.label === 'Families');
               }
-              
+
               return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
                      (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
             });
@@ -274,13 +244,13 @@ export class MissionService {
             return edges.some((e) => {
               const sourceNode = nodes.find(n => n.id === e.source);
               const targetNode = nodes.find(n => n.id === e.target);
-              
+
               // Handle special cases like 'families' or user nodes
               if (required_connection.from === 'families' || required_connection.to === 'families') {
                 return (sourceNode?.data.label === 'Families' && targetNode?.data.category === required_connection.to) ||
                        (sourceNode?.data.category === required_connection.from && targetNode?.data.label === 'Families');
               }
-              
+
               return (sourceNode?.data.category === required_connection.from && targetNode?.data.category === required_connection.to) ||
                      (sourceNode?.data.category === required_connection.to && targetNode?.data.category === required_connection.from);
             });
@@ -315,48 +285,28 @@ export class MissionService {
   // Load mission stage data by stage ID
   async loadMissionStageById(stageId: string): Promise<MissionStageData | null> {
     try {
-      // Load stage basic data
-      const { data: stageData, error: stageError } = await supabase
-        .from('mission_stages')
-        .select(`
-          id,
-          title,
-          problem_description,
-          missions!inner(
-            id,
-            title,
-            description,
-            crisis_description
-          )
-        `)
-        .eq('id', stageId)
-        .single();
+      const stageData = await api.get<any>('/missions/stage/' + stageId);
 
-      if (stageError) {
-        console.warn(`Mission stage '${stageId}' not found:`, stageError);
+      if (!stageData) {
         return null;
       }
 
-      // Load requirements from mission_stage_requirements table
-      const { data: requirementsData, error: requirementsError } = await supabase
-        .from('mission_stage_requirements')
-        .select('*')
-        .eq('stage_id', stageId)
-        .order('unlock_order');
-
-      if (requirementsError) {
-        console.warn(`Failed to load requirements for stage '${stageId}':`, requirementsError);
-      }
-
-      // Transform mission_stage_requirements data to match Requirement interface
-      const transformedRequirements = this.transformMissionStageRequirements(requirementsData || []);
+      // If the Worker returns requirements already transformed, use them;
+      // otherwise transform them from raw DB shape.
+      const transformedRequirements = stageData.system_requirements
+        ? stageData.system_requirements.map((req: any) => ({
+            ...req,
+            completed: false,
+            validator: this.createValidatorFunction(req),
+          }))
+        : this.transformMissionStageRequirements(stageData.requirements || []);
 
       return {
         id: stageData.id,
         title: stageData.title,
         problem_description: stageData.problem_description,
         system_requirements: transformedRequirements,
-        mission: Array.isArray(stageData.missions) ? stageData.missions[0] : stageData.missions
+        mission: stageData.mission,
       };
     } catch (error) {
       console.error('Failed to load mission stage:', error);
@@ -449,8 +399,8 @@ export class MissionService {
           description: 'Separate web server from database',
           completed: false,
           validator: (nodes, edges) => {
-            return nodes.length >= 2 && 
-              nodes.some(n => n.data.category === 'compute') && 
+            return nodes.length >= 2 &&
+              nodes.some(n => n.data.category === 'compute') &&
               nodes.some(n => n.data.category === 'database');
           }
         },
@@ -500,7 +450,7 @@ export class MissionService {
   }
 
   /**
-   * Validate requirements using the Supabase Edge Function
+   * Validate requirements using the Cloudflare Worker API
    * This integrates with our database-driven requirement system
    */
   async validateRequirementsWithAPI(
@@ -511,26 +461,19 @@ export class MissionService {
     stageAttemptId?: string
   ): Promise<ValidationResponse> {
     try {
-      const { data, error } = await supabase.functions.invoke('validate-requirements', {
-        body: {
-          stageId,
-          userId,
-          nodes,
-          edges,
-          stageAttemptId
-        }
+      const data = await api.post<ValidationResponse>('/missions/validate', {
+        stageId,
+        userId,
+        nodes,
+        edges,
+        stageAttemptId,
       });
-
-      if (error) {
-        console.error('Validation API error:', error);
-        throw new Error(`Validation failed: ${error.message}`);
-      }
 
       if (!data.success) {
         throw new Error('Validation was not successful');
       }
 
-      return data as ValidationResponse;
+      return data;
     } catch (error) {
       console.error('Error validating requirements:', error);
       throw error;
@@ -538,11 +481,16 @@ export class MissionService {
   }
 
   /**
-   * Get the current user ID from Supabase auth
+   * Get the current user ID from the API
    */
   async getCurrentUserId(): Promise<string | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    return user?.id || null;
+    try {
+      const user = await api.get<{ id: string }>('/auth/me');
+      return user?.id || null;
+    } catch (error) {
+      console.error('Error getting current user:', error);
+      return null;
+    }
   }
 }
 
@@ -559,112 +507,31 @@ export async function startMissionFromContactEmail(params: {
   };
 }): Promise<{ success: boolean; missionStarted: boolean; firstStageEmails?: any[]; error?: string }> {
   try {
-    const { userId, newsArticleId, missionId, contactEmailData } = params;
+    const { newsArticleId, missionId, contactEmailData } = params;
 
-    // Check if user has already started this mission
-    const { data: existingProgress, error: progressError } = await supabase
-      .from('user_mission_progress')
-      .select('id, status')
-      .eq('user_id', userId)
-      .eq('mission_id', missionId)
-      .single();
+    const result = await api.post<{
+      success: boolean;
+      missionStarted: boolean;
+      firstStageEmails?: any[];
+    }>('/missions/start', {
+      newsArticleId,
+      missionId,
+      contactEmailData,
+    });
 
-    if (progressError && progressError.code !== 'PGRST116') { // Not found is OK
-      console.error('Error checking mission progress:', progressError);
-      return { success: false, missionStarted: false, error: progressError.message };
-    }
-
-    let missionStarted = false;
-    let firstStageId: string | null = null;
-
-    // If no existing progress or mission is not started yet, start the mission
-    if (!existingProgress || existingProgress.status === 'locked' || existingProgress.status === 'available') {
-      // Get the first stage of this mission
-      const { data: firstStage, error: stageError } = await supabase
-        .from('mission_stages')
-        .select('id, stage_number')
-        .eq('mission_id', missionId)
-        .eq('stage_number', 1)
-        .single();
-
-      if (stageError) {
-        console.error('Error fetching first stage:', stageError);
-        return { success: false, missionStarted: false, error: stageError.message };
-      }
-
-      firstStageId = firstStage.id;
-
-      // Create or update mission progress
-      const { error: upsertError } = await supabase
-        .from('user_mission_progress')
-        .upsert({
-          user_id: userId,
-          mission_id: missionId,
-          status: 'in_progress',
-          current_stage_id: firstStage.id,
-          stage_id: firstStage.id,
-          started_at: new Date().toISOString(),
-        });
-
-      if (upsertError) {
-        console.error('Error starting mission:', upsertError);
-        return { success: false, missionStarted: false, error: upsertError.message };
-      }
-
-      missionStarted = true;
-
-      // Deliver mission start emails to user's inbox
-      if (firstStageId) {
-        console.log('Attempting to deliver mission emails:', { missionId, firstStageId });
-        const deliveryResult = await deliverMissionEmails(missionId, firstStageId);
-        if (!deliveryResult.success) {
-          console.error('Failed to deliver mission emails:', deliveryResult.error);
-          // Don't fail the whole operation, mission was started successfully
-        } else {
-          console.log(`Delivered ${deliveryResult.emailsDelivered} mission start emails to user inbox`);
-        }
-      } else {
-        console.warn('No firstStageId found - cannot deliver mission emails');
-      }
-    }
-
-    // Get first stage mission emails (trigger_type = 'mission_start') for response
-    const { data: firstStageEmails, error: emailsError } = await supabase
-      .from('mission_emails')
-      .select(`
-        id,
-        subject,
-        preview,
-        body,
-        sender_name,
-        sender_email,
-        sender_avatar,
-        priority,
-        trigger_type,
-        created_at
-      `)
-      .eq('mission_id', missionId)
-      .eq('trigger_type', 'mission_start')
-      .order('created_at');
-
-    if (emailsError) {
-      console.error('Error fetching mission emails:', emailsError);
-      return { success: false, missionStarted, error: emailsError.message };
-    }
-
-    return { 
-      success: true, 
-      missionStarted, 
-      firstStageEmails: firstStageEmails || [] 
+    return {
+      success: result.success,
+      missionStarted: result.missionStarted,
+      firstStageEmails: result.firstStageEmails || [],
     };
   } catch (error) {
     console.error('Error starting mission from contact email:', error);
-    return { 
-      success: false, 
-      missionStarted: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    return {
+      success: false,
+      missionStarted: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
 }
 
-export const missionService = MissionService.getInstance(); 
+export const missionService = MissionService.getInstance();

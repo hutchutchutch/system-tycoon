@@ -76,7 +76,6 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
 
         // Save to server via RTK Query (using dispatch directly)
         const _saveAction = canvasApi.endpoints.saveCanvasState.initiate({ // TODO: Use saveAction
-          userId: currentState.auth.user.id,
           missionId,
           stageId,
           canvasState: canvasStateData,
@@ -118,7 +117,6 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
             
             // Prepare save data for keepalive request
             const saveData = {
-              userId: auth.user.id,
               missionId: currentState.mission?.currentDatabaseMission?.id || 'default',
               stageId: canvas.activeStageId,
               canvasState: {
@@ -128,14 +126,18 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
                 timestamp: new Date().toISOString(),
               },
             };
-            
+
+            // Build headers for keepalive request
+            const headers: Record<string, string> = {
+              'Content-Type': 'application/json',
+            };
+            const token = localStorage.getItem('auth_token');
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
             // Use fetch with keepalive for better reliability on page unload
-            fetch(`${process.env.REACT_APP_API_URL}/canvas/save`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${auth.user?.session?.access_token || ''}`, // TODO: Fix auth token access
-              },
+            fetch('/api/canvas/', {
+              method: 'PUT',
+              headers,
               body: JSON.stringify(saveData),
               keepalive: true,
             }).catch(console.error);
@@ -180,7 +182,6 @@ export const triggerCanvasSave = (stageId: string) => {
       dispatch(setSavingStatus('saving'));
       
       const saveAction = canvasApi.endpoints.saveCanvasState.initiate({
-        userId: auth.user.id,
         missionId: state.mission?.currentDatabaseMission?.id || 'default',
         stageId,
         canvasState: {

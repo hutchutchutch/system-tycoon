@@ -19,6 +19,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!isAuthenticated) {
+    // In production, Cloudflare Access handles the redirect to the login page.
+    // Navigating to /auth will trigger the Access login flow.
     return <Navigate to="/auth" replace />;
   }
 

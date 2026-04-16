@@ -1,0 +1,13 @@
+{
+  "name": "system-tycoon-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Install deps from root: npm install -D wrangler @cloudflare/workers-types && npm install hono",
+  "scripts": {
+    "dev": "npx wrangler dev",
+    "deploy": "npx wrangler deploy",
+    "db:migrate:local": "npx wrangler d1 migrations apply system-tycoon-db --local",
+    "db:migrate:remote": "npx wrangler d1 migrations apply system-tycoon-db --remote"
+  }
+}

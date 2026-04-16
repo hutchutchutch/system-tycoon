@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { Email, EmailFilter, EmailSearchResult } from '../../types/email.types';
-// import type { RootState } from '../index'; // Unused
 
 // Types for API responses
 export interface EmailProgressionResponse {
@@ -40,16 +39,19 @@ export interface StageCompletionRequest {
   };
 }
 
+function addAuthHeaders(headers: Headers) {
+  const token = localStorage.getItem('auth_token');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return headers;
+}
+
 export const emailApi = createApi({
   reducerPath: 'emailApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api/emails',
-    prepareHeaders: (headers, { getState: _getState }) => {
-      // Note: Auth token handling would need to be implemented based on your specific auth slice structure
-      // const state = getState() as RootState;
-      // Add auth header based on your auth implementation
+    baseUrl: '/api/emails',
+    prepareHeaders: (headers) => {
       headers.set('content-type', 'application/json');
-      return headers;
+      return addAuthHeaders(headers);
     },
   }),
   tagTypes: ['Email', 'EmailProgress', 'MissionEmails'],
@@ -90,7 +92,7 @@ export const emailApi = createApi({
         method: 'POST',
         body: { playerId },
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: arg.emailId },
         { type: 'Email', id: 'LIST' },
       ],
@@ -99,7 +101,7 @@ export const emailApi = createApi({
     // Get emails for a specific mission (filtered by progression)
     getMissionEmails: builder.query<Email[], { missionId: string; playerId: string }>({
       query: ({ missionId, playerId }) => `/mission/${missionId}?playerId=${playerId}`,
-      providesTags: (result, error, arg) => [
+      providesTags: (_result, _error, arg) => [
         { type: 'MissionEmails', id: arg.missionId },
       ],
     }),
@@ -107,7 +109,7 @@ export const emailApi = createApi({
     // Search emails (only searches accessible emails)
     searchEmails: builder.query<EmailSearchResult, { playerId: string; filter: EmailFilter }>({
       query: ({ playerId, filter }) => ({
-        url: `/search`,
+        url: '/search',
         method: 'POST',
         body: { playerId, filter },
       }),
@@ -121,7 +123,7 @@ export const emailApi = createApi({
         method: 'POST',
         body: { playerId },
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: arg.emailId },
         { type: 'Email', id: 'LIST' },
       ],
@@ -134,7 +136,7 @@ export const emailApi = createApi({
         method: 'DELETE',
         body: { playerId },
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: arg.emailId },
         { type: 'Email', id: 'LIST' },
       ],
@@ -150,7 +152,7 @@ export const emailApi = createApi({
       totalEmails: number;
     }, { playerId: string; missionId: string }>({
       query: ({ playerId, missionId }) => `/debug/progression?playerId=${playerId}&missionId=${missionId}`,
-      providesTags: (result, error, arg) => [
+      providesTags: (_result, _error, arg) => [
         { type: 'EmailProgress', id: arg.playerId },
         { type: 'MissionEmails', id: arg.missionId },
       ],
@@ -167,7 +169,7 @@ export const emailApi = createApi({
         method: 'POST',
         body: params,
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: 'LIST' },
         { type: 'EmailProgress', id: arg.playerId },
       ],
@@ -183,9 +185,9 @@ export const emailApi = createApi({
       systemRequirements: any[];
     }, { emailId: string; playerId: string }>({
       query: ({ emailId, playerId }) => `/email/${emailId}/mission-stage?playerId=${playerId}`,
-      providesTags: (result, error, arg) => [
+      providesTags: (_result, _error, arg) => [
         { type: 'Email', id: arg.emailId },
-        { type: 'MissionEmails', id: result?.missionId },
+        { type: 'MissionEmails', id: _result?.missionId },
       ],
     }),
 
@@ -200,7 +202,7 @@ export const emailApi = createApi({
         method: 'POST',
         body: stageCompletion,
       }),
-      invalidatesTags: (result, error, arg) => [
+      invalidatesTags: (_result, _error, arg) => [
         { type: 'Email', id: 'LIST' },
         { type: 'EmailProgress', id: arg.playerId },
         { type: 'MissionEmails', id: arg.missionId },
@@ -222,4 +224,4 @@ export const {
   useTriggerManualEmailMutation,
   useCompleteStageAndCheckEmailsMutation,
   useGetMissionStageFromEmailQuery,
-} = emailApi; 
+} = emailApi;

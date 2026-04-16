@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { 
-  GameState, 
-  Scenario, 
-  Component, 
-  ScenarioProgress, 
+import type {
+  GameState,
+  Scenario,
+  Component,
+  ScenarioProgress,
   Mentor,
   Requirement,
   ArchitectureSnapshot,
@@ -16,7 +16,7 @@ import type {
   InitialNode,
   CollaborationSettings,
 } from '../../types';
-import { supabase } from '../../services/supabase';
+import { api } from '../../services/cloudflareApi';
 
 interface GameSliceState extends GameState {
   scenarios: Scenario[];
@@ -71,61 +71,36 @@ const initialState: GameSliceState = {
 export const fetchScenarios = createAsyncThunk(
   'game/fetchScenarios',
   async () => {
-    const { data, error } = await supabase
-      .from('scenarios')
-      .select('*')
-      .order('level', { ascending: true });
-    
-    if (error) throw error;
-    return data;
+    return api.get<Scenario[]>('/game/scenarios');
   }
 );
 
 export const fetchComponents = createAsyncThunk(
   'game/fetchComponents',
   async () => {
-    const { data, error } = await supabase
-      .from('components')
-      .select('*')
-      .order('min_level', { ascending: true });
-    
-    if (error) throw error;
-    return data;
+    return api.get<Component[]>('/game/components');
   }
 );
 
 export const fetchUserProgress = createAsyncThunk(
   'game/fetchUserProgress',
-  async (userId: string) => {
-    const { data, error } = await supabase
-      .from('scenario_progress')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return data;
+  async () => {
+    return api.get<ScenarioProgress[]>('/game/progress');
   }
 );
 
 export const startScenario = createAsyncThunk(
   'game/startScenario',
   async (scenarioId: string) => {
-    const { data, error } = await supabase
-      .from('scenarios')
-      .select('*')
-      .eq('id', scenarioId)
-      .single();
-    
-    if (error) throw error;
-    return data;
+    return api.get<Scenario>('/game/scenarios/' + scenarioId);
   }
 );
 
 export const submitDesign = createAsyncThunk(
   'game/submitDesign',
-  async ({ 
-    scenarioId, 
-    architecture, 
+  async ({
+    scenarioId,
+    architecture,
     questionsAsked,
     mentorId,
     componentsUsed,
@@ -138,29 +113,14 @@ export const submitDesign = createAsyncThunk(
     componentsUsed: string[];
     totalCost: number;
   }) => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-    
-    // Create scenario attempt
-    const { data, error } = await supabase
-      .from('scenario_attempts')
-      .insert({
-        user_id: user.id,
-        scenario_id: scenarioId,
-        architecture_snapshot: architecture,
-        questions_asked: questionsAsked,
-        mentor_selected: mentorId,
-        components_used: componentsUsed,
-        total_cost: totalCost,
-        performance_metrics: {}, // Will be updated during simulation
-        final_score: 0, // Will be calculated after simulation
-        requirements_met: [],
-      })
-      .select()
-      .single();
-    
-    if (error) throw error;
-    return data;
+    return api.post('/game/attempts', {
+      scenarioId,
+      architecture,
+      questionsAsked,
+      mentorId,
+      componentsUsed,
+      totalCost,
+    });
   }
 );
 
@@ -472,7 +432,7 @@ const gameSlice = createSlice({
     }>) => {
       state.careerMapViewport = action.payload;
     },
-    
+
     updateCareerMapData: (state, action: PayloadAction<{ scenarios: any[]; progress: any[] }>) => {
       state.careerMapData = {
         scenarios: action.payload.scenarios,
@@ -480,7 +440,7 @@ const gameSlice = createSlice({
         lastUpdate: Date.now(),
       };
     },
-    
+
     // Component Selection Actions
     selectComponentForMode: (state, action: PayloadAction<{
       componentType: string;
@@ -488,10 +448,10 @@ const gameSlice = createSlice({
       scenarioId: string;
     }>) => {
       const { componentType, mode, scenarioId } = action.payload;
-      
+
       // Define component-specific requirements and initial nodes
       const componentData = getComponentData(componentType);
-      
+
       state.selectedComponent = {
         componentType,
         mode,
@@ -502,11 +462,11 @@ const gameSlice = createSlice({
         selectedAt: Date.now(),
       };
     },
-    
+
     clearComponentSelection: (state) => {
       state.selectedComponent = null;
     },
-    
+
     updateCollaborationSettings: (state, action: PayloadAction<Partial<CollaborationSettings>>) => {
       if (state.selectedComponent && state.selectedComponent.mode === 'collaboration') {
         state.selectedComponent.collaborationSettings = {
@@ -515,7 +475,7 @@ const gameSlice = createSlice({
         };
       }
     },
-    
+
     resetGameState: (state) => {
       state.currentScenario = undefined;
       state.meetingPhase = undefined;
@@ -539,19 +499,19 @@ const gameSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to fetch scenarios';
       });
-    
+
     // Fetch components
     builder
       .addCase(fetchComponents.fulfilled, (state, action) => {
         state.components = action.payload;
       });
-    
+
     // Fetch user progress
     builder
       .addCase(fetchUserProgress.fulfilled, (state, action) => {
         state.progress = action.payload;
       });
-    
+
     // Start scenario
     builder
       .addCase(startScenario.fulfilled, (state, action) => {
@@ -560,9 +520,9 @@ const gameSlice = createSlice({
         state.meetingPhase = {
           questionsRemaining: 3,
           questionsAsked: [],
-          currentRequirements: action.payload.base_requirements || [],
-          budget: action.payload.budget_limit,
-          timeline: action.payload.time_limit_seconds,
+          currentRequirements: (action.payload as any).base_requirements || action.payload.baseRequirements || [],
+          budget: (action.payload as any).budget_limit || action.payload.budgetLimit,
+          timeline: (action.payload as any).time_limit_seconds || action.payload.timeLimitSeconds,
         };
       });
   },
@@ -604,19 +564,19 @@ export const selectIsAssetOnLeftSide = (worldX: number) => (state: any) => {
 // Component Selection Selectors
 export const selectSelectedComponent = (state: any) => state.game.selectedComponent;
 
-export const selectIsCollaborationMode = (state: any) => 
+export const selectIsCollaborationMode = (state: any) =>
   state.game.selectedComponent?.mode === 'collaboration';
 
-export const selectComponentRequirements = (state: any) => 
+export const selectComponentRequirements = (state: any) =>
   state.game.selectedComponent?.requirements || [];
 
-export const selectComponentInitialNodes = (state: any) => 
+export const selectComponentInitialNodes = (state: any) =>
   state.game.selectedComponent?.initialNodes || [];
 
-export const selectCollaborationSettings = (state: any) => 
+export const selectCollaborationSettings = (state: any) =>
   state.game.selectedComponent?.collaborationSettings;
 
-export const selectSelectedComponentType = (state: any) => 
+export const selectSelectedComponentType = (state: any) =>
   state.game.selectedComponent?.componentType;
 
 export default gameSlice.reducer;

@@ -1,10 +1,30 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { User, Profile } from '../../types';
-import { supabase } from '../../services/supabase';
+import type { Profile } from '../../types';
+import {
+  api,
+  isAuthenticated,
+  signIn as apiSignIn,
+  signUp as apiSignUp,
+  signInWithGoogle as apiSignInWithGoogle,
+  signOut as apiSignOut,
+  handleOAuthCallback,
+  setToken,
+  type AuthResponse,
+  type ApiError,
+} from '../../services/cloudflareApi';
+
+interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+  aud: 'authenticated';
+  role: 'authenticated';
+}
 
 interface AuthState {
-  user: User | null;
+  user: AuthUser | null;
   profile: Profile | null;
   isLoading: boolean;
   error: string | null;
@@ -19,212 +39,128 @@ const initialState: AuthState = {
   isAuthenticated: false,
 };
 
-// Async thunks
+function parseAuthUser(data: AuthResponse['user']): { user: AuthUser; profile: Profile } {
+  return {
+    user: {
+      id: data.id,
+      email: data.email,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      aud: 'authenticated',
+      role: 'authenticated',
+    },
+    profile: {
+      id: data.id,
+      username: data.username,
+      display_name: data.display_name ?? undefined,
+      avatar_url: data.avatar_url ?? undefined,
+      current_level: data.current_level,
+      reputation_score: data.reputation_score,
+      career_title: data.career_title ?? undefined,
+      preferred_mentor_id: data.preferred_mentor_id ?? undefined,
+      onboarding_completed: data.onboarding_completed,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    },
+  };
+}
+
+// --- Thunks ---
+
 export const signInWithEmail = createAsyncThunk(
   'auth/signInWithEmail',
   async ({ email, password }: { email: string; password: string }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    
-    if (error) throw error;
-    
-    // Fetch profile - using 'id' column instead of 'user_id'
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', data.user.id)
-      .single();
-    
-    if (profileError) throw profileError;
-    
-    return { user: data.user, profile };
+    const res = await apiSignIn(email, password);
+    return parseAuthUser(res.user);
   }
 );
 
 export const signUpWithEmail = createAsyncThunk(
   'auth/signUpWithEmail',
   async ({ email, password, username }: { email: string; password: string; username: string }) => {
-    // First check if username already exists
-    const { data: existingProfile, error: checkError } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('username', username)
-      .single();
-    
-    if (existingProfile) {
-      throw new Error('Username already taken. Please choose a different username.');
-    }
-    
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { username },
-      },
-    });
-    
-    if (error) {
-      // Better error messages for common issues
-      if (error.message.includes('Database error saving new user')) {
-        throw new Error('Unable to create account. This might be due to a username conflict or database issue. Please try a different username.');
-      }
-      throw error;
-    }
-    
-    if (data.user) {
-      // Profile creation is handled automatically by database trigger
-      // Wait a moment for the trigger to complete, then fetch the profile
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', data.user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Profile fetch error:', profileError);
-        // Profile creation is async via trigger, might not be ready yet
-        return { user: data.user, profile: null };
-      }
-      
-      return { user: data.user, profile };
-    }
-    
-    return { user: data.user };
+    const res = await apiSignUp(email, password, username);
+    return parseAuthUser(res.user);
   }
 );
 
 export const signInWithOAuth = createAsyncThunk(
   'auth/signInWithOAuth',
-  async (provider: 'google' | 'github' | 'linkedin') => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    
-    if (error) throw error;
+  async (_provider: 'google' | 'github' | 'linkedin') => {
+    apiSignInWithGoogle();
+    // This redirects — thunk won't resolve
+  }
+);
+
+/**
+ * Handle the OAuth callback redirect.
+ * Called from the /auth/callback route to extract the token from the URL hash.
+ */
+export const handleOAuthReturn = createAsyncThunk(
+  'auth/handleOAuthReturn',
+  async () => {
+    const token = handleOAuthCallback();
+    if (!token) {
+      throw new Error('No token found in callback URL');
+    }
+    // Token is already stored by handleOAuthCallback — fetch profile
+    const data = await api.get<AuthResponse['user']>('/auth/me');
+    return parseAuthUser(data);
   }
 );
 
 export const signOut = createAsyncThunk(
   'auth/signOut',
   async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    apiSignOut();
   }
 );
 
 export const checkAuth = createAsyncThunk(
   'auth/checkAuth',
   async () => {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error || !user) {
+    if (!isAuthenticated()) {
       return null;
     }
-    
-    // Fetch profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileError) {
-      console.error('Profile fetch error:', profileError);
-      return null;
+    try {
+      const data = await api.get<AuthResponse['user']>('/auth/me');
+      return parseAuthUser(data);
+    } catch (err: unknown) {
+      if ((err as ApiError).status === 401) {
+        return null;
+      }
+      throw err;
     }
-    
-    return { user, profile };
   }
 );
 
 export const demoSignIn = createAsyncThunk(
   'auth/demoSignIn',
   async (profileId: string) => {
-    // Create a mock user for demo purposes
-    const mockUser = {
-      id: profileId,
-      email: 'demo@example.com',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      aud: 'authenticated',
-      role: 'authenticated',
-      app_metadata: {},
-      user_metadata: {},
-    };
-    
-    // Create a mock profile based on the expected structure
-    const mockProfile = {
-      id: profileId,
-      username: 'hutchenbach',
-      display_name: undefined,
-      avatar_url: undefined,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      current_level: 1,
-      reputation_score: 0,
-      career_title: 'Aspiring Developer',
-      preferred_mentor_id: undefined,
-      onboarding_completed: false,
-    };
-    
-    return { user: mockUser, profile: mockProfile };
+    const res = await api.get<{ token: string; user: AuthResponse['user'] }>(`/auth/demo?profileId=${encodeURIComponent(profileId)}`);
+    setToken(res.token);
+    return parseAuthUser(res.user);
   }
 );
 
 export const updateOnboardingStatus = createAsyncThunk(
   'auth/updateOnboardingStatus',
-  async (completed: boolean, { getState }) => {
-    const state = getState() as any;
-    const userId = state.auth.user?.id;
-    
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ onboarding_completed: completed })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    return data;
+  async (completed: boolean) => {
+    return api.patch<Profile>('/auth/profile', { onboarding_completed: completed });
   }
 );
 
 export const updatePreferredMentor = createAsyncThunk(
   'auth/updatePreferredMentor',
-  async (mentorId: string, { getState }) => {
-    const state = getState() as any;
-    const userId = state.auth.user?.id;
-    
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ preferred_mentor_id: mentorId })
-      .eq('id', userId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    
-    return data;
+  async (mentorId: string) => {
+    return api.patch<Profile>('/auth/profile', { preferred_mentor_id: mentorId });
   }
 );
 
-// Slice definition
+// Keep this alias for code that imports fetchCurrentUser
+export const fetchCurrentUser = checkAuth;
+
+// --- Slice ---
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -239,15 +175,12 @@ const authSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    // Sign in with email
+    // Sign in
     builder
-      .addCase(signInWithEmail.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(signInWithEmail.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signInWithEmail.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user as any;
+        state.user = action.payload.user;
         state.profile = action.payload.profile;
         state.isAuthenticated = true;
       })
@@ -255,19 +188,14 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to sign in';
         state.isAuthenticated = false;
-        state.user = null;
-        state.profile = null;
       });
-    
-    // Sign up with email
+
+    // Sign up
     builder
-      .addCase(signUpWithEmail.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(signUpWithEmail.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signUpWithEmail.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user as any;
+        state.user = action.payload.user;
         state.profile = action.payload.profile;
         state.isAuthenticated = true;
       })
@@ -275,38 +203,44 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to sign up';
         state.isAuthenticated = false;
-        state.user = null;
-        state.profile = null;
       });
-    
-    // OAuth sign in
+
+    // OAuth
     builder
-      .addCase(signInWithOAuth.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(signInWithOAuth.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signInWithOAuth.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message || 'OAuth sign in failed';
       });
-    
-    // Sign out
+
+    // OAuth callback
     builder
-      .addCase(signOut.fulfilled, (state) => {
-        state.user = null;
-        state.profile = null;
-        state.isAuthenticated = false;
+      .addCase(handleOAuthReturn.pending, (state) => { state.isLoading = true; state.error = null; })
+      .addCase(handleOAuthReturn.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.profile = action.payload.profile;
+        state.isAuthenticated = true;
+      })
+      .addCase(handleOAuthReturn.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message || 'OAuth callback failed';
       });
-    
+
+    // Sign out
+    builder.addCase(signOut.fulfilled, (state) => {
+      state.user = null;
+      state.profile = null;
+      state.isAuthenticated = false;
+    });
+
     // Check auth
     builder
-      .addCase(checkAuth.pending, (state) => {
-        state.isLoading = true;
-      })
+      .addCase(checkAuth.pending, (state) => { state.isLoading = true; })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
         if (action.payload) {
-          state.user = action.payload.user as any;
+          state.user = action.payload.user;
           state.profile = action.payload.profile;
           state.isAuthenticated = true;
         }
@@ -315,16 +249,13 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.isAuthenticated = false;
       });
-    
+
     // Demo sign in
     builder
-      .addCase(demoSignIn.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
+      .addCase(demoSignIn.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(demoSignIn.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload.user as any;
+        state.user = action.payload.user;
         state.profile = action.payload.profile;
         state.isAuthenticated = true;
       })
@@ -332,24 +263,20 @@ const authSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Demo sign in failed';
       });
-    
-    // Update onboarding status
+
+    // Update onboarding
     builder
       .addCase(updateOnboardingStatus.fulfilled, (state, action) => {
-        if (state.profile) {
-          state.profile = action.payload;
-        }
+        if (state.profile) state.profile = action.payload;
       })
       .addCase(updateOnboardingStatus.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to update onboarding status';
       });
-    
-    // Update preferred mentor
+
+    // Update mentor
     builder
       .addCase(updatePreferredMentor.fulfilled, (state, action) => {
-        if (state.profile) {
-          state.profile = action.payload;
-        }
+        if (state.profile) state.profile = action.payload;
       })
       .addCase(updatePreferredMentor.rejected, (state, action) => {
         state.error = action.error.message || 'Failed to update preferred mentor';

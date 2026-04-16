@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './cloudflareApi';
 
 export interface DatabaseMentor {
   id: string;
@@ -61,44 +61,33 @@ const getAvatarForMentor = (name: string): string => {
     'Jordan Rivera': '🚀',
     'Alex Kim': '🏢'
   };
-  
+
   return avatarMap[name] || '👨‍💻';
-};
-
-// Transform database mentor to UI format
-const transformMentorForUI = (dbMentor: DatabaseMentor): MentorForUI => {
-  const traits = Array.isArray(dbMentor.personality.traits) 
-    ? dbMentor.personality.traits 
-    : [dbMentor.personality.traits];
-
-  return {
-    id: dbMentor.id,
-    name: dbMentor.name,
-    title: dbMentor.title,
-    company: dbMentor.signature?.knownFor || dbMentor.specialty?.domains?.[0] || 'Technology',
-    contribution: dbMentor.signature?.legacy || dbMentor.tagline,
-    avatar: getAvatarForMentor(dbMentor.name),
-    expertise: dbMentor.specialty?.domains || dbMentor.tags || [],
-    message: dbMentor.lore || dbMentor.quote,
-    toastMessage: `"${dbMentor.quote}" - Click to learn more about ${dbMentor.name}'s approach.`
-  };
 };
 
 export const fetchMentors = async (): Promise<MentorForUI[]> => {
   try {
-    const { data, error } = await supabase
-      .from('mentors')
-      .select('*')
-      .order('created_at');
+    // The Worker returns objects with: id, name, title, company, contribution, expertise, message, toastMessage
+    const data = await api.get<any[]>('/mentors');
 
-    if (error) {
-      console.error('Error fetching mentors:', error);
+    if (!data) {
       return [];
     }
 
-    return data.map(transformMentorForUI);
+    // Apply the client-side avatar since it is not stored in the database
+    return data.map((mentor) => ({
+      id: mentor.id,
+      name: mentor.name,
+      title: mentor.title,
+      company: mentor.company || mentor.signature?.knownFor || mentor.specialty?.domains?.[0] || 'Technology',
+      contribution: mentor.contribution || mentor.signature?.legacy || mentor.tagline || '',
+      avatar: getAvatarForMentor(mentor.name),
+      expertise: mentor.expertise || mentor.specialty?.domains || mentor.tags || [],
+      message: mentor.message || mentor.lore || mentor.quote || '',
+      toastMessage: mentor.toastMessage || `"${mentor.quote || ''}" - Click to learn more about ${mentor.name}'s approach.`,
+    }));
   } catch (error) {
     console.error('Error in fetchMentors:', error);
     return [];
   }
-}; 
+};

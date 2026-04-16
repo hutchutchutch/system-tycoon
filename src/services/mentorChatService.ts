@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './cloudflareApi';
 
 export interface ChatMessage {
   id: string;
@@ -121,22 +121,16 @@ class MentorChatService {
 
   async sendMessage(session: MentorChatSession, message: string): Promise<string> {
     try {
-      const { data, error } = await supabase.functions.invoke('mentor-chat', {
-        body: {
-          userId: session.userId,
-          mentorId: session.mentorId,
-          message,
-          conversationSessionId: session.conversationSessionId,
-          missionStageId: session.missionStageId,
-          missionTitle: session.missionTitle,
-          problemDescription: session.problemDescription,
-          contextData: session.contextData,
-        },
+      const data = await api.post<{ response: string }>('/mentors/chat', {
+        mentorId: session.mentorId,
+        conversationSessionId: session.conversationSessionId,
+        messageContent: message,
+        senderType: 'user',
+        missionStageId: session.missionStageId,
+        missionTitle: session.missionTitle,
+        problemDescription: session.problemDescription,
+        contextData: session.contextData,
       });
-
-      if (error) {
-        throw error;
-      }
 
       return data.response;
     } catch (error) {
@@ -147,22 +141,18 @@ class MentorChatService {
 
   async getChatHistory(conversationSessionId: string): Promise<ChatMessage[]> {
     try {
-      const { data, error } = await supabase
-        .from('mentor_chat_messages')
-        .select('*')
-        .eq('conversation_session_id', conversationSessionId)
-        .order('created_at', { ascending: true });
+      const data = await api.get<any[]>('/mentors/chat/' + conversationSessionId);
 
-      if (error) {
-        throw error;
+      if (!data) {
+        return [];
       }
 
-      return data.map(msg => ({
+      return data.map((msg) => ({
         id: msg.id,
-        content: msg.message_content,
-        timestamp: new Date(msg.created_at),
-        sender: msg.sender_type as 'user' | 'mentor' | 'system',
-        mentorId: msg.mentor_id,
+        content: msg.message_content || msg.content,
+        timestamp: new Date(msg.created_at || msg.timestamp),
+        sender: (msg.sender_type || msg.sender) as 'user' | 'mentor' | 'system',
+        mentorId: msg.mentor_id || msg.mentorId,
       }));
     } catch (error) {
       console.error('Error fetching chat history:', error);
@@ -175,4 +165,4 @@ class MentorChatService {
   }
 }
 
-export const mentorChatService = MentorChatService.getInstance(); 
+export const mentorChatService = MentorChatService.getInstance();

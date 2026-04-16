@@ -5,7 +5,6 @@ import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../compon
 import { EmailCard } from '../../components/molecules/EmailCard';
 import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
 import { fetchEmails, updateEmailStatus, type EmailData } from '../../services/emailService';
-import { supabase } from '../../services/supabase';
 import type { GroupChatMessage, MentorInfo } from '../../components/organisms/EmailClient/EmailClient.types';
 import styles from './EmailClientWrapper.module.css';
 

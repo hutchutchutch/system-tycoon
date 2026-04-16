@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { UserStats, Achievement, UserAchievement, ComponentMastery } from '../../types';
-import { supabase } from '../../services/supabase';
+import { api } from '../../services/cloudflareApi';
 
 interface UserSliceState {
   stats: UserStats | null;
@@ -24,117 +24,39 @@ const initialState: UserSliceState = {
 // Async thunks
 export const fetchUserStats = createAsyncThunk(
   'user/fetchStats',
-  async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_stats')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-    
-    if (error) throw error;
-    return data;
+  async () => {
+    return api.get<UserStats>('/game/stats');
   }
 );
 
 export const fetchAchievements = createAsyncThunk(
   'user/fetchAchievements',
   async () => {
-    const { data, error } = await supabase
-      .from('achievements')
-      .select('*')
-      .order('created_at', { ascending: true });
-    
-    if (error) throw error;
-    return data;
+    return api.get<Achievement[]>('/game/achievements');
   }
 );
 
 export const fetchUserAchievements = createAsyncThunk(
   'user/fetchUserAchievements',
-  async (userId: string) => {
-    const { data, error } = await supabase
-      .from('user_achievements')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return data;
+  async () => {
+    return api.get<UserAchievement[]>('/game/achievements/user');
   }
 );
 
 export const fetchComponentMastery = createAsyncThunk(
   'user/fetchComponentMastery',
-  async (userId: string) => {
-    const { data, error } = await supabase
-      .from('component_mastery')
-      .select('*')
-      .eq('user_id', userId);
-    
-    if (error) throw error;
-    return data;
+  async () => {
+    return api.get<ComponentMastery[]>('/game/mastery');
   }
 );
 
 export const updateComponentMastery = createAsyncThunk(
   'user/updateComponentMastery',
-  async ({ userId, componentId, success }: {
-    userId: string;
+  async ({ componentId, success }: {
     componentId: string;
     success: boolean;
   }) => {
-    // First, try to get existing mastery
-    const { data: existing } = await supabase
-      .from('component_mastery')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('component_id', componentId)
-      .single();
-    
-    if (existing) {
-      // Update existing mastery
-      const timesUsed = existing.times_used + 1;
-      const successfulUses = success ? existing.successful_uses + 1 : existing.successful_uses;
-      
-      // Calculate new mastery level
-      let masteryLevel: ComponentMastery['masteryLevel'] = 'novice';
-      if (successfulUses >= 20) masteryLevel = 'gold';
-      else if (successfulUses >= 10) masteryLevel = 'silver';
-      else if (successfulUses >= 5) masteryLevel = 'bronze';
-      
-      const { data, error } = await supabase
-        .from('component_mastery')
-        .update({
-          times_used: timesUsed,
-          successful_uses: successfulUses,
-          mastery_level: masteryLevel,
-          last_used_at: new Date().toISOString(),
-        })
-        .eq('user_id', userId)
-        .eq('component_id', componentId)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    } else {
-      // Create new mastery record
-      const { data, error } = await supabase
-        .from('component_mastery')
-        .insert({
-          user_id: userId,
-          component_id: componentId,
-          mastery_level: 'novice',
-          times_used: 1,
-          successful_uses: success ? 1 : 0,
-          last_used_at: new Date().toISOString(),
-          unlocked_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    }
+    return api.post<ComponentMastery>('/game/mastery', { componentId, success });
   }
 );
 
@@ -166,32 +88,32 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.error = action.error.message || 'Failed to fetch user stats';
       });
-    
+
     // Fetch achievements
     builder
       .addCase(fetchAchievements.fulfilled, (state, action) => {
         state.achievements = action.payload;
       });
-    
+
     // Fetch user achievements
     builder
       .addCase(fetchUserAchievements.fulfilled, (state, action) => {
         state.userAchievements = action.payload;
       });
-    
+
     // Fetch component mastery
     builder
       .addCase(fetchComponentMastery.fulfilled, (state, action) => {
         state.componentMastery = action.payload;
       });
-    
+
     // Update component mastery
     builder
       .addCase(updateComponentMastery.fulfilled, (state, action) => {
         const index = state.componentMastery.findIndex(
-          m => m.componentId === action.payload.component_id
+          m => m.componentId === ((action.payload as any).component_id || (action.payload as any).componentId)
         );
-        
+
         if (index >= 0) {
           state.componentMastery[index] = action.payload as any;
         } else {

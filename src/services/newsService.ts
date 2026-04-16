@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './cloudflareApi';
 import type { NewsArticle } from '../types/news.types';
 
 export interface FetchNewsOptions {
@@ -10,68 +10,41 @@ export interface FetchNewsOptions {
 
 export const newsService = {
   async fetchArticles(options: FetchNewsOptions = {}): Promise<NewsArticle[]> {
-    let query = supabase
-      .from('news_articles')
-      .select('*')
-      .eq('article_status', 'active')
-      .order('published_at', { ascending: false });
+    const params = new URLSearchParams();
 
     if (options.limit) {
-      query = query.limit(options.limit);
+      params.set('limit', String(options.limit));
     }
 
     if (options.categories && options.categories.length > 0) {
-      query = query.in('category_slug', options.categories);
+      params.set('categories', options.categories.join(','));
     }
 
     if (options.urgencyLevel) {
-      query = query.eq('urgency_level', options.urgencyLevel);
+      params.set('urgencyLevel', options.urgencyLevel);
     }
 
     if (options.gridSize) {
-      query = query.eq('grid_size', options.gridSize);
+      params.set('gridSize', options.gridSize);
     }
 
-    const { data, error } = await query;
+    const queryString = params.toString();
+    const path = queryString ? '/news?' + queryString : '/news';
 
-    if (error) {
-      console.error('Error fetching news articles:', error);
-      throw error;
-    }
-
-    return data as NewsArticle[] || [];
+    const data = await api.get<NewsArticle[]>(path);
+    return data || [];
   },
 
   async getCategories(): Promise<string[]> {
-    const { data, error } = await supabase
-      .from('news_articles')
-      .select('category_slug')
-      .eq('article_status', 'active');
-
-    if (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
-
-    // Get unique category slugs with proper typing
-    const categories = data?.map((item: { category_slug: string }) => item.category_slug) || [];
-    const uniqueCategories = [...new Set(categories)];
-    return uniqueCategories.sort();
+    const data = await api.get<string[]>('/news/categories');
+    return data || [];
   },
 
   async incrementViewCount(articleId: string): Promise<void> {
-    const { error } = await supabase.rpc('increment_view_count', { article_id: articleId });
-
-    if (error) {
-      console.error('Error incrementing view count:', error);
-    }
+    await api.post('/news/' + articleId + '/view');
   },
 
   async incrementContactCount(articleId: string): Promise<void> {
-    const { error } = await supabase.rpc('increment_contact_count', { article_id: articleId });
-
-    if (error) {
-      console.error('Error incrementing contact count:', error);
-    }
+    await api.post('/news/' + articleId + '/contact');
   }
-}; 
+};

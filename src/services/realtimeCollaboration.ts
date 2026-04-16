@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './cloudflareApi';
 import type { Node, Edge } from '@xyflow/react';
 
 export interface DesignSession {
@@ -50,189 +50,59 @@ export interface CanvasConnection {
 }
 
 export const realtimeCollaborationService = {
-  // Create a new design session
   async createSession(scenarioId: string, sessionName: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('design_sessions')
-      .insert({
-        scenario_id: scenarioId,
-        created_by: user.id,
-        session_name: sessionName,
-        is_active: true
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return api.post<DesignSession>('/collaboration/sessions', {
+      scenarioId,
+      sessionName,
+    });
   },
 
-  // Join an existing session
   async joinSession(sessionId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    // Check if already a participant
-    const { data: existing } = await supabase
-      .from('design_session_participants')
-      .select()
-      .eq('session_id', sessionId)
-      .eq('consultant_id', user.id)
-      .single();
-
-    if (!existing) {
-      // Add as participant
-      const { error } = await supabase
-        .from('design_session_participants')
-        .insert({
-          session_id: sessionId,
-          consultant_id: user.id,
-          role: 'collaborator',
-          joined_at: new Date().toISOString()
-        });
-
-      if (error) throw error;
-    }
-
-    // Get session details
-    const { data: session, error: sessionError } = await supabase
-      .from('design_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single();
-
-    if (sessionError) throw sessionError;
-    return session;
+    await api.post(`/collaboration/sessions/${sessionId}/join`);
+    // Return session details - fetch from the active sessions list
+    const sessions = await api.get<DesignSession[]>(`/collaboration/sessions/${sessionId}`);
+    return sessions[0] || null;
   },
 
-  // Leave a session
   async leaveSession(sessionId: string) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('design_session_participants')
-      .delete()
-      .eq('session_id', sessionId)
-      .eq('consultant_id', user.id);
-
-    if (error) throw error;
+    await api.delete(`/collaboration/sessions/${sessionId}/leave`);
   },
 
-  // Get active sessions for a scenario
   async getActiveSessions(scenarioId: string) {
-    const { data, error } = await supabase
-      .from('design_sessions')
-      .select(`
-        *,
-        design_session_participants!inner(
-          consultant_id,
-          role,
-          joined_at
-        )
-      `)
-      .eq('scenario_id', scenarioId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-    return data || [];
+    return api.get<DesignSession[]>(`/collaboration/sessions/${scenarioId}`);
   },
 
-  // Update canvas state
   async updateCanvasState(sessionId: string, nodes: Node[], edges: Edge[]) {
-    const { error } = await supabase
-      .from('design_sessions')
-      .update({
-        canvas_state: { nodes, edges },
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', sessionId);
-
-    if (error) throw error;
+    await api.put(`/collaboration/sessions/${sessionId}/canvas`, { nodes, edges });
   },
 
-  // Add or update a component
+  // Component and connection operations use the collaboration API
+  // These are simplified since the Worker handles user identity
   async upsertComponent(component: Partial<CanvasComponent>) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('canvas_components')
-      .upsert({
-        ...component,
-        last_modified_by: user.id,
-        updated_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // TODO: Add dedicated component upsert endpoint if needed
+    // For now, canvas state updates handle this via updateCanvasState
+    console.warn('upsertComponent: use updateCanvasState instead');
+    return component as CanvasComponent;
   },
 
-  // Update component selection
-  async updateComponentSelection(sessionId: string, componentId: string, isSelected: boolean) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('canvas_components')
-      .update({
-        is_selected: isSelected,
-        selected_by: isSelected ? user.id : null,
-        updated_at: new Date().toISOString()
-      })
-      .eq('session_id', sessionId)
-      .eq('component_id', componentId);
-
-    if (error) throw error;
+  async updateComponentSelection(_sessionId: string, _componentId: string, _isSelected: boolean) {
+    // TODO: Add dedicated selection endpoint for real-time collaboration (Phase 5)
+    console.warn('updateComponentSelection: not yet implemented for Cloudflare backend');
   },
 
-  // Add or update a connection
   async upsertConnection(connection: Partial<CanvasConnection>) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('canvas_connections')
-      .upsert({
-        ...connection,
-        created_by: user.id
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    // TODO: Add dedicated connection upsert endpoint if needed
+    console.warn('upsertConnection: use updateCanvasState instead');
+    return connection as CanvasConnection;
   },
 
-  // Delete a connection
-  async deleteConnection(sessionId: string, connectionId: string) {
-    const { error } = await supabase
-      .from('canvas_connections')
-      .delete()
-      .eq('session_id', sessionId)
-      .eq('connection_id', connectionId);
-
-    if (error) throw error;
+  async deleteConnection(_sessionId: string, _connectionId: string) {
+    // TODO: Add dedicated connection delete endpoint if needed
+    console.warn('deleteConnection: use updateCanvasState instead');
   },
 
-  // Log collaboration action
-  async logAction(sessionId: string, actionType: string, actionData: any) {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return; // Don't throw, just skip logging
-
-    await supabase
-      .from('collaboration_logs')
-      .insert({
-        session_id: sessionId,
-        user_id: user.id,
-        action_type: actionType,
-        action_data: actionData
-      });
+  async logAction(_sessionId: string, _actionType: string, _actionData: any) {
+    // Collaboration logging is deferred to Phase 5 (Durable Objects)
+    // The Worker doesn't have a dedicated logging endpoint yet
   }
-}; 
+};

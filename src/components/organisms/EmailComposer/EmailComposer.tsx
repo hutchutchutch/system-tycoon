@@ -8,7 +8,7 @@ import type { NewsHero } from '../../../types/news.types';
 import { saveEmail } from '../../../services/emailService';
 import { startMissionFromContactEmail } from '../../../services/missionService';
 import type { RootState } from '../../../store';
-import { supabase } from '../../../services/supabase';
+import { api } from '../../../services/cloudflareApi';
 import styles from './EmailComposer.module.css';
 
 export interface EmailComposerProps {
@@ -59,14 +59,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   // Update news article accepted status
   const updateNewsArticleAcceptedStatus = async (articleId: string, status: 'no' | 'pending' | 'yes') => {
     try {
-      const { error } = await supabase
-        .from('news_articles')
-        .update({ accepted: status })
-        .eq('id', articleId);
-
-      if (error) {
-        console.error('Error updating news article accepted status:', error);
-      }
+      await api.patch(`/news/${articleId}/status`, { accepted: status });
     } catch (error) {
       console.error('Error in updateNewsArticleAcceptedStatus:', error);
     }

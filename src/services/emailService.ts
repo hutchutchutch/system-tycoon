@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { api } from './cloudflareApi';
 import type { EmailCategory } from '../types/email.types';
 
 export interface EmailData {
@@ -32,142 +32,45 @@ export async function saveEmail(emailData: {
   stageId?: string;
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    // Generate preview from body (first 100 characters)
-    const preview = emailData.body.substring(0, 100) + (emailData.body.length > 100 ? '...' : '');
-    
-    // Extract sender info from current user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('username, display_name')
-      .eq('id', user.id)
-      .single();
-    
-    if (profileError) {
-      console.error('Error fetching user profile:', profileError);
-      return { success: false, error: 'Could not fetch user profile' };
-    }
-    
-    const senderName = profile?.display_name || profile?.username || 'Player';
-    const senderEmail = user.email || 'player@systemtycoon.com';
-    
-    const emailRecord = {
-      sender_name: senderName,
-      sender_email: senderEmail,
-      sender_avatar: null,
-      recipient_email: emailData.to,
-      recipient_name: emailData.hero?.name || null,
+    const result = await api.post<{ id: string }>('/emails', {
+      to: emailData.to,
       subject: emailData.subject,
-      preview,
       body: emailData.body,
-      content: emailData.body,
-      timestamp: new Date().toISOString(),
       status: emailData.status,
-      priority: 'normal' as const,
-      has_attachments: false,
-      tags: ['user-composed'],
-      category: emailData.status === 'sent' ? 'sent' as const : 'drafts' as const,
-      mission_id: emailData.missionId,
-      stage_id: emailData.stageId,
-      trigger_type: null, // User emails don't have automatic triggers
-      character_id: null, // User emails aren't from characters
-    };
+      missionId: emailData.missionId,
+      stageId: emailData.stageId,
+    });
 
-    const { data, error } = await supabase
-      .from('mission_emails')
-      .insert([emailRecord])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error saving email:', error);
-      return { success: false, error: error.message };
-    }
-
-    // If email was sent, deliver it to user's inbox
-    if (emailData.status === 'sent') {
-      const { error: deliveryError } = await supabase.rpc('deliver_user_sent_email', {
-        p_user_id: user.id,
-        p_mission_email_id: data.id
-      });
-
-      if (deliveryError) {
-        console.error('Error delivering email to inbox:', deliveryError);
-        // Don't fail the whole operation, email was saved successfully
-      }
-    }
-
-    return { success: true, emailId: data.id };
+    return { success: true, emailId: result.id };
   } catch (error) {
     console.error('Error in saveEmail:', error);
     return { success: false, error: 'Failed to save email' };
   }
 }
 
-// New function to trigger mission email delivery
-export async function deliverMissionEmails(missionId: string, stageId: string): Promise<{ success: boolean; emailsDelivered?: number; error?: string }> {
+// Trigger mission email delivery
+export async function deliverMissionEmails(
+  missionId: string,
+  stageId: string
+): Promise<{ success: boolean; emailsDelivered?: number; error?: string }> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      return { success: false, error: 'User not authenticated' };
-    }
-
-    console.log('Calling deliver_mission_emails RPC with:', {
-      p_user_id: user.id,
-      p_mission_id: missionId,
-      p_stage_id: stageId
+    const result = await api.post<{ delivered: number }>('/emails/deliver', {
+      missionId,
+      stageId,
     });
 
-    const { data: emailsDelivered, error } = await supabase.rpc('deliver_mission_emails', {
-      p_user_id: user.id,
-      p_mission_id: missionId,
-      p_stage_id: stageId
-    });
-
-    if (error) {
-      console.error('Error delivering mission emails:', error);
-      return { success: false, error: error.message };
-    }
-
-    console.log('Mission emails delivered successfully:', emailsDelivered);
-    return { success: true, emailsDelivered };
+    console.log('Mission emails delivered successfully:', result.delivered);
+    return { success: true, emailsDelivered: result.delivered };
   } catch (error) {
     console.error('Error in deliverMissionEmails:', error);
     return { success: false, error: 'Failed to deliver mission emails' };
   }
 }
 
-// New function to mark email as read
+// Mark email as read
 export async function markEmailAsRead(emailId: string): Promise<boolean> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      return false;
-    }
-
-    const { error } = await supabase.rpc('mark_email_as_read', {
-      p_user_id: user.id,
-      p_mission_email_id: emailId
-    });
-
-    if (error) {
-      console.error('Error marking email as read:', error);
-      return false;
-    }
-
+    await api.patch('/emails/' + emailId + '/read');
     return true;
   } catch (error) {
     console.error('Error in markEmailAsRead:', error);
@@ -176,35 +79,15 @@ export async function markEmailAsRead(emailId: string): Promise<boolean> {
 }
 
 // Update existing draft
-export async function updateDraft(emailId: string, updates: {
-  subject?: string;
-  body?: string;
-}): Promise<boolean> {
+export async function updateDraft(
+  emailId: string,
+  updates: {
+    subject?: string;
+    body?: string;
+  }
+): Promise<boolean> {
   try {
-    const updateData: any = {
-      updated_at: new Date().toISOString()
-    };
-
-    if (updates.subject) {
-      updateData.subject = updates.subject;
-    }
-
-    if (updates.body) {
-      updateData.body = updates.body;
-      updateData.preview = updates.body.substring(0, 100) + (updates.body.length > 100 ? '...' : '');
-    }
-
-    const { error } = await supabase
-      .from('mission_emails')
-      .update(updateData)
-      .eq('id', emailId)
-      .eq('status', 'draft'); // Only update if it's still a draft
-
-    if (error) {
-      console.error('Error updating draft:', error);
-      return false;
-    }
-
+    await api.patch('/emails/' + emailId + '/status', updates);
     return true;
   } catch (error) {
     console.error('Error in updateDraft:', error);
@@ -215,21 +98,7 @@ export async function updateDraft(emailId: string, updates: {
 // Convert draft to sent
 export async function sendDraft(emailId: string): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('mission_emails')
-      .update({ 
-        status: 'sent',
-        category: 'sent',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', emailId)
-      .eq('status', 'draft');
-
-    if (error) {
-      console.error('Error sending draft:', error);
-      return false;
-    }
-
+    await api.patch('/emails/' + emailId + '/status', { status: 'sent' });
     return true;
   } catch (error) {
     console.error('Error in sendDraft:', error);
@@ -237,113 +106,24 @@ export async function sendDraft(emailId: string): Promise<boolean> {
   }
 }
 
-// Convert database row to EmailData
-function convertToEmailData(row: any): EmailData {
-  return {
-    id: row.id,
-    sender_name: row.sender_name,
-    sender_email: row.sender_email,
-    sender_avatar: row.sender_avatar,
-    subject: row.subject,
-    preview: row.preview,
-    content: row.content,
-    timestamp: row.timestamp,
-    status: row.status,
-    priority: row.priority,
-    has_attachments: row.has_attachments,
-    tags: row.tags || [],
-    category: row.category,
-  };
-}
-
-// Fetch emails for user's current mission stage from the database
+// Fetch emails for user's current mission stage
 export async function fetchEmails(): Promise<EmailData[]> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      return getFallbackEmails();
-    }
-
-    // Call the database function to get emails for current stage
-    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
-      p_user_id: user.id
-    });
-
-    if (error) {
-      console.error('Error fetching emails for current stage:', error);
-      return getFallbackEmails();
-    }
-
-    return data ? data.map((row: any) => ({
-      id: row.id,
-      sender_name: row.character_name || row.sender_name || 'Unknown Sender',
-      sender_email: row.character_email || row.sender_email || 'unknown@example.com',
-      sender_avatar: row.character_avatar_url || row.sender_avatar,
-      subject: row.subject,
-      preview: row.preview,
-      content: row.body || row.content || '',
-      timestamp: row.email_timestamp || row.created_at,
-      status: row.status,
-      priority: row.priority,
-      has_attachments: row.has_attachments,
-      tags: row.tags || [],
-      category: row.category,
-      // Include mission-related fields
-      mission_id: row.mission_id,
-      stage_id: row.stage_id,
-      trigger_type: row.trigger_type,
-    })) : getFallbackEmails();
+    const data = await api.get<EmailData[]>('/emails');
+    return data ?? getFallbackEmails();
   } catch (error) {
     console.error('Error in fetchEmails:', error);
     return getFallbackEmails();
   }
 }
 
-// Fetch emails by category (also filtered by current stage)
+// Fetch emails by category (filtered client-side)
 export async function fetchEmailsByCategory(category: EmailCategory): Promise<EmailData[]> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
+    const allEmails = await api.get<EmailData[]>('/emails');
+    if (!allEmails) {
       return getFallbackEmails().filter((email: EmailData) => email.category === category);
     }
-
-    // Call the database function to get emails for current stage, then filter by category
-    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
-      p_user_id: user.id
-    });
-
-    if (error) {
-      console.error('Error fetching emails by category for current stage:', error);
-      return getFallbackEmails().filter((email: EmailData) => email.category === category);
-    }
-
-    // Filter by category on the client side
-    const allEmails = data ? data.map((row: any) => ({
-      id: row.id,
-      sender_name: row.character_name || row.sender_name || 'Unknown Sender',
-      sender_email: row.character_email || row.sender_email || 'unknown@example.com',
-      sender_avatar: row.character_avatar_url || row.sender_avatar,
-      subject: row.subject,
-      preview: row.preview,
-      content: row.body || row.content || '',
-      timestamp: row.email_timestamp || row.created_at,
-      status: row.status,
-      priority: row.priority,
-      has_attachments: row.has_attachments,
-      tags: row.tags || [],
-      category: row.category,
-      // Include mission-related fields
-      mission_id: row.mission_id,
-      stage_id: row.stage_id,
-      trigger_type: row.trigger_type,
-    })) : [];
-
     return allEmails.filter((email: EmailData) => email.category === category);
   } catch (error) {
     console.error('Error in fetchEmailsByCategory:', error);
@@ -352,18 +132,12 @@ export async function fetchEmailsByCategory(category: EmailCategory): Promise<Em
 }
 
 // Update email status (read/unread)
-export async function updateEmailStatus(emailId: string, status: 'read' | 'unread'): Promise<boolean> {
+export async function updateEmailStatus(
+  emailId: string,
+  status: 'read' | 'unread'
+): Promise<boolean> {
   try {
-    const { error } = await supabase
-      .from('mission_emails')
-      .update({ status, updated_at: new Date().toISOString() })
-      .eq('id', emailId);
-
-    if (error) {
-      console.error('Error updating email status:', error);
-      return false;
-    }
-
+    await api.patch('/emails/' + emailId + '/status', { status });
     return true;
   } catch (error) {
     console.error('Error in updateEmailStatus:', error);
@@ -374,49 +148,28 @@ export async function updateEmailStatus(emailId: string, status: 'read' | 'unrea
 // Get unread email count
 export async function getUnreadEmailCount(): Promise<number> {
   try {
-    // Get current user from Supabase auth
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError || !user) {
-      console.error('User not authenticated:', authError);
-      // Fallback to counting from hardcoded emails
-      return getFallbackEmails().filter(email => 
-        email.status === 'unread' && 
-        email.category !== 'sent' && 
-        email.category !== 'drafts'
+    const emails = await api.get<EmailData[]>('/emails');
+    if (!emails) {
+      return getFallbackEmails().filter(
+        (email) =>
+          email.status === 'unread' &&
+          email.category !== 'sent' &&
+          email.category !== 'drafts'
       ).length;
     }
-
-    // Call the database function to get emails for current stage, then count unread
-    const { data, error } = await supabase.rpc('get_emails_for_current_stage', {
-      p_user_id: user.id
-    });
-
-    if (error) {
-      console.error('Error getting emails for current stage:', error);
-      // Fallback to counting from hardcoded emails
-      return getFallbackEmails().filter(email => 
-        email.status === 'unread' && 
-        email.category !== 'sent' && 
+    return emails.filter(
+      (email) =>
+        email.status === 'unread' &&
+        email.category !== 'sent' &&
         email.category !== 'drafts'
-      ).length;
-    }
-
-    // Count unread emails from the current stage
-    const unreadCount = data ? data.filter((row: any) => 
-      row.status === 'unread' && 
-      row.category !== 'sent' && 
-      row.category !== 'drafts'
-    ).length : 0;
-
-    return unreadCount;
+    ).length;
   } catch (error) {
     console.error('Error in getUnreadEmailCount:', error);
-    // Fallback to counting from hardcoded emails
-    return getFallbackEmails().filter(email => 
-      email.status === 'unread' && 
-      email.category !== 'sent' && 
-      email.category !== 'drafts'
+    return getFallbackEmails().filter(
+      (email) =>
+        email.status === 'unread' &&
+        email.category !== 'sent' &&
+        email.category !== 'drafts'
     ).length;
   }
 }
@@ -481,7 +234,7 @@ Let me know if you need me to pick up anything from the store. Also, bring your 
 Love you lots,
 Mom
 
-P.S. - Don't work too hard on those computer things! Remember to take breaks! 💕`,
+P.S. - Don't work too hard on those computer things! Remember to take breaks! `,
       timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
       status: 'read',
       priority: 'normal',
@@ -570,18 +323,18 @@ Read the full technical specifications and migration guide on the AWS documentat
       sender_name: 'Udemy Business',
       sender_email: 'learn@udemy.com',
       sender_avatar: 'https://i.pravatar.cc/40?img=5',
-      subject: '🚀 Level Up Your Cloud Skills - 40% Off AWS Courses',
+      subject: 'Level Up Your Cloud Skills - 40% Off AWS Courses',
       preview: 'Master AWS architecture with our comprehensive course collection. Limited time offer: 40% off all cloud computing courses.',
-      content: `🎯 Ready to Become an AWS Solutions Architect?
+      content: `Ready to Become an AWS Solutions Architect?
 
-Transform your career with our comprehensive AWS training program! 
+Transform your career with our comprehensive AWS training program!
 
 **What You'll Learn:**
-✅ AWS Core Services (EC2, S3, RDS, Lambda)
-✅ High Availability & Fault Tolerance Design
-✅ Security Best Practices & IAM
-✅ Cost Optimization Strategies
-✅ Real-world Case Studies
+- AWS Core Services (EC2, S3, RDS, Lambda)
+- High Availability & Fault Tolerance Design
+- Security Best Practices & IAM
+- Cost Optimization Strategies
+- Real-world Case Studies
 
 **Course Highlights:**
 - 35+ hours of video content
@@ -594,7 +347,7 @@ Transform your career with our comprehensive AWS training program!
 Use code: CLOUDPRO40
 Valid until: This Sunday, 11:59 PM
 
-🏆 **Student Success Stories:**
+**Student Success Stories:**
 "This course helped me land a $120k AWS Solutions Architect role!" - Jennifer M.
 "Best investment I made for my career" - David K.
 
@@ -614,4 +367,4 @@ The Udemy Business Team`,
       category: 'promotions',
     },
   ];
-} 
+}

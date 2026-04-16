@@ -7,7 +7,7 @@ import { ProductTour } from '../../organisms/ProductTour';
 import type { MentorChatProps, ChatMessage } from './MentorChat.types';
 import { mentorChatService, type MentorChatSession, collectPageContext } from '../../../services/mentorChatService';
 import type { RootState } from '../../../store';
-import { supabase } from '../../../services/supabase';
+// Real-time subscriptions deferred to Phase 5 (Durable Objects)
 import { useConversationSession } from '../../../hooks/useConversationSession';
 import { useAppSelector } from '../../../hooks/redux';
 import { 
@@ -132,53 +132,12 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
     console.log('🔔 MentorChat: Setting up real-time subscription for session:', conversationSessionId);
 
-    // Subscribe to new messages for this conversation session
-    const channel = supabase
-      .channel(`mentor_chat_${conversationSessionId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'mentor_chat_messages',
-          filter: `conversation_session_id=eq.${conversationSessionId}`
-        },
-        (payload: any) => {
-          console.log('📨 MentorChat: Received real-time message:', payload);
-          const newMessage = payload.new;
-          
-          // Don't add the message if it's from the current user (to avoid duplicates)
-          if (newMessage.sender_type === 'user' && newMessage.user_id === user?.id) {
-            console.log('⏭️ MentorChat: Skipping user message to avoid duplicate');
-            return;
-          }
-
-          const chatMessage: ChatMessage = {
-            id: newMessage.id,
-            content: newMessage.message_content,
-            timestamp: new Date(newMessage.created_at),
-            sender: newMessage.sender_type as 'user' | 'mentor' | 'system',
-            mentorId: newMessage.mentor_id,
-          };
-
-          console.log('✅ MentorChat: Adding new message to chat:', chatMessage);
-
-          setMessages(prev => {
-            // Check if message already exists to prevent duplicates
-            const exists = prev.some(msg => msg.id === chatMessage.id);
-            if (!exists) {
-              return [...prev, chatMessage];
-            }
-            console.log('⚠️ MentorChat: Message already exists, skipping duplicate');
-            return prev;
-          });
-        }
-      )
-      .subscribe();
+    // Phase 5 TODO: Replace with Durable Objects WebSocket for real-time message updates
+    // For now, messages are loaded on mount and after sending; no live push updates
+    console.log('MentorChat: Real-time subscription deferred to Phase 5 (session:', conversationSessionId, ')');
 
     return () => {
-      console.log('🔕 MentorChat: Unsubscribing from real-time channel');
-      channel.unsubscribe();
+      // Phase 5: cleanup WebSocket
     };
   }, [conversationSessionId, isAuthenticated, user?.id]);
 

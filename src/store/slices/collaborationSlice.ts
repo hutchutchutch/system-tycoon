@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { supabase } from '../../services/supabase';
+import { api } from '../../services/cloudflareApi';
 import type { RootState } from '../index';
 
 // Types
@@ -38,16 +38,16 @@ export interface CollaborationState {
   // Invitations
   sentInvitations: CollaborationInvitation[];
   receivedInvitations: CollaborationInvitation[];
-  
+
   // Loading states
   isLoading: boolean;
   isSendingInvitation: boolean;
   isUpdatingInvitation: boolean;
-  
+
   // Error handling
   error: string | null;
   sendError: string | null;
-  
+
   // UI state
   unreadInvitationsCount: number;
 }
@@ -70,156 +70,16 @@ export const sendCollaborationInvitation = createAsyncThunk(
     inviteeEmail: string;
     missionStageId: string;
     missionId: string;
-  }, { getState, rejectWithValue }) => {
-    const startTime = Date.now();
-    
+  }, { rejectWithValue }) => {
     try {
-      console.log('🚀 [CollaborationSlice] Starting invitation process...');
-      console.log('📍 [CollaborationSlice] Parameters:', {
-        inviteeEmail: params.inviteeEmail,
+      const result = await api.post<{ invitation: CollaborationInvitation }>('/collaboration/invitations', {
+        inviteeUsername: params.inviteeEmail,
         missionStageId: params.missionStageId,
-        missionId: params.missionId
       });
 
-      const state = getState() as RootState;
-      const senderId = state.auth.user?.id;
-      const senderProfile = state.auth.profile;
-
-      console.log('👤 [CollaborationSlice] Sender info:', {
-        senderId,
-        senderUsername: senderProfile?.username,
-        hasProfile: !!senderProfile
-      });
-
-      if (!senderId || !senderProfile) {
-        console.error('❌ [CollaborationSlice] User not authenticated');
-        throw new Error('User not authenticated. Please log in to send invitations.');
-      }
-
-      // Step 1: Find the recipient by username (simple and fast)
-      console.log('🔍 [CollaborationSlice] Step 1: Searching for user:', params.inviteeEmail);
-      const userSearchStart = Date.now();
-      
-      const { data: recipientData, error: recipientError } = await supabase
-        .from('profiles')
-        .select('id, username, avatar_url')
-        .ilike('username', params.inviteeEmail)
-        .limit(1)
-        .single();
-      
-      const userSearchEnd = Date.now();
-      console.log(`⏱️ [CollaborationSlice] User search took: ${userSearchEnd - userSearchStart}ms`);
-      console.log('🔍 [CollaborationSlice] Search results:', { 
-        recipientData, 
-        recipientError,
-        hasRecipient: !!recipientData
-      });
-
-      if (recipientError || !recipientData) {
-        console.error('❌ [CollaborationSlice] User not found:', {
-          error: recipientError,
-          searchTerm: params.inviteeEmail
-        });
-        
-        // Quick availability check
-        const { data: availableUsers } = await supabase
-          .from('profiles')
-          .select('username')
-          .limit(5);
-          
-        const usernames = availableUsers?.map(u => u.username).join(', ') || 'None';
-        throw new Error(`User "${params.inviteeEmail}" not found. Please check the username (case-insensitive search in profiles.username field). Available users: ${usernames}`);
-      }
-
-      // Step 2: Prevent self-invitation
-      if (recipientData.id === senderId) {
-        console.log('❌ [CollaborationSlice] Self-invitation attempt');
-        throw new Error('You cannot invite yourself to collaborate.');
-      }
-
-      // Step 3: Create the collaboration invitation (core operation)
-      console.log('💾 [CollaborationSlice] Step 3: Creating collaboration invitation...');
-      const inviteCreateStart = Date.now();
-      
-      const { data: invitation, error: invitationError } = await supabase
-        .from('collaboration_invitations')
-        .insert({
-          sender_id: senderId,
-          invited_id: recipientData.id,
-          mission_stage_id: params.missionStageId,
-          status: 'pending'
-        })
-        .select('*')
-        .single();
-
-      const inviteCreateEnd = Date.now();
-      console.log(`⏱️ [CollaborationSlice] Invitation creation took: ${inviteCreateEnd - inviteCreateStart}ms`);
-      console.log('💾 [CollaborationSlice] Invitation creation result:', {
-        invitation,
-        invitationError,
-        hasInvitation: !!invitation
-      });
-
-      if (invitationError) {
-        console.error('❌ [CollaborationSlice] Failed to create invitation:', invitationError);
-        
-        // Enhanced error handling for common database constraints
-        if (invitationError.code === '23505') { // Unique constraint violation
-          throw new Error('You have already sent an invitation to this user for this mission stage.');
-        }
-        
-        if (invitationError.code === '23503') { // Foreign key constraint violation
-          if (invitationError.message.includes('mission_stage_id')) {
-            // Get valid stages for debugging
-            const { data: validStages } = await supabase
-              .from('mission_stages')
-              .select('id, title')
-              .eq('mission_id', params.missionId)
-              .limit(5);
-            
-            const stageList = validStages?.map(s => `${s.title} (${s.id})`).join(', ') || 'None found';
-            throw new Error(`Mission stage not found. The stage ID "${params.missionStageId}" does not exist for mission "${params.missionId}". Valid stages: ${stageList}`);
-          }
-          
-          if (invitationError.message.includes('invited_id')) {
-            throw new Error('The invited user does not exist in the system.');
-          }
-          
-          if (invitationError.message.includes('sender_id')) {
-            throw new Error('Invalid sender - please log out and log back in.');
-          }
-        }
-        
-        throw new Error(`Failed to create invitation: ${invitationError.message}`);
-      }
-
-      const totalTime = Date.now() - startTime;
-      console.log(`🎉 [CollaborationSlice] Invitation process completed successfully in ${totalTime}ms!`);
-
-      return {
-        invitation: {
-          ...invitation,
-          sender_profile: {
-            id: senderProfile.id!,
-            username: senderProfile.username!,
-            avatar_url: senderProfile.avatar_url
-          },
-          invited_profile: recipientData
-        }
-      };
+      return result;
     } catch (error) {
-      const totalTime = Date.now() - startTime;
-      console.error(`❌ [CollaborationSlice] Failed to send collaboration invitation (${totalTime}ms):`, error);
-      
-      // Enhanced error reporting
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.error('❌ [CollaborationSlice] Error details:', {
-        message: errorMessage,
-        params,
-        senderId: (getState() as RootState).auth.user?.id,
-        timestamp: new Date().toISOString()
-      });
-      
       return rejectWithValue(errorMessage);
     }
   }
@@ -227,66 +87,16 @@ export const sendCollaborationInvitation = createAsyncThunk(
 
 export const loadCollaborationInvitations = createAsyncThunk(
   'collaboration/loadInvitations',
-  async (_, { getState, rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
-      const state = getState() as RootState;
-      const userId = state.auth.user?.id;
-
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
-
-      // Load sent invitations
-      const { data: sentInvitations, error: sentError } = await supabase
-        .from('collaboration_invitations')
-        .select(`
-          *,
-          invited_profile:profiles!collaboration_invitations_invited_id_fkey(
-            id,
-            username,
-            avatar_url
-          ),
-          mission_stage:mission_stages(
-            id,
-            title,
-            mission:missions(
-              id,
-              title
-            )
-          )
-        `)
-        .eq('sender_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (sentError) throw sentError;
-
-      // Load received invitations
-      const { data: receivedInvitations, error: receivedError } = await supabase
-        .from('collaboration_invitations')
-        .select(`
-          *,
-          sender_profile:profiles!collaboration_invitations_sender_id_fkey(
-            id,
-            username,
-            avatar_url
-          ),
-          mission_stage:mission_stages(
-            id,
-            title,
-            mission:missions(
-              id,
-              title
-            )
-          )
-        `)
-        .eq('invited_id', userId)
-        .order('created_at', { ascending: false });
-
-      if (receivedError) throw receivedError;
+      const result = await api.get<{
+        sent: CollaborationInvitation[];
+        received: CollaborationInvitation[];
+      }>('/collaboration/invitations');
 
       return {
-        sentInvitations: sentInvitations || [],
-        receivedInvitations: receivedInvitations || []
+        sentInvitations: result.sent || [],
+        receivedInvitations: result.received || [],
       };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to load invitations');
@@ -301,16 +111,10 @@ export const updateInvitationStatus = createAsyncThunk(
     status: 'accepted' | 'declined';
   }, { rejectWithValue }) => {
     try {
-      const { data, error } = await supabase
-        .from('collaboration_invitations')
-        .update({ status: params.status })
-        .eq('id', params.invitationId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return data;
+      return await api.patch<CollaborationInvitation>(
+        '/collaboration/invitations/' + params.invitationId,
+        { status: params.status }
+      );
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error.message : 'Failed to update invitation');
     }
@@ -326,7 +130,7 @@ const collaborationSlice = createSlice({
       state.error = null;
       state.sendError = null;
     },
-    
+
     markInvitationAsRead: (state, action: PayloadAction<string>) => {
       const invitationId = action.payload;
       const invitation = state.receivedInvitations.find(inv => inv.id === invitationId);
@@ -335,14 +139,14 @@ const collaborationSlice = createSlice({
         // For now, we'll handle this through the email system
       }
     },
-    
+
     removeInvitation: (state, action: PayloadAction<string>) => {
       const invitationId = action.payload;
       state.sentInvitations = state.sentInvitations.filter(inv => inv.id !== invitationId);
       state.receivedInvitations = state.receivedInvitations.filter(inv => inv.id !== invitationId);
     },
   },
-  
+
   extraReducers: (builder) => {
     // Send invitation
     builder
@@ -416,4 +220,4 @@ export const selectReceivedInvitations = (state: RootState) => state.collaborati
 export const selectUnreadInvitationsCount = (state: RootState) => state.collaboration.unreadInvitationsCount;
 export const selectIsSendingInvitation = (state: RootState) => state.collaboration.isSendingInvitation;
 export const selectCollaborationError = (state: RootState) => state.collaboration.error;
-export const selectSendError = (state: RootState) => state.collaboration.sendError; 
+export const selectSendError = (state: RootState) => state.collaboration.sendError;

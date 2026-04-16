@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MentorCard, type Mentor } from '../../components/molecules/MentorCard';
-import { supabase } from '../../services/supabase';
+import { api } from '../../services/cloudflareApi';
 
 export const MentorSelectionPage: React.FC = () => {
   const { scenarioId } = useParams();
@@ -20,15 +20,7 @@ export const MentorSelectionPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
-      const { data, error: supabaseError } = await supabase
-        .from('mentors')
-        .select('*')
-        .order('name');
-
-      if (supabaseError) {
-        throw supabaseError;
-      }
-
+      const data = await api.get<Mentor[]>('/mentors');
       setMentors(data || []);
     } catch (err) {
       console.error('Error fetching mentors:', err);

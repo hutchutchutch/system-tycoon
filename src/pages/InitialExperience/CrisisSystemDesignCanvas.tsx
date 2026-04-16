@@ -29,7 +29,7 @@ import { missionService, type MissionData, type Requirement } from '../../servic
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
 import type { ValidationResponse } from '../../services/missionService';
 import { useTheme } from '../../contexts/ThemeContext';
-import { supabase } from '../../services/supabase';
+import { api } from '../../services/cloudflareApi';
 import { realtimeCollaborationService } from '../../services/realtimeCollaboration';
 
 // Redux imports following the established patterns
@@ -439,18 +439,8 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Fetch detailed component information from Supabase
   const fetchComponentDetails = async (componentId: string): Promise<ComponentDetail | null> => {
     try {
-      const { data, error } = await supabase
-        .from('components')
-        .select('id, name, category, icon_name, short_description, detailed_description, compatible_with')
-        .eq('id', componentId)
-        .single();
-
-      if (error) {
-        console.error('Failed to fetch component details:', error);
-        return null;
-      }
-
-      return data as ComponentDetail;
+      const components = await api.get<ComponentDetail[]>('/game/components');
+      return components.find(c => c.id === componentId) || null;
     } catch (error) {
       console.error('Error fetching component details:', error);
       return null;
@@ -460,16 +450,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   // Fetch all available components for compatibility resolution
   const fetchAllComponentDetails = async (): Promise<ComponentDetail[]> => {
     try {
-      const { data, error } = await supabase
-        .from('components')
-        .select('id, name, category, icon_name, short_description, detailed_description, compatible_with');
-
-      if (error) {
-        console.error('Failed to fetch all components:', error);
-        return [];
-      }
-
-      return data as ComponentDetail[];
+      return await api.get<ComponentDetail[]>('/game/components');
     } catch (error) {
       console.error('Error fetching all components:', error);
       return [];
@@ -543,14 +524,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       console.log('Fetching mission stage data for email:', emailId);
       
       // Get the email with its associated stage_id
-      const { data: emailData, error: emailError } = await supabase
-        .from('mission_emails')
-        .select('id, mission_id, stage_id')
-        .eq('id', emailId)
-        .single();
+      const emailData = await api.get<{ id: string; mission_id: string; stage_id: string | null }>(`/emails/${emailId}`).catch(() => null);
 
-      if (emailError) {
-        console.warn('Failed to load email:', emailError);
+      if (!emailData) {
+        console.warn('Failed to load email');
         return null;
       }
 
@@ -591,14 +568,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         dispatch(clearCanvas({ keepRequirements: true }));
       }
       
-      const { data: stageData, error } = await supabase
-        .from('mission_stages')
-        .select('initial_system_state, title, mission_id')
-        .eq('id', stageId)
-        .single();
+      const stageData = await api.get<{ initial_system_state: any; title: string; mission_id: string }>(`/missions/stage/${stageId}`).catch(() => null);
 
-      if (error) {
-        console.error('❌ Failed to load initial system state:', error);
+      if (!stageData) {
+        console.error('❌ Failed to load initial system state');
         console.log('📦 Loading default fallback state');
         loadDefaultSystemState();
         return;
@@ -1009,14 +982,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const fetchRequiredComponents = async (stageId: string) => {
     try {
       // Get the stage's required components
-      const { data: stageData, error: stageError } = await supabase
-        .from('mission_stages')
-        .select('required_components, optional_components')
-        .eq('id', stageId)
-        .single();
+      const stageData = await api.get<{ required_components: any; optional_components: any }>(`/missions/stage/${stageId}`).catch(() => null);
 
-      if (stageError) {
-        console.error('Failed to fetch stage components:', stageError);
+      if (!stageData) {
+        console.error('Failed to fetch stage components');
         return getDefaultComponents();
       }
 
@@ -1029,15 +998,12 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         return getDefaultComponents();
       }
 
-      // Fetch the actual component data from the components table
-      const { data: components, error: componentsError } = await supabase
-        .from('components')
-        .select('id, name, category, icon_name, color, short_description, detailed_description, concepts, use_cases, compatible_with, unlock_level, sort_order')
-        .in('id', allComponentIds)
-        .order('sort_order', { ascending: true });
+      // Fetch all components and filter to the required ones
+      const allComponents = await api.get<any[]>('/game/components').catch(() => []);
+      const components = allComponents.filter((c: any) => allComponentIds.includes(c.id));
 
-      if (componentsError) {
-        console.error('Failed to fetch components:', componentsError);
+      if (components.length === 0) {
+        console.error('Failed to fetch components');
         return getDefaultComponents();
       }
 
@@ -1152,13 +1118,10 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         // If we have stage data, dispatch it to Redux for GameHUD
         if (stageData && stageData.mission) {
           // Load all stages for this mission from database
-          const { data: allStages, error: stagesError } = await supabase
-            .from('mission_stages')
-            .select('id, stage_number, title, problem_description')
-            .eq('mission_id', stageData.mission.id)
-            .order('stage_number');
+          const missionData = await api.get<{ stages: any[] }>(`/missions/stage/${stageData.id}`).catch(() => null);
+          const allStages = missionData?.stages || [];
 
-          if (!stagesError && allStages) {
+          if (allStages.length > 0) {
             // Find the current stage index based on the stage we're viewing
             const currentStageIndex = allStages.findIndex(stage => stage.id === stageData.id);
             
@@ -1472,8 +1435,8 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     isLoading: isLoadingCanvas,
     error: canvasLoadError
   } = useLoadCanvasStateQuery(
-    user?.id && missionStageData?.id 
-      ? { userId: user.id, stageId: missionStageData.id }
+    missionStageData?.id
+      ? { stageId: missionStageData.id }
       : skipToken
   );
   
@@ -1488,16 +1451,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
       console.log('🧹 Clearing corrupted saved canvas state for stage:', stageId);
       
       // Delete the saved canvas state from Supabase
-      const { error } = await supabase
-        .from('user_canvas_states')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('stage_id', stageId);
-      
-      if (error) {
-        console.error('❌ Failed to clear corrupted canvas state:', error);
-      } else {
+      try {
+        await api.delete(`/canvas/${stageId}`);
         console.log('✅ Successfully cleared corrupted canvas state from database');
+      } catch (err) {
+        console.error('❌ Failed to clear corrupted canvas state:', err);
       }
       
       // Also clear it from Redux state
@@ -1692,7 +1650,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     try {
       // Save to local storage/Redux
       await saveCanvasStateMutation({
-        userId: user.id,
         missionId: missionStageData.mission.id,
         stageId: missionStageData.id,
         canvasState: canvasStateData
@@ -1742,27 +1699,13 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         setCollaborationSession(session);
         setIsCollaborative(true);
 
-        // Subscribe to real-time updates
-        const subscription = supabase
-          .channel(`design_session:${sessionId}`)
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'design_sessions',
-            filter: `id=eq.${sessionId}`
-          }, (payload) => {
-            // Update canvas state when session changes
-            if (payload.new && 'canvas_state' in payload.new && payload.new.canvas_state) {
-              const { nodes: newNodes, edges: newEdges } = payload.new.canvas_state as { nodes: any[], edges: any[] };
-              dispatch(onNodesChange(newNodes));
-              dispatch(onEdgesChange(newEdges));
-            }
-          })
-          .on('presence', { event: 'sync' }, () => {
-            // Handle collaborator presence
-            const state = subscription.presenceState();
-            const collaboratorList = Object.values(state).flat();
-            setCollaborators(collaboratorList);
+        // Phase 5 TODO: Replace with Durable Objects WebSocket for real-time updates
+        // For now, collaboration session is joined but real-time sync is not active
+        console.log(`Collaboration session ${sessionId} joined. Real-time sync deferred to Phase 5.`);
+
+        // Stub: no real-time subscription
+        const collaboratorList: any[] = [];
+        setCollaborators(collaboratorList);
             
             // Update cursors
             const newCursors: Record<string, { x: number; y: number; timestamp: number }> = {};
@@ -1775,76 +1718,9 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
               }
             });
             setCursors(newCursors);
-            
-            // Notify GameHUD about existing collaborators on initial sync
-            if ((window as any).handleCollaboratorPresence) {
-              // First clear all collaborators
-              collaboratorList.forEach((collab: any) => {
-                if (collab.userId !== user.id) {
-                  (window as any).handleCollaboratorPresence('left', {
-                    id: collab.userId,
-                    username: collab.username || 'Anonymous'
-                  });
-                }
-              });
-              
-              // Then add current collaborators
-              collaboratorList.forEach((collab: any) => {
-                if (collab.userId !== user.id) {
-                  (window as any).handleCollaboratorPresence('joined', {
-                    id: collab.userId,
-                    username: collab.username || 'Anonymous'
-                  });
-                }
-              });
-            }
-          })
-          .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-            console.log('User joined:', newPresences);
-            // Notify GameHUD of new collaborator
-            newPresences.forEach((presence: any) => {
-              if (presence.userId !== user.id) {
-                const username = presence.username || 'Anonymous';
-                if ((window as any).handleCollaboratorPresence) {
-                  (window as any).handleCollaboratorPresence('joined', {
-                    id: presence.userId,
-                    username: username
-                  });
-                }
-              }
-            });
-          })
-          .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-            console.log('User left:', leftPresences);
-            // Notify GameHUD of collaborator leaving
-            leftPresences.forEach((presence: any) => {
-              if (presence.userId !== user.id) {
-                const username = presence.username || 'Anonymous';
-                if ((window as any).handleCollaboratorPresence) {
-                  (window as any).handleCollaboratorPresence('left', {
-                    id: presence.userId,
-                    username: username
-                  });
-                }
-              }
-            });
-          })
-          .subscribe(async (status) => {
-            if (status === 'SUBSCRIBED') {
-              // Send initial presence
-              await subscription.track({
-                userId: user.id,
-                username: user.email?.split('@')[0] || 'Anonymous',
-                cursor: { x: 0, y: 0 }
-              });
-            }
-          });
-
-        // Store subscription reference
-        collaborationChannelRef.current = subscription;
 
         return () => {
-          subscription.unsubscribe();
+          // Phase 5: cleanup WebSocket connection
         };
       } catch (error) {
         console.error('Failed to join collaboration session:', error);

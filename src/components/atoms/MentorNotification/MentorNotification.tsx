@@ -3,7 +3,7 @@ import { X, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { MentorNotificationProps, HighlightOverlayProps } from './MentorNotification.types';
 import type { RootState } from '../../../store';
-import { supabase } from '../../../services/supabase';
+import { api } from '../../../services/cloudflareApi';
 import styles from './MentorNotification.module.css';
 
 // Highlight overlay component that creates a spotlight effect on target elements
@@ -60,28 +60,20 @@ const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
 
 // Function to save notification as system message to database
 const saveNotificationAsSystemMessage = async (
-  userId: string,
+  _userId: string,
   mentorId: string,
   conversationSessionId: string,
   message: string,
   missionStageId?: string
 ) => {
   try {
-    const { error } = await supabase
-      .from('mentor_chat_messages')
-      .insert({
-        user_id: userId,
-        mentor_id: mentorId,
-        conversation_session_id: conversationSessionId,
-        message_content: message,
-        sender_type: 'system',
-        mission_stage_id: missionStageId,
-        created_at: new Date().toISOString()
-      });
-
-    if (error) {
-      console.error('Failed to save notification as system message:', error);
-    }
+    await api.post('/mentors/chat', {
+      mentorId,
+      conversationSessionId,
+      messageContent: message,
+      senderType: 'system',
+      missionStageId,
+    });
   } catch (error) {
     console.error('Error saving notification:', error);
   }
