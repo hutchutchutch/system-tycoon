@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { RootLayout } from './components/layout/RootLayout';
 import { AuthLayout } from './components/layout/AuthLayout';
 import { GameLayout } from './components/layout/GameLayout';
-import { ProtectedRoute } from './components/common/ProtectedRoute';
+import { ProtectedRoute, OnboardingRoute } from './components/common/ProtectedRoute';
 
 // Pages
 import { SimpleLanding } from './pages/SimpleLanding';
@@ -37,7 +37,11 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'onboarding',
-        element: <OnboardingPage />,
+        element: (
+          <OnboardingRoute>
+            <OnboardingPage />
+          </OnboardingRoute>
+        ),
       },
       {
         path: 'game',
