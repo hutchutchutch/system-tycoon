@@ -216,10 +216,17 @@ const authSlice = createSlice({
           state.user = action.payload.user;
           state.profile = action.payload.profile;
           state.isAuthenticated = true;
+        } else {
+          // 401 from backend — session is gone. Clear any stale persisted state.
+          state.user = null;
+          state.profile = null;
+          state.isAuthenticated = false;
         }
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
+        state.user = null;
+        state.profile = null;
         state.isAuthenticated = false;
       });
 

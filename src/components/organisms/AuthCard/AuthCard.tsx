@@ -121,12 +121,10 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
     dispatch(clearError());
   }, [dispatch, isSignUp]);
 
-  // Handle successful authentication
-  useEffect(() => {
-    if (isAuthenticated && nodeData?.onSuccess) {
-      nodeData.onSuccess();
-    }
-  }, [isAuthenticated, nodeData]);
+  // Note: navigation on successful auth is handled by AuthFlowPage, which
+  // dispatches checkAuth on mount and only redirects after the server
+  // confirms the session is valid. This prevents premature redirects from
+  // stale redux-persist state.
 
   // Trigger animation when loading starts
   useEffect(() => {
