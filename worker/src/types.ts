@@ -1,6 +1,7 @@
 export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
+  ASSETS: Fetcher; // static asset binding — serves ./dist for non-API paths
   ENVIRONMENT: string;
   JWT_SECRET: string; // used by Better Auth as its signing secret
   GOOGLE_CLIENT_ID: string;
