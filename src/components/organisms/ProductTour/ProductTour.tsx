@@ -130,14 +130,14 @@ export const ProductTour: React.FC<ProductTourProps> = ({
 
   // Handle notification close
   const handleNotificationClose = useCallback(() => {
-    // If it's the last step with auto-hide, complete the tour
+    // Last step with auto-hide: natural end of tour
     if (isLastStep && currentStep.autoHideDuration && currentStep.autoHideDuration > 0) {
       handleCompleteTour();
-    } else {
-      // Otherwise, advance to next step
-      handleNextStep();
+      return;
     }
-  }, [isLastStep, currentStep, handleCompleteTour, handleNextStep]);
+    // Closing via the X button means "I'm done with the tour" → skip the rest
+    handleCompleteTour();
+  }, [isLastStep, currentStep, handleCompleteTour]);
 
   // Don't render if user is not authenticated or tour is not active
   if (!isAuthenticated || !user || !isVisible || !currentStep) {
@@ -147,6 +147,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({
   return (
     <div className={`${styles.productTour} ${className}`}>
       <MentorNotification
+        key={currentStep.id}
         title={currentStep.title}
         message={currentStep.content}
         targetElement={currentStep.target}

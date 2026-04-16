@@ -172,26 +172,27 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   };
 
   const handleAction = () => {
-    // Handle multi-step flow actions
+    // Multi-step flow actions don't close the notification — parent controls it.
     if (actionLabel === 'What do I need to do?') {
       onShowRequirements?.();
       onAction?.();
-      // Don't close - let parent handle step progression
       return;
-    } else if (actionLabel === 'How do I do this?') {
+    }
+    if (actionLabel === 'How do I do this?') {
       onShowComponentDrawer?.();
       onAction?.();
-      // Don't close - let parent handle step progression  
       return;
-    } else if (actionLabel === 'Got it!') {
+    }
+    if (actionLabel === 'Got it!') {
       onAction?.();
       handleClose();
       return;
     }
-    
-    // For other actions, proceed with normal close behavior
+
+    // Default "Next"/"Continue" behavior: just fire onAction. The parent is
+    // responsible for advancing/unmounting — we do NOT call handleClose here,
+    // otherwise its delayed onClose() fires and the parent double-advances.
     onAction?.();
-    handleClose();
   };
 
   const getPositionStyles = (): React.CSSProperties => {
