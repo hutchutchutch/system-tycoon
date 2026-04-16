@@ -3,14 +3,12 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Profile } from '../../types';
 import {
   api,
-  isAuthenticated,
   signIn as apiSignIn,
   signUp as apiSignUp,
   signInWithGoogle as apiSignInWithGoogle,
   signOut as apiSignOut,
-  handleOAuthCallback,
-  setToken,
-  type AuthResponse,
+  getCurrentUser,
+  type AuthUserProfile,
   type ApiError,
 } from '../../services/cloudflareApi';
 
@@ -39,28 +37,28 @@ const initialState: AuthState = {
   isAuthenticated: false,
 };
 
-function parseAuthUser(data: AuthResponse['user']): { user: AuthUser; profile: Profile } {
+function parseUser(data: AuthUserProfile): { user: AuthUser; profile: Profile } {
   return {
     user: {
       id: data.id,
       email: data.email,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      created_at: data.createdAt,
+      updated_at: data.updatedAt,
       aud: 'authenticated',
       role: 'authenticated',
     },
     profile: {
       id: data.id,
-      username: data.username,
-      display_name: data.display_name ?? undefined,
-      avatar_url: data.avatar_url ?? undefined,
-      current_level: data.current_level,
-      reputation_score: data.reputation_score,
-      career_title: data.career_title ?? undefined,
+      username: data.username ?? data.email.split('@')[0],
+      display_name: data.display_name ?? data.name ?? undefined,
+      avatar_url: data.avatar_url ?? data.image ?? undefined,
+      current_level: data.current_level ?? 1,
+      reputation_score: data.reputation_score ?? 0,
+      career_title: data.career_title ?? 'Aspiring Developer',
       preferred_mentor_id: data.preferred_mentor_id ?? undefined,
-      onboarding_completed: data.onboarding_completed,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
+      onboarding_completed: data.onboarding_completed ?? false,
+      created_at: data.createdAt,
+      updated_at: data.updatedAt,
     },
   };
 }
@@ -70,16 +68,18 @@ function parseAuthUser(data: AuthResponse['user']): { user: AuthUser; profile: P
 export const signInWithEmail = createAsyncThunk(
   'auth/signInWithEmail',
   async ({ email, password }: { email: string; password: string }) => {
-    const res = await apiSignIn(email, password);
-    return parseAuthUser(res.user);
+    await apiSignIn(email, password);
+    const profile = await getCurrentUser();
+    return parseUser(profile);
   }
 );
 
 export const signUpWithEmail = createAsyncThunk(
   'auth/signUpWithEmail',
   async ({ email, password, username }: { email: string; password: string; username: string }) => {
-    const res = await apiSignUp(email, password, username);
-    return parseAuthUser(res.user);
+    await apiSignUp(email, password, username);
+    const profile = await getCurrentUser();
+    return parseUser(profile);
   }
 );
 
@@ -87,77 +87,60 @@ export const signInWithOAuth = createAsyncThunk(
   'auth/signInWithOAuth',
   async (_provider: 'google' | 'github' | 'linkedin') => {
     apiSignInWithGoogle();
-    // This redirects — thunk won't resolve
+    // Browser navigates away — thunk doesn't resolve
   }
 );
 
-/**
- * Handle the OAuth callback redirect.
- * Called from the /auth/callback route to extract the token from the URL hash.
- */
+/** Legacy hook — OAuth callbacks are now handled automatically by Better Auth redirect */
 export const handleOAuthReturn = createAsyncThunk(
   'auth/handleOAuthReturn',
   async () => {
-    const token = handleOAuthCallback();
-    if (!token) {
-      throw new Error('No token found in callback URL');
-    }
-    // Token is already stored by handleOAuthCallback — fetch profile
-    const data = await api.get<AuthResponse['user']>('/auth/me');
-    return parseAuthUser(data);
+    const profile = await getCurrentUser();
+    return parseUser(profile);
   }
 );
 
-export const signOut = createAsyncThunk(
-  'auth/signOut',
-  async () => {
-    apiSignOut();
-  }
-);
+export const signOut = createAsyncThunk('auth/signOut', async () => {
+  await apiSignOut();
+});
 
-export const checkAuth = createAsyncThunk(
-  'auth/checkAuth',
-  async () => {
-    if (!isAuthenticated()) {
-      return null;
-    }
-    try {
-      const data = await api.get<AuthResponse['user']>('/auth/me');
-      return parseAuthUser(data);
-    } catch (err: unknown) {
-      if ((err as ApiError).status === 401) {
-        return null;
-      }
-      throw err;
-    }
+export const checkAuth = createAsyncThunk('auth/checkAuth', async () => {
+  try {
+    const profile = await getCurrentUser();
+    return parseUser(profile);
+  } catch (err) {
+    if ((err as ApiError).status === 401) return null;
+    throw err;
   }
-);
+});
 
+export const fetchCurrentUser = checkAuth;
+
+/** Demo sign-in: creates an anonymous demo account via Better Auth email/password */
 export const demoSignIn = createAsyncThunk(
   'auth/demoSignIn',
-  async (profileId: string) => {
-    const res = await api.get<{ token: string; user: AuthResponse['user'] }>(`/auth/demo?profileId=${encodeURIComponent(profileId)}`);
-    setToken(res.token);
-    return parseAuthUser(res.user);
+  async (_profileId: string) => {
+    const demoEmail = `demo-${Date.now()}@example.com`;
+    const demoPassword = crypto.randomUUID();
+    await apiSignUp(demoEmail, demoPassword, 'demo_user');
+    const profile = await getCurrentUser();
+    return parseUser(profile);
   }
 );
 
 export const updateOnboardingStatus = createAsyncThunk(
   'auth/updateOnboardingStatus',
   async (completed: boolean) => {
-    return api.patch<Profile>('/auth/profile', { onboarding_completed: completed });
+    return api.patch<Profile>('/profile/profile', { onboarding_completed: completed });
   }
 );
 
 export const updatePreferredMentor = createAsyncThunk(
   'auth/updatePreferredMentor',
   async (mentorId: string) => {
-    return api.patch<Profile>('/auth/profile', { preferred_mentor_id: mentorId });
+    return api.patch<Profile>('/profile/profile', { preferred_mentor_id: mentorId });
   }
 );
-
-// Keep this alias for code that imports fetchCurrentUser
-export const fetchCurrentUser = checkAuth;
 
 // --- Slice ---
 
@@ -165,17 +148,12 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    clearError: (state) => {
-      state.error = null;
-    },
+    clearError: (state) => { state.error = null; },
     updateProfile: (state, action: PayloadAction<Partial<Profile>>) => {
-      if (state.profile) {
-        state.profile = { ...state.profile, ...action.payload };
-      }
+      if (state.profile) state.profile = { ...state.profile, ...action.payload };
     },
   },
   extraReducers: (builder) => {
-    // Sign in
     builder
       .addCase(signInWithEmail.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signInWithEmail.fulfilled, (state, action) => {
@@ -190,7 +168,6 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
-    // Sign up
     builder
       .addCase(signUpWithEmail.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signUpWithEmail.fulfilled, (state, action) => {
@@ -205,7 +182,6 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
-    // OAuth
     builder
       .addCase(signInWithOAuth.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(signInWithOAuth.rejected, (state, action) => {
@@ -213,7 +189,6 @@ const authSlice = createSlice({
         state.error = action.error.message || 'OAuth sign in failed';
       });
 
-    // OAuth callback
     builder
       .addCase(handleOAuthReturn.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(handleOAuthReturn.fulfilled, (state, action) => {
@@ -227,14 +202,12 @@ const authSlice = createSlice({
         state.error = action.error.message || 'OAuth callback failed';
       });
 
-    // Sign out
     builder.addCase(signOut.fulfilled, (state) => {
       state.user = null;
       state.profile = null;
       state.isAuthenticated = false;
     });
 
-    // Check auth
     builder
       .addCase(checkAuth.pending, (state) => { state.isLoading = true; })
       .addCase(checkAuth.fulfilled, (state, action) => {
@@ -250,7 +223,6 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       });
 
-    // Demo sign in
     builder
       .addCase(demoSignIn.pending, (state) => { state.isLoading = true; state.error = null; })
       .addCase(demoSignIn.fulfilled, (state, action) => {
@@ -264,7 +236,6 @@ const authSlice = createSlice({
         state.error = action.error.message || 'Demo sign in failed';
       });
 
-    // Update onboarding
     builder
       .addCase(updateOnboardingStatus.fulfilled, (state, action) => {
         if (state.profile) state.profile = action.payload;
@@ -273,7 +244,6 @@ const authSlice = createSlice({
         state.error = action.error.message || 'Failed to update onboarding status';
       });
 
-    // Update mentor
     builder
       .addCase(updatePreferredMentor.fulfilled, (state, action) => {
         if (state.profile) state.profile = action.payload;

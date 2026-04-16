@@ -162,7 +162,7 @@ collaborationRoutes.post('/invitations', async (c) => {
 
   const recipient = await queryOne<Profile>(
     c.env.DB,
-    'SELECT id FROM profiles WHERE username = ?',
+    'SELECT id FROM user WHERE username = ?',
     [body.inviteeUsername]
   );
 

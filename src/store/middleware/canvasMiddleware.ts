@@ -127,19 +127,13 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
               },
             };
 
-            // Build headers for keepalive request
-            const headers: Record<string, string> = {
-              'Content-Type': 'application/json',
-            };
-            const token = localStorage.getItem('auth_token');
-            if (token) headers['Authorization'] = `Bearer ${token}`;
-
-            // Use fetch with keepalive for better reliability on page unload
+            // Use fetch with keepalive + credentials for session cookie
             fetch('/api/canvas/', {
               method: 'PUT',
-              headers,
+              headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(saveData),
               keepalive: true,
+              credentials: 'include',
             }).catch(console.error);
           }
         }

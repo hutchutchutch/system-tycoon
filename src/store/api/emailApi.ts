@@ -39,19 +39,16 @@ export interface StageCompletionRequest {
   };
 }
 
-function addAuthHeaders(headers: Headers) {
-  const token = localStorage.getItem('auth_token');
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  return headers;
-}
+
 
 export const emailApi = createApi({
   reducerPath: 'emailApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/emails',
+    credentials: 'include',
     prepareHeaders: (headers) => {
       headers.set('content-type', 'application/json');
-      return addAuthHeaders(headers);
+      return headers;
     },
   }),
   tagTypes: ['Email', 'EmailProgress', 'MissionEmails'],

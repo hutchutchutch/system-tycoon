@@ -23,19 +23,13 @@ interface SaveMessageResponse {
   createdAt: string;
 }
 
-function addAuthHeaders(headers: Headers) {
-  const token = localStorage.getItem('auth_token');
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  return headers;
-}
+
 
 export const mentorApi = createApi({
   reducerPath: 'mentorApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/mentors',
-    prepareHeaders: (headers) => {
-      return addAuthHeaders(headers);
-    },
+    credentials: 'include',
   }),
   tagTypes: ['ChatHistory', 'MentorSession'],
   endpoints: (builder) => ({

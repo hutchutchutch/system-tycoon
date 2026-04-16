@@ -19,19 +19,13 @@ interface LoadCanvasStateResponse {
   lastSaved: string | null;
 }
 
-function addAuthHeaders(headers: Headers) {
-  const token = localStorage.getItem('auth_token');
-  if (token) headers.set('Authorization', `Bearer ${token}`);
-  return headers;
-}
+
 
 export const canvasApi = createApi({
   reducerPath: 'canvasApi',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api/canvas',
-    prepareHeaders: (headers) => {
-      return addAuthHeaders(headers);
-    },
+    credentials: 'include',
   }),
   tagTypes: ['CanvasState', 'UserProgress'],
   endpoints: (builder) => ({

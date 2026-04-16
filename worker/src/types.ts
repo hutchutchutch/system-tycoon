@@ -2,33 +2,39 @@ export interface Env {
   DB: D1Database;
   CACHE: KVNamespace;
   ENVIRONMENT: string;
-  JWT_SECRET: string;
+  JWT_SECRET: string; // used by Better Auth as its signing secret
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
-  GOOGLE_REDIRECT_URI: string;
+  BETTER_AUTH_URL: string;
   DESIGN_SESSION: DurableObjectNamespace;
 }
 
-// Auth types
+// Auth types — shape matches Better Auth session user
 export interface AuthUser {
   id: string;
   email: string;
+  name?: string;
+  image?: string | null;
 }
 
-// Profile types
+// Profile — now the `user` table from Better Auth with additionalFields
 export interface Profile {
   id: string;
   email: string;
-  username: string;
+  name: string;
+  emailVerified: number;
+  image: string | null;
+  // additionalFields
+  username: string | null;
   display_name: string | null;
   avatar_url: string | null;
   current_level: number;
   reputation_score: number;
   career_title: string | null;
   preferred_mentor_id: string | null;
-  onboarding_completed: number; // SQLite uses 0/1 for booleans
-  created_at: string;
-  updated_at: string;
+  onboarding_completed: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Mission types
