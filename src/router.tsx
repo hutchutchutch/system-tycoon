@@ -10,6 +10,9 @@ import { SimpleLanding } from './pages/SimpleLanding';
 import { OnboardingPage } from './pages/OnboardingPage';
 import { AuthFlowPage } from './pages/auth/AuthFlowPage';
 import { OAuthCallback } from './pages/auth/OAuthCallback';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { VerifyEmailSentPage } from './pages/auth/VerifyEmailSentPage';
 import { InitialExperience } from './pages/InitialExperience';
 import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
 
@@ -195,6 +198,18 @@ export const router = createBrowserRouter([
   {
     path: 'auth/callback',
     element: <OAuthCallback />,
+  },
+  {
+    path: 'auth/forgot-password',
+    element: <ForgotPasswordPage />,
+  },
+  {
+    path: 'auth/reset-password',
+    element: <ResetPasswordPage />,
+  },
+  {
+    path: 'auth/verify-email',
+    element: <VerifyEmailSentPage />,
   },
   // Legacy auth redirects
   {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
@@ -104,6 +105,7 @@ interface AuthCardNodeData extends Record<string, unknown> {
 export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
   const nodeData = data as AuthCardNodeData;
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isLoading, error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
   
   const [email, setEmail] = useState("");
@@ -189,17 +191,18 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     try {
       if (isSignUp) {
-        // Dispatch sign up action
+        // Dispatch sign up action — routes to verify-email page
         await dispatch(signUpWithEmail({
           email: email.trim(),
           password,
           username: name.trim()
         })).unwrap();
+        navigate('/auth/verify-email', { state: { email: email.trim() } });
       } else {
         // Dispatch sign in action
         await dispatch(signInWithEmail({
@@ -374,6 +377,7 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
             {!isSignUp && (
               <button
                 type="button"
+                onClick={() => navigate('/auth/forgot-password')}
                 style={{
                   fontSize: '12px',
                   color: '#3b82f6',

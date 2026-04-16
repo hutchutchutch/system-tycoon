@@ -3,6 +3,7 @@ import { Kysely } from 'kysely';
 import { D1Dialect } from 'kysely-d1';
 import type { Env } from '../types';
 import { generateId, now } from './db';
+import { sendEmail, renderEmail } from './email';
 
 /**
  * Creates a Better Auth instance bound to the current request's Cloudflare bindings.
@@ -29,8 +30,43 @@ export function createAuth(env: Env) {
       enabled: true,
       minPasswordLength: 8,
       autoSignIn: true,
-      // TODO: enable email verification once we have an email sender configured
-      requireEmailVerification: false,
+      requireEmailVerification: true,
+      sendResetPassword: async ({ user, url }) => {
+        const { html, text } = renderEmail({
+          preheader: 'Reset your Service as a Software password',
+          heading: 'Reset your password',
+          body: `Hi ${user.name || user.email}, we received a request to reset the password for your account. Click the button below to choose a new password. This link expires in 1 hour.`,
+          ctaLabel: 'Reset Password',
+          ctaUrl: url,
+          footer: "If you didn't request this, you can safely ignore this email.",
+        });
+        await sendEmail(env, {
+          to: user.email,
+          subject: 'Reset your password',
+          html,
+          text,
+        });
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        const { html, text } = renderEmail({
+          preheader: 'Verify your email to start using Service as a Software',
+          heading: 'Verify your email',
+          body: `Welcome, ${user.name || user.email}! Click the button below to verify your email address and activate your account.`,
+          ctaLabel: 'Verify Email',
+          ctaUrl: url,
+          footer: "If you didn't create this account, you can safely ignore this email.",
+        });
+        await sendEmail(env, {
+          to: user.email,
+          subject: 'Verify your email address',
+          html,
+          text,
+        });
+      },
     },
     socialProviders: {
       google: {
