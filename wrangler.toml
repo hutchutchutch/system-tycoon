@@ -24,7 +24,7 @@ new_classes = ["DesignSessionDO"]
 [vars]
 ENVIRONMENT = "development"
 BETTER_AUTH_URL = "http://localhost:8787"
-EMAIL_FROM = "noreply@saas.game"
+EMAIL_FROM = "hello@saas.game"
 EMAIL_FROM_NAME = "Service as a Software"
 
 # Secrets (via `wrangler secret put` or .dev.vars):
@@ -37,5 +37,5 @@ EMAIL_FROM_NAME = "Service as a Software"
 [env.production.vars]
 ENVIRONMENT = "production"
 BETTER_AUTH_URL = "https://saas.game"
-EMAIL_FROM = "noreply@saas.game"
+EMAIL_FROM = "hello@saas.game"
 EMAIL_FROM_NAME = "Service as a Software"
