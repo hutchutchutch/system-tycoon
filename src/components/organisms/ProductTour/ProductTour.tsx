@@ -90,6 +90,29 @@ export const ProductTour: React.FC<ProductTourProps> = ({
     }
   }, [isActive, isAuthenticated, user]);
 
+  // If the current step targets a DOM element that doesn't exist on this page,
+  // auto-skip it after a short wait (keeps the tour from getting stuck).
+  useEffect(() => {
+    if (!isVisible) return;
+    if (!currentStep?.target) return;
+
+    const check = () => !!document.querySelector(currentStep.target!);
+    if (check()) return;
+
+    const timer = setTimeout(() => {
+      if (!check()) {
+        if (isLastStep) {
+          handleCompleteTour();
+        } else {
+          setCurrentStepIndex((prev) => prev + 1);
+        }
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStepIndex, isVisible]);
+
   // Handle next step
   const handleNextStep = useCallback(() => {
     if (isLastStep) {

@@ -194,39 +194,45 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
     handleClose();
   };
 
-  const getPositionStyles = () => {
+  const getPositionStyles = (): React.CSSProperties => {
     if (!highlightBounds || !targetElement) {
       return {};
     }
 
     const notificationWidth = 320;
-    const notificationHeight = 120; // Approximate height
+    const notificationHeight = 160;
     const offset = 16;
+    const margin = 16; // keep notification this far from viewport edges
+
+    let top: number | undefined;
+    let left: number | undefined;
 
     switch (position) {
       case 'top':
-        return {
-          bottom: window.innerHeight - highlightBounds.top + offset,
-          left: highlightBounds.left + (highlightBounds.width / 2) - (notificationWidth / 2),
-        };
+        top = highlightBounds.top - notificationHeight - offset;
+        left = highlightBounds.left + highlightBounds.width / 2 - notificationWidth / 2;
+        break;
       case 'bottom':
-        return {
-          top: highlightBounds.bottom + offset,
-          left: highlightBounds.left + (highlightBounds.width / 2) - (notificationWidth / 2),
-        };
+        top = highlightBounds.bottom + offset;
+        left = highlightBounds.left + highlightBounds.width / 2 - notificationWidth / 2;
+        break;
       case 'left':
-        return {
-          top: highlightBounds.top + (highlightBounds.height / 2) - (notificationHeight / 2),
-          right: window.innerWidth - highlightBounds.left + offset,
-        };
+        top = highlightBounds.top + highlightBounds.height / 2 - notificationHeight / 2;
+        left = highlightBounds.left - notificationWidth - offset;
+        break;
       case 'right':
-        return {
-          top: highlightBounds.top + (highlightBounds.height / 2) - (notificationHeight / 2),
-          left: highlightBounds.right + offset,
-        };
-      default:
-        return {};
+        top = highlightBounds.top + highlightBounds.height / 2 - notificationHeight / 2;
+        left = highlightBounds.right + offset;
+        break;
     }
+
+    // Clamp to viewport so the card is always visible
+    const maxLeft = window.innerWidth - notificationWidth - margin;
+    const maxTop = window.innerHeight - notificationHeight - margin;
+    if (top !== undefined) top = Math.max(margin, Math.min(top, maxTop));
+    if (left !== undefined) left = Math.max(margin, Math.min(left, maxLeft));
+
+    return { top, left };
   };
 
   return (
@@ -237,10 +243,10 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
           onClick={handleClose}
         />
       )}
-      <div 
+      <div
         ref={notificationRef}
         className={`${styles.notification} ${styles[`notification--${position}`]} ${isVisible ? styles.visible : ''} ${className}`}
-        style={targetElement ? getPositionStyles() : undefined}
+        style={targetElement && highlightBounds ? getPositionStyles() : undefined}
       >
         {showArrow && targetElement && (
           <div className={`${styles.arrow} ${styles[`arrow--${position}`]}`} />
