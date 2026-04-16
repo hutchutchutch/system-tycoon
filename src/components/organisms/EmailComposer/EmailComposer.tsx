@@ -43,6 +43,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [missionStartResult, setMissionStartResult] = useState<any>(null);
+  const [sendError, setSendError] = useState<string | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // Get current user from Redux store
@@ -102,6 +103,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     if (!subject.trim() || !body.trim() || isTyping || !currentUser) return;
 
     setIsSending(true);
+    setSendError(null);
     
     try {
       // Save to database as sent
@@ -177,10 +179,11 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         onClose();
       } else {
         console.error('Failed to send email:', result.error);
-        // Could show error message here
+        setSendError(result.error || 'Failed to send message. Please try again.');
       }
     } catch (error) {
       console.error('Error sending email:', error);
+      setSendError(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -291,6 +294,23 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
             )}
           </div>
         </div>
+
+        {sendError && (
+          <div
+            role="alert"
+            style={{
+              margin: '8px 24px 0',
+              padding: '10px 12px',
+              borderRadius: '8px',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#fca5a5',
+              fontSize: '13px',
+            }}
+          >
+            {sendError}
+          </div>
+        )}
 
         <div className={styles.footer}>
           <button
