@@ -28,9 +28,11 @@ class_name = "DesignSessionDO"
 tag = "v1"
 new_classes = ["DesignSessionDO"]
 
+# Top-level = production defaults (used by `wrangler deploy`).
+# Local dev overrides these via .dev.vars.
 [vars]
-ENVIRONMENT = "development"
-BETTER_AUTH_URL = "http://localhost:8787"
+ENVIRONMENT = "production"
+BETTER_AUTH_URL = "https://saas.game"
 EMAIL_FROM = "hello@saas.game"
 EMAIL_FROM_NAME = "Service as a Software"
 
@@ -39,10 +41,3 @@ EMAIL_FROM_NAME = "Service as a Software"
 #   GOOGLE_CLIENT_ID
 #   GOOGLE_CLIENT_SECRET
 #   SENDGRID_API_KEY
-
-[env.production]
-[env.production.vars]
-ENVIRONMENT = "production"
-BETTER_AUTH_URL = "https://saas.game"
-EMAIL_FROM = "hello@saas.game"
-EMAIL_FROM_NAME = "Service as a Software"
