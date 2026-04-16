@@ -244,18 +244,20 @@
   transform: translateY(0);
 }
 
-/* Highlight overlay */
+/* Highlight overlay — transparent wrapper. The darkening comes from the
+ * inner .highlightCutout's box-shadow so the target element inside the
+ * cutout is not dimmed by a covering layer. */
 .highlightOverlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  background: transparent;
   z-index: 99999;
   cursor: pointer;
   animation: fadeIn 0.3s ease;
+  pointer-events: auto;
 }
 
 @keyframes fadeIn {
@@ -293,10 +295,18 @@
   }
 }
 
-/* Highlighted element */
+/* Highlighted element — lifted above the scrim (which is at 99999).
+ * We use a high z-index AND isolation to guarantee the element creates
+ * its own stacking context and breaks out of any ancestor's context. */
 .highlightedElement {
-  position: relative;
+  position: relative !important;
   z-index: 100001 !important;
+  isolation: isolate;
+  box-shadow:
+    0 0 0 2px rgba(59, 130, 246, 0.6),
+    0 0 24px rgba(59, 130, 246, 0.4) !important;
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease;
 }
 
 /* Responsive */

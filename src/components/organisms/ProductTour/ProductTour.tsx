@@ -23,30 +23,22 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'welcome',
     title: 'Welcome to Service as a Software! 🎉',
-    content: 'I\'m your mentor! I\'ll guide you through this powerful interface where you\'ll use your system design skills to help real communities.',
-    position: 'bottom',
-    autoHideDuration: 0 // Manual advance
-  },
-  {
-    id: 'gamehud',
-    title: 'Your Command Center 📊',
-    content: 'This shows your profile, level, reputation points, and system status. Try the theme toggle on the right!',
-    target: '[class*="hud"]',
+    content: "I'm your mentor — I'll show you around. You'll use your system design skills to help real people solve real problems.",
     position: 'bottom',
     autoHideDuration: 0
   },
   {
-    id: 'browser',
-    title: 'Your Digital Workspace 🌐',
-    content: 'Just like a real browser, you can open multiple tabs, navigate between tools, and manage your workflow efficiently.',
-    target: '[class*="browserWindow"]',
+    id: 'missions',
+    title: 'Real Stories, Real People 🌍',
+    content: "Each card here is a real story — a doctor, a teacher, an activist, a small business owner — someone trying to do good in the world who needs help with their tech. Pick the one that speaks to you.",
+    target: '.bento-card',
     position: 'top',
     autoHideDuration: 0
   },
   {
-    id: 'bentocard',
-    title: 'Real Stories, Real Impact 📰',
-    content: 'These cards show communities that need your help. Hover over any card to see the "Contact" button and start making a difference!',
+    id: 'contact',
+    title: 'Reach Out 💬',
+    content: "Hover any card to reveal a Contact button. Clicking it sends a message to the hero and opens their mission in your email.",
     target: '.bento-card',
     position: 'top',
     autoHideDuration: 0
@@ -54,17 +46,17 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'email',
     title: 'Stay Connected 📧',
-    content: 'Click the Email bookmark to access mission briefs and coordinate with communities. A red dot means urgent attention needed!',
+    content: "Your email is where mission briefs arrive and conversations happen. Check it often — a red dot means something needs your attention.",
     target: '[class*="bookmark"]',
     position: 'bottom',
     autoHideDuration: 0
   },
   {
     id: 'complete',
-    title: 'You\'re Ready! 🎊',
-    content: 'You\'ve completed the tour! Click on any news story to begin your first mission and start helping communities.',
+    title: "You're Ready! 🎊",
+    content: "Pick a mission that resonates with you and let's start making a difference.",
     position: 'bottom',
-    autoHideDuration: 8000 // Auto-hide after 8 seconds
+    autoHideDuration: 8000
   }
 ];
 
