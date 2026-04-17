@@ -586,7 +586,7 @@
 }
 
 .chatMessage.userMessage .chatAvatar {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: linear-gradient(135deg, var(--color-emerald-500), var(--color-emerald-600));
 }
 
 .chatContent {

@@ -35,7 +35,7 @@
 /* Button Variants */
 .buttonPrimary {
   background: var(--color-accent-primary);
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 .buttonPrimary:hover:not(:disabled) {
@@ -75,7 +75,7 @@
 
 .buttonDestructive {
   background: var(--color-accent-error);
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 .buttonDestructive:hover:not(:disabled) {

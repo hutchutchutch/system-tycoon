@@ -24,7 +24,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #000000;
+  background: var(--color-black);
   position: relative;
   overflow: auto;
   min-height: 0;
@@ -56,7 +56,7 @@
 }
 
 [data-theme="dark"] .content {
-  background: #000000;
+  background: var(--color-black);
 }
 
 /* User info area (top right) */

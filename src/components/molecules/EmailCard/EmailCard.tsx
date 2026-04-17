@@ -1,9 +1,10 @@
 import React from 'react';
 import { clsx } from 'clsx';
 import { EmailStatus } from '../../atoms/EmailStatus';
-import type { EmailStatusType } from '../../atoms/EmailStatus';
 import { Icon } from '../../atoms/Icon';
 import { ContactAvatar } from '../ContactAvatar/ContactAvatar';
+import { formatRelativeTime } from '../../../utils/dateUtils';
+import { mapEmailStatus, getPriorityIconInfo, getMissionTagText } from '../../../utils/emailUtils';
 import styles from './EmailCard.module.css';
 import type { EmailCardProps } from './EmailCard.types';
 
@@ -19,101 +20,19 @@ export const EmailCard: React.FC<EmailCardProps> = ({
     onClick?.(email);
   };
 
-  // Map Email status to EmailStatusType for the EmailStatus component
-  const mapEmailStatus = (status: string): EmailStatusType => {
-    switch (status) {
-      case 'unread':
-        return 'unread';
-      case 'read':
-        return 'read';
-      case 'archived':
-        return 'draft'; // Map archived to draft for display purposes
-      case 'deleted':
-        return 'draft'; // Map deleted to draft for display purposes
-      default:
-        return 'read';
-    }
-  };
-
   const handleStatusToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     const newStatus = email.status === 'unread' ? 'read' : 'unread';
     onStatusChange?.(email.id, mapEmailStatus(newStatus));
   };
 
-  const formatTimestamp = (dateInput: string | Date) => {
-    // Handle different input types and invalid dates
-    let date: Date;
-    
-    if (dateInput instanceof Date) {
-      date = dateInput;
-    } else if (typeof dateInput === 'string') {
-      date = new Date(dateInput);
-    } else {
-      return 'Just now'; // Fallback for invalid input
-    }
-    
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      return 'Just now'; // Fallback for invalid dates
-    }
-    
-    const now = new Date();
-    const diffTime = now.getTime() - date.getTime();
-    const diffMinutes = Math.floor(diffTime / (1000 * 60));
-    const diffHours = Math.floor(diffTime / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffMinutes < 1) {
-      return 'Just now';
-    } else if (diffMinutes < 60) {
-      return `${diffMinutes}m ago`;
-    } else if (diffHours < 24) {
-      return `${diffHours}h ago`;
-    } else if (diffDays === 1) {
-      return 'Yesterday';
-    } else if (diffDays < 7) {
-      return `${diffDays}d ago`;
-    } else {
-      // Show actual date for older emails
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    }
-  };
-
-  const truncateText = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength) + '...';
-  };
-
-  const getPriorityIcon = () => {
-    switch (email.priority) {
-      case 'high':
-      case 'urgent':
-        return <Icon name="alert-circle" size="xs" className={clsx(styles.priority, styles['priority--high'])} />;
-      case 'low':
-        return <Icon name="chevron-down" size="xs" className={clsx(styles.priority, styles['priority--low'])} />;
-      default:
-        return null;
-    }
-  };
+  const priorityInfo = getPriorityIconInfo(email.priority);
 
   // Check if this is a mission email
   const isMissionEmail = Boolean(email.missionId);
-  
+
   // Get mission stage text for the tag
-  const getMissionTagText = () => {
-    if (!isMissionEmail) return null;
-    
-    if (email.triggerType === 'mission_start') {
-      return 'MISSION START';
-    } else if (email.triggerType === 'stage_complete' && email.stageNumber) {
-      return `STAGE ${email.stageNumber}`;
-    } else if (email.triggerType === 'performance_based') {
-      return 'MISSION CRITICAL';
-    } else {
-      return 'MISSION';
-    }
-  };
+  const missionTagText = getMissionTagText(email.missionId, email.triggerType, email.stageNumber);
 
   return (
     <div
@@ -173,14 +92,20 @@ export const EmailCard: React.FC<EmailCardProps> = ({
               {email.body || email.preview}
             </span>
           </div>
-          
+
           <div className={styles.meta}>
-            {getPriorityIcon()}
+            {priorityInfo && (
+              <Icon
+                name={priorityInfo.iconName as any}
+                size="xs"
+                className={clsx(styles.priority, styles[`priority--${priorityInfo.severity}`])}
+              />
+            )}
             {email.attachments && email.attachments.length > 0 && (
               <Icon name="link" size="xs" className={styles.attachment} />
             )}
             <span className={styles.timestamp}>
-              {formatTimestamp(email.sentAt)}
+              {formatRelativeTime(email.sentAt)}
             </span>
           </div>
         </div>
@@ -189,13 +114,13 @@ export const EmailCard: React.FC<EmailCardProps> = ({
         {(isMissionEmail || (email.tags && email.tags.length > 0)) && (
           <div className={styles.tags}>
             {/* Mission tag - always first and most prominent */}
-            {isMissionEmail && (
+            {isMissionEmail && missionTagText && (
               <span className={clsx(styles.tag, styles.missionTag)}>
                 <Icon name="star" size="xs" className={styles.missionIcon} />
-                {getMissionTagText()}
+                {missionTagText}
               </span>
             )}
-            
+
             {/* Regular tags */}
             {email.tags && email.tags.length > 0 && (
               <>
@@ -218,4 +143,4 @@ export const EmailCard: React.FC<EmailCardProps> = ({
   );
 };
 
-export default EmailCard; 
+export default EmailCard;

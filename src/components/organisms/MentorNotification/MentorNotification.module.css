@@ -237,7 +237,7 @@
 .actionButton:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-  background: linear-gradient(135deg, var(--color-blue-700), #1d4ed8);
+  background: linear-gradient(135deg, var(--color-blue-700), var(--color-indigo-700));
 }
 
 .actionButton:active {

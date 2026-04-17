@@ -403,10 +403,10 @@
 
 /* Fallback colors for older browsers */
 .emailCard--mission {
-  border-left-color: #ef4444; /* red-500 fallback */
-  background-color: #fef2f2; /* red-50 fallback */
+  border-left-color: var(--color-red-500); /* red-500 fallback */
+  background-color: var(--color-red-50); /* red-50 fallback */
 }
 
 .missionTag {
-  background-color: #ef4444; /* red-500 fallback */
+  background-color: var(--color-red-500); /* red-500 fallback */
 } 

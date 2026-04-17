@@ -398,7 +398,7 @@
 }
 
 .database-node:hover {
-  border-color: #d97706;
+  border-color: var(--color-amber-600);
   box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
 }
 
@@ -418,7 +418,7 @@
 }
 
 .storage-node:hover {
-  border-color: #9333ea;
+  border-color: var(--color-purple-600);
   box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
 }
 
@@ -438,7 +438,7 @@
 }
 
 .network-node:hover {
-  border-color: #ca8a04;
+  border-color: var(--color-yellow-600);
   box-shadow: 0 0 30px rgba(234, 179, 8, 0.3);
 }
 
@@ -636,7 +636,7 @@
 .stageTitle {
   font-size: var(--text-base);
   font-weight: var(--font-semibold);
-  color: #93bbfe;
+  color: var(--color-blue-300);
   margin: 0 0 var(--space-2) 0;
   display: flex;
   align-items: center;
@@ -645,7 +645,7 @@
 
 .stageProblem {
   font-size: var(--text-sm);
-  color: #bfdbfe;
+  color: var(--color-blue-200);
   margin: 0;
   line-height: 1.5;
 }

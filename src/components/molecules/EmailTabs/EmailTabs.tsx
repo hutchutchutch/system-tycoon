@@ -1,5 +1,5 @@
 import React from 'react';
-import clsx from 'clsx';
+import { Tabs, TabsList, TabsTrigger } from '../../ui/tabs';
 import styles from './EmailTabs.module.css';
 
 export interface EmailTab {
@@ -22,21 +22,17 @@ export const EmailTabs: React.FC<EmailTabsProps> = ({
   if (tabs.length === 0) return null;
 
   return (
-    <div className={styles.tabs}>
-      {tabs.map(tab => (
-        <button
-          key={tab.id}
-          className={clsx(styles.tab, {
-            [styles['tab--active']]: selectedTab === tab.id
-          })}
-          onClick={() => onTabSelect(tab.id)}
-        >
-          {tab.name}
-          {tab.count !== undefined && tab.count > 0 && (
-            <span className={styles.tabCount}>{tab.count}</span>
-          )}
-        </button>
-      ))}
-    </div>
+    <Tabs value={selectedTab} onValueChange={onTabSelect}>
+      <TabsList className={styles.tabsList}>
+        {tabs.map(tab => (
+          <TabsTrigger key={tab.id} value={tab.id} className={styles.tab}>
+            {tab.name}
+            {tab.count !== undefined && tab.count > 0 && (
+              <span className={styles.tabCount}>{tab.count}</span>
+            )}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+    </Tabs>
   );
-}; 
+};
