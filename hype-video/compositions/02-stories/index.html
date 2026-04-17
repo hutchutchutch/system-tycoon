@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B1426; font-family: 'Inter', sans-serif; }
+    .scene { width: 1920px; height: 1080px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .crisis-line { font-size: 32px; font-weight: 600; color: #EF4444; opacity: 0; text-align: center; line-height: 1.6; margin-bottom: 16px; }
+    .bold-line { font-size: 44px; font-weight: 700; color: #FFFFFF; opacity: 0; text-align: center; margin-bottom: 16px; }
+    .fade-line { font-size: 32px; font-weight: 500; color: #FFFFFF; opacity: 0; text-align: center; margin-bottom: 48px; }
+    .reflection { text-align: center; }
+    .reflect-line { font-size: 28px; font-weight: 400; color: #CBD5E1; opacity: 0; line-height: 1.8; }
+  </style>
+</head>
+<body>
+<div data-composition-id="02-stories" data-width="1920" data-height="1080" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+  <div class="scene">
+    <div class="crisis-line" id="c1"></div>
+    <div class="bold-line" id="c2">Critical data — lost.</div>
+    <div class="fade-line" id="c3">The system can't keep up.</div>
+    <div class="reflection">
+      <div class="reflect-line" id="r1">They're doing the hard part.</div>
+      <div class="reflect-line" id="r2">They just need the system to hold.</div>
+    </div>
+  </div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+const c1 = document.getElementById('c1');
+const crisisText = "But the database crashes every few hours.";
+
+// Glitch
+tl.to('.scene', { skewX: 3, duration: 0.05, yoyo: true, repeat: 3 }, 0.3);
+
+// Type crisis line
+tl.to('#c1', { opacity: 1, duration: 0.01 }, 0.8);
+crisisText.split('').forEach((ch, i) => { tl.call(() => { c1.textContent += ch; }, [], 0.8 + i * 0.025); });
+
+// Hard cut
+tl.fromTo('#c2', { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.2, ease: 'power3.out' }, 2.5);
+
+// Fade
+tl.to('#c3', { opacity: 1, duration: 0.5 }, 3.5);
+
+// Dim crisis
+tl.to('#c1, #c2, #c3', { opacity: 0.1, duration: 0.8 }, 4.5);
+
+// Reflection
+tl.to('#r1', { opacity: 1, duration: 0.6 }, 5.0);
+tl.to('#r2', { opacity: 1, duration: 0.6 }, 5.8);
+
+tl.to({}, { duration: 7 });
+window.__timelines["02-stories"] = tl;
+</script>
+</body>
+</html>

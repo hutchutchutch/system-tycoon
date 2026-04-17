@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B1426; font-family: 'Inter', sans-serif; }
+    .canvas { width: 1920px; height: 1080px; position: relative; background-image: radial-gradient(circle, #1E293B 1px, transparent 1px); background-size: 24px 24px; overflow: hidden; }
+    .node { position: absolute; width: 190px; height: 85px; border-radius: 12px; background: rgba(15,23,42,0.95); display: flex; align-items: center; gap: 12px; padding: 0 16px; opacity: 0; transform: translateY(30px); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+    .node-icon { font-size: 28px; }
+    .node-text { display: flex; flex-direction: column; }
+    .node-name { font-size: 15px; font-weight: 600; color: #FFF; }
+    .node-desc { font-size: 11px; color: #94A3B8; }
+    .n-families { border-left: 3px solid #EAB308; top: 200px; left: 300px; }
+    .n-server { border-left: 3px solid #3B82F6; top: 400px; left: 700px; }
+    .n-db { border-left: 3px solid #F97316; top: 400px; left: 1100px; }
+    svg.edges { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .edge-line { stroke: #22C55E; stroke-width: 2; fill: none; stroke-dasharray: 300; stroke-dashoffset: 300; }
+    .pulse-dot { r: 4; fill: #22C55E; opacity: 0; }
+    .reqs { position: absolute; right: 40px; top: 200px; width: 340px; background: rgba(15,23,42,0.95); border: 1px solid #1E293B; border-radius: 12px; padding: 20px; opacity: 0; transform: translateX(40px); }
+    .reqs-title { font-size: 14px; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 16px; }
+    .req { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .req-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.3s; }
+    .req-check.done { border-color: #22C55E; background: rgba(34,197,94,0.15); color: #22C55E; }
+    .req-text { font-size: 14px; color: #CBD5E1; font-weight: 500; }
+    .mentor { position: absolute; bottom: 60px; right: 60px; max-width: 420px; background: linear-gradient(135deg, #3B82F6, #2563EB); border-radius: 16px 16px 4px 16px; padding: 20px; opacity: 0; transform: translateY(20px); }
+    .mentor-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 6px; }
+    .mentor-msg { font-size: 15px; color: #FFF; line-height: 1.5; font-weight: 400; }
+  </style>
+</head>
+<body>
+<div data-composition-id="04-canvas" data-width="1920" data-height="1080" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+  <div class="canvas">
+    <div class="node n-families" id="families"><span class="node-icon">👨‍👩‍👧‍👦</span><div class="node-text"><span class="node-name">Families</span><span class="node-desc">200+ community members</span></div></div>
+    <div class="node n-server" id="server"><span class="node-icon">🖥</span><div class="node-text"><span class="node-name">Web Server</span><span class="node-desc">Runs application code</span></div></div>
+    <div class="node n-db" id="database"><span class="node-icon">🗄</span><div class="node-text"><span class="node-name">Database</span><span class="node-desc">Stores health records</span></div></div>
+
+    <svg class="edges">
+      <path id="edge1" class="edge-line" d="M 490 242 C 590 242, 600 442, 700 442"/>
+      <circle class="pulse-dot" id="dot1" cx="490" cy="242"/>
+      <path id="edge2" class="edge-line" d="M 890 442 L 1100 442"/>
+      <circle class="pulse-dot" id="dot2" cx="890" cy="442"/>
+    </svg>
+
+    <div class="reqs" id="reqs">
+      <div class="reqs-title">Requirements</div>
+      <div class="req"><div class="req-check" id="check1">✓</div><span class="req-text">Separate server from database</span></div>
+      <div class="req"><div class="req-check" id="check2">✓</div><span class="req-text">Connect families to server</span></div>
+      <div class="req"><div class="req-check" id="check3">✓</div><span class="req-text">Protect the data</span></div>
+    </div>
+
+    <div class="mentor" id="mentor">
+      <div class="mentor-name">Your Mentor</div>
+      <div class="mentor-msg">The families can reach the server now. The data is safe. Great architecture.</div>
+    </div>
+  </div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+
+// Families node visible at start
+tl.to('#families', { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out' }, 0.2);
+
+// Server slides in
+tl.to('#server', { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.4)' }, 1.0);
+
+// Database slides in
+tl.to('#database', { opacity: 1, y: 0, duration: 0.6, ease: 'back.out(1.4)' }, 2.0);
+
+// Edge 1 draws (Families → Server)
+tl.to('#edge1', { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, 3.0);
+// Pulse dot travels along edge
+tl.to('#dot1', { opacity: 1, duration: 0.1 }, 3.5);
+tl.to('#dot1', { motionPath: { path: '#edge1', align: '#edge1', autoRotate: false }, duration: 1.0, ease: 'none', repeat: 2 }, 3.5);
+
+// Edge 2 draws (Server → Database)
+tl.to('#edge2', { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' }, 4.0);
+tl.to('#dot2', { opacity: 1, duration: 0.1 }, 4.5);
+tl.to('#dot2', { motionPath: { path: '#edge2', align: '#edge2', autoRotate: false }, duration: 0.8, ease: 'none', repeat: 2 }, 4.5);
+
+// Requirements panel
+tl.to('#reqs', { opacity: 1, x: 0, duration: 0.5, ease: 'power2.out' }, 5.0);
+tl.call(() => { document.getElementById('check1').classList.add('done'); }, [], 5.5);
+tl.call(() => { document.getElementById('check2').classList.add('done'); }, [], 6.0);
+tl.call(() => { document.getElementById('check3').classList.add('done'); }, [], 6.5);
+
+// All checks glow
+tl.to('.req-check.done', { boxShadow: '0 0 12px rgba(34,197,94,0.6)', duration: 0.3, yoyo: true, repeat: 1 }, 7.0);
+
+// Mentor chat
+tl.to('#mentor', { opacity: 1, y: 0, duration: 0.4, ease: 'back.out(1.3)' }, 7.5);
+
+// Success pulse on nodes
+tl.to('.node', { boxShadow: '0 0 20px rgba(34,197,94,0.3)', duration: 0.4, yoyo: true, repeat: 1 }, 9.5);
+
+tl.to({}, { duration: 11 });
+window.__timelines["04-canvas"] = tl;
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>saas.game — Hype Video</title>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; }
+  </style>
+</head>
+<body>
+  <div
+    data-composition-id="master"
+    data-width="1920"
+    data-height="1080"
+    data-start="0"
+    data-duration="42"
+    style="width: 1920px; height: 1080px; position: relative; overflow: hidden; background: #0B1426;"
+  >
+    <!-- Beat 1: THE PEOPLE (8s) — empathy, warmth -->
+    <div class="clip" data-composition-id="01-hook" data-composition-src="compositions/01-hook/index.html" data-start="0" data-duration="8" style="position: absolute; inset: 0;"></div>
+
+    <!-- Beat 2: THE LIMIT (7s) — frustration, urgency -->
+    <div class="clip" data-composition-id="02-stories" data-composition-src="compositions/02-stories/index.html" data-start="8" data-duration="7" style="position: absolute; inset: 0;"></div>
+
+    <!-- Beat 3: THE BRIDGE (6s) — possibility -->
+    <div class="clip" data-composition-id="03-architect" data-composition-src="compositions/03-architect/index.html" data-start="15" data-duration="6" style="position: absolute; inset: 0;"></div>
+
+    <!-- Beat 4: THE WORK (11s) — craftsmanship, the product -->
+    <div class="clip" data-composition-id="04-canvas" data-composition-src="compositions/04-canvas/index.html" data-start="21" data-duration="11" style="position: absolute; inset: 0;"></div>
+
+    <!-- Beat 5: THE PROOF (6s) — pride, payoff -->
+    <div class="clip" data-composition-id="05-impact" data-composition-src="compositions/05-impact/index.html" data-start="32" data-duration="6" style="position: absolute; inset: 0;"></div>
+
+    <!-- Beat 6: THE INVITATION (4s) — quiet, not a hard sell -->
+    <div class="clip" data-composition-id="06-cta" data-composition-src="compositions/06-cta/index.html" data-start="38" data-duration="4" style="position: absolute; inset: 0;"></div>
+  </div>
+
+  <script>
+    window.__timelines = window.__timelines || {};
+    const masterTL = gsap.timeline({ paused: true });
+    masterTL.to({}, { duration: 42 });
+    window.__timelines["master"] = masterTL;
+  </script>
+</body>
+</html>

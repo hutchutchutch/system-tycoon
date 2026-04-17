@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B1426; font-family: 'Inter', sans-serif; }
+    .scene { width: 1920px; height: 1080px; display: flex; align-items: center; justify-content: center; gap: 120px; position: relative; overflow: hidden; }
+    .metrics { display: flex; flex-direction: column; gap: 48px; }
+    .metric { display: flex; align-items: center; gap: 20px; opacity: 0; transform: translateX(20px); }
+    .metric-icon { width: 52px; height: 52px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+    .mi-green { background: rgba(34,197,94,0.15); color: #22C55E; }
+    .mi-blue { background: rgba(59,130,246,0.15); color: #3B82F6; }
+    .mi-violet { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+    .metric-data {}
+    .metric-number { font-size: 52px; font-weight: 700; color: #FFFFFF; letter-spacing: -0.02em; }
+    .metric-label { font-size: 16px; color: #94A3B8; font-weight: 400; margin-top: 2px; }
+    .badge { margin-top: 32px; display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px; border-radius: 8px; background: #22C55E; opacity: 0; transform: scale(0.8); }
+    .badge-text { font-size: 14px; font-weight: 700; color: #FFFFFF; text-transform: uppercase; letter-spacing: 0.1em; }
+    .particle { position: absolute; width: 3px; height: 3px; background: rgba(255,255,255,0.15); border-radius: 50%; }
+  </style>
+</head>
+<body>
+<div data-composition-id="05-impact" data-width="1920" data-height="1080" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+  <div class="scene" id="scene">
+    <div class="metrics">
+      <div class="metric" id="m1">
+        <div class="metric-icon mi-green">♥</div>
+        <div class="metric-data"><div class="metric-number" id="num1">0</div><div class="metric-label">families still being helped</div></div>
+      </div>
+      <div class="metric" id="m2">
+        <div class="metric-icon mi-blue">↑</div>
+        <div class="metric-data"><div class="metric-number" id="num2">0</div><div class="metric-label">system uptime — it holds</div></div>
+      </div>
+      <div class="metric" id="m3">
+        <div class="metric-icon mi-violet">🛡</div>
+        <div class="metric-data"><div class="metric-number" id="num3">0</div><div class="metric-label">health records — safe</div></div>
+      </div>
+      <div class="badge" id="badge"><span class="badge-text">Crisis Resolved</span></div>
+    </div>
+  </div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+const tl = gsap.timeline({ paused: true });
+
+// Create particles
+const scene = document.getElementById('scene');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 1920 + 'px';
+  p.style.top = 1080 + Math.random() * 100 + 'px';
+  scene.appendChild(p);
+  tl.to(p, { y: -(1200 + Math.random() * 400), opacity: 0, duration: 6 + Math.random() * 3, ease: 'none' }, Math.random() * 2);
+}
+
+// Metrics slide in
+tl.to('#m1', { opacity: 1, x: 0, duration: 0.5 }, 0.5);
+tl.to('#m2', { opacity: 1, x: 0, duration: 0.5 }, 0.8);
+tl.to('#m3', { opacity: 1, x: 0, duration: 0.5 }, 1.1);
+
+// Counter animations
+tl.to({ val: 0 }, { val: 200, duration: 2, ease: 'power2.out', onUpdate: function() { document.getElementById('num1').textContent = Math.round(this.targets()[0].val) + '+'; } }, 1.0);
+tl.to({ val: 0 }, { val: 99.9, duration: 2, ease: 'power2.out', onUpdate: function() { document.getElementById('num2').textContent = this.targets()[0].val.toFixed(1) + '%'; } }, 1.3);
+tl.to({ val: 0 }, { val: 15000, duration: 2, ease: 'power2.out', snap: { val: 1 }, onUpdate: function() { document.getElementById('num3').textContent = Math.round(this.targets()[0].val).toLocaleString() + '+'; } }, 1.6);
+
+// Badge
+tl.to('#badge', { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(1.7)' }, 3.8);
+tl.to('#badge', { boxShadow: '0 0 30px rgba(34,197,94,0.4)', duration: 0.4, yoyo: true, repeat: 1 }, 4.2);
+
+tl.to({}, { duration: 6 });
+window.__timelines["05-impact"] = tl;
+</script>
+</body>
+</html>

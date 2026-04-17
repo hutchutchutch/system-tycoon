@@ -1,69 +1,115 @@
-# React + TypeScript + Vite
+# Service as a Software
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Learn system design by helping real people.**
 
-Currently, two official plugins are available:
+A gamified platform where you solve real-world system architecture challenges — a doctor whose patient tracker is crashing, a teacher whose school database can't handle enrollment, an activist who needs to prove environmental contamination. Each mission teaches system design concepts by making them matter.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Live at [saas.game](https://saas.game)**
 
-## Expanding the ESLint configuration
+## How it works
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+1. **Browse missions** — news-style cards tell stories of people who need tech help
+2. **Contact the hero** — send them a message offering to help
+3. **Design the system** — drag components onto a canvas, connect them, validate against requirements
+4. **Get mentored** — an AI mentor guides you through architecture decisions
+5. **See the impact** — your design keeps 200 families' health data safe, keeps a school running, proves contamination is real
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Tech stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 19, TypeScript, Vite, React Flow, Tailwind CSS, Framer Motion |
+| **State** | Redux Toolkit, RTK Query, Redux Persist |
+| **Backend** | Cloudflare Workers (Hono), D1 (SQLite), KV, Durable Objects |
+| **Auth** | Better Auth (email/password + Google OAuth, httpOnly sessions) |
+| **Email** | SendGrid (verification, password reset) |
+| **Design system** | Atomic design (atoms/molecules/organisms), CSS modules, Radix UI primitives |
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start frontend (Vite dev server on :5173)
+npm run dev
+
+# Start backend (Cloudflare Worker on :8787, proxied by Vite)
+npm run dev:worker
+
+# Or both at once
+npm run dev:all
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The Vite config proxies `/api/*` requests to the Worker dev server automatically.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Environment setup
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create `.dev.vars` in the project root (gitignored):
+
 ```
+ENVIRONMENT=development
+BETTER_AUTH_URL=http://localhost:8787
+JWT_SECRET=<your-secret>
+GOOGLE_CLIENT_ID=<your-client-id>
+GOOGLE_CLIENT_SECRET=<your-client-secret>
+SENDGRID_API_KEY=<your-key>
+EMAIL_FROM=hello@yourdomain.com
+EMAIL_FROM_NAME=Your App Name
+```
+
+### Database
+
+```bash
+# Run migrations locally
+npm run db:migrate:local
+
+# Run migrations on production D1
+npm run db:migrate:remote
+```
+
+## Deployment
+
+Single deployment — the Worker serves both the API and the React SPA via Cloudflare's Static Assets:
+
+```bash
+npm run deploy   # builds frontend + deploys Worker
+```
+
+Production secrets are set via `npx wrangler secret put <NAME>`.
+
+## Project structure
+
+```
+src/
+├── components/
+│   ├── atoms/          # Button, Input, Spinner, Tooltip, etc.
+│   ├── molecules/      # EmailCard, BentoGrid, Requirements, etc.
+│   ├── organisms/      # GameHUD, EmailClient, MentorChat, ProductTour
+│   ├── templates/      # Page-level layouts
+│   ├── layout/         # RootLayout, GameLayout, AuthLayout
+│   └── ui/             # Radix UI wrappers (Dialog, Tabs, Dropdown, Tooltip)
+├── features/           # Redux slices (auth, game, user, mission, design)
+├── store/              # Redux store, RTK Query APIs, middleware
+├── services/           # API client, email/mission/mentor/news services
+├── hooks/              # Custom React hooks
+├── pages/              # Route page components
+├── styles/             # Design system tokens, foundation styles
+├── utils/              # Shared utilities (date, email formatting)
+└── types/              # TypeScript type definitions
+
+worker/
+├── src/
+│   ├── index.ts        # Hono router + static asset dispatcher
+│   ├── lib/            # Better Auth config, D1 helpers, SendGrid sender
+│   ├── middleware/      # Auth (session validation), CORS, KV cache
+│   ├── routes/         # API routes (auth, emails, missions, canvas, etc.)
+│   └── durable-objects/ # Realtime collaboration (WebSocket)
+└── migrations/         # D1 schema migrations
+
+hype-video/             # Hyperframes video compositions (see hype-video/README.md)
+```
+
+## License
+
+Private.

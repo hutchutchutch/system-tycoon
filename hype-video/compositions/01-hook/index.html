@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3/dist/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0B1426; font-family: 'Inter', sans-serif; }
+    .scene { display: flex; align-items: center; justify-content: center; width: 1920px; height: 1080px; }
+    .lines { display: flex; flex-direction: column; gap: 32px; max-width: 900px; }
+    .line { display: flex; align-items: center; gap: 24px; opacity: 0; }
+    .icon { font-size: 40px; }
+    .text { color: #FFFFFF; font-size: 36px; font-weight: 500; letter-spacing: -0.01em; line-height: 1.4; }
+  </style>
+</head>
+<body>
+<div data-composition-id="01-hook" data-width="1920" data-height="1080" style="width:1920px;height:1080px;position:relative;overflow:hidden;">
+  <div class="scene">
+    <div class="lines">
+      <div class="line" id="line1"><span class="icon" id="icon1">🩺</span><span class="text" id="text1"></span></div>
+      <div class="line" id="line2"><span class="icon" id="icon2">📚</span><span class="text" id="text2"></span></div>
+      <div class="line" id="line3"><span class="icon" id="icon3">🌱</span><span class="text" id="text3"></span></div>
+    </div>
+  </div>
+</div>
+<script>
+window.__timelines = window.__timelines || {};
+const messages = [
+  { el: 'text1', line: 'line1', icon: 'icon1', text: 'A doctor tracking symptoms for 200 families.' },
+  { el: 'text2', line: 'line2', icon: 'icon2', text: 'A teacher keeping a school district running.' },
+  { el: 'text3', line: 'line3', icon: 'icon3', text: 'An activist proving contamination is real.' },
+];
+const tl = gsap.timeline({ paused: true });
+let t = 1.5;
+messages.forEach((msg, i) => {
+  tl.to('#'+msg.line, { opacity: 1, duration: 0.01 }, t);
+  tl.fromTo('#'+msg.icon, { opacity: 0, scale: 0.5 }, { opacity: 1, scale: 1, duration: 0.3, ease: 'back.out(1.7)' }, t);
+  msg.text.split('').forEach((ch, ci) => {
+    tl.call(() => { document.getElementById(msg.el).textContent += ch; }, [], t + 0.3 + ci * 0.04);
+  });
+  if (i > 0) tl.to('#'+messages[i-1].line, { opacity: 0.35, duration: 0.4 }, t);
+  t += msg.text.length * 0.04 + 0.3 + 0.6;
+});
+tl.to('.line', { opacity: 0.8, duration: 0.4 }, t);
+tl.to({}, { duration: 8 });
+window.__timelines["01-hook"] = tl;
+</script>
+</body>
+</html>
