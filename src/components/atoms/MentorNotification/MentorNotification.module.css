@@ -21,10 +21,10 @@
   transform: translateY(0) scale(1);
 }
 
-/* Default position (bottom-left, next to MentorChat) */
+/* Default position (bottom-right, next to MentorChat) */
 .notification:not([style*="top"]):not([style*="bottom"]):not([style*="left"]):not([style*="right"]) {
-  bottom: 20px;
-  left: 100px; /* Offset from MentorChat icon */
+  bottom: 80px;
+  right: 16px;
 }
 
 /* Arrow styles */

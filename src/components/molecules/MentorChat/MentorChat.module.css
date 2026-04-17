@@ -1,8 +1,8 @@
-/* Collapsed State - Bottom Left Floating */
+/* Collapsed State - Bottom Right Floating */
 .mentorChatCollapsed {
   position: fixed;
   bottom: var(--space-3);
-  left: var(--space-3);
+  right: var(--space-3);
   z-index: 9999;
   pointer-events: auto;
 }
@@ -45,11 +45,11 @@
   border: 2px solid var(--color-neutral-50);
 }
 
-/* Expanded State - Bottom Left Floating */
+/* Expanded State - Bottom Right Floating */
 .mentorChatExpanded {
   position: fixed;
   bottom: var(--space-3);
-  left: var(--space-3);
+  right: var(--space-3);
   z-index: 9999;
   width: 420px;
   height: 500px;
