@@ -19,8 +19,8 @@ import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Bo
 import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
-import { MentorNotification } from '../../components/atoms/MentorNotification/MentorNotification';
-import { MentorChat } from '../../components/molecules/MentorChat/MentorChat';
+import { MentorNotification } from '../../components/organisms/MentorNotification/MentorNotification';
+import { MentorChat } from '../../components/organisms/MentorChat/MentorChat';
 import { useConversationSession } from '../../hooks/useConversationSession';
 import { CursorManager } from '../../components/organisms/CursorManager/CursorManager';
 

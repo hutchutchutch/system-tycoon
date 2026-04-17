@@ -52,6 +52,19 @@ export type { LabelProps, FormDescriptionProps, FieldErrorProps, FieldGroupProps
 export { TagGroup, TagList, Tag } from './TagGroup';
 export type { TagGroupProps, TagListProps, TagProps } from './TagGroup';
 
+// Shared atomic primitives
+export { Spinner } from './Spinner';
+export type { SpinnerProps } from './Spinner';
+
+export { ErrorMessage } from './ErrorMessage';
+export type { ErrorMessageProps } from './ErrorMessage';
+
+export { EmptyState } from './EmptyState';
+export type { EmptyStateProps } from './EmptyState';
+
+export { Tooltip } from './Tooltip';
+export type { TooltipProps } from './Tooltip';
+
 // React Flow handles (for system design) (TODO: Implement)
 // export { Handle } from './Handle';
 // export type { HandleProps } from './Handle';

@@ -71,8 +71,7 @@ export { EmailToolbar } from './EmailToolbar';
 export { Requirements } from './Requirements';
 export { MultiConnectionLine } from './MultiConnectionLine';
 export { MessageRecommendations } from './MessageRecommendations';
-export { MentorChat } from './MentorChat';
-export type { MentorChatProps, ChatMessage, MentorChatState } from './MentorChat';
+// MentorChat moved to organisms/ (complex component with Redux selectors, API integration, and state management)
 
 // Onboarding components
 export { MentorSelectionCard } from './MentorSelectionCard';

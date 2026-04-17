@@ -24,4 +24,4 @@ export interface MentorChatState {
   currentInput: string;
   isLoading: boolean;
   selectedMentorId: string;
-} 
+}

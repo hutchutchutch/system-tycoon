@@ -55,10 +55,14 @@ export type { BentoGridProps } from '../molecules/BentoGrid';
 // Game-specific organisms
 export { default as CrisisAlert } from './CrisisAlert/CrisisAlert';
 // export { default as MissionShowcase } from './MissionShowcase/MissionShowcase'; // Removed
+export { MentorNotification } from './MentorNotification';
+export type { MentorNotificationProps, HighlightOverlayProps } from './MentorNotification';
 export { MentorSelectionModal } from './MentorSelectionModal';
 export type { MentorSelectionModalProps } from './MentorSelectionModal';
 export { EmailComposer } from './EmailComposer';
 export type { EmailComposerProps } from './EmailComposer';
+export { MentorChat } from './MentorChat';
+export type { MentorChatProps, ChatMessage, MentorChatState } from './MentorChat';
 // TODO: Implement remaining game components
 // export { ImpactDashboard } from './ImpactDashboard';
 // export { LearningPaths } from './LearningPaths';

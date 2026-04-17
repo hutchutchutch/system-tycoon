@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { MentorNotification } from '../../atoms/MentorNotification';
+import { MentorNotification } from '../MentorNotification';
 import type { RootState } from '../../../store';
 import styles from './ProductTour.module.css';
 

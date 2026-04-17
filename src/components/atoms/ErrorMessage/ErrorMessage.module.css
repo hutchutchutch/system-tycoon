@@ -1,0 +1,49 @@
+/* ErrorMessage Component CSS Module */
+
+.container {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(248, 113, 113, 0.1); /* --color-accent-error at 10% */
+  border: 1px solid var(--color-accent-error);
+  border-radius: var(--radius-md);
+  color: var(--color-accent-error);
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.text {
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.dismissButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-error);
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.dismissButton:hover {
+  opacity: 1;
+}

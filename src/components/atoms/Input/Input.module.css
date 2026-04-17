@@ -1,140 +1,126 @@
 /* Input Component CSS Module */
 
-/* Base Input Styles */
-.input {
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: var(--leading-normal);
-  color: var(--color-neutral-900);
-  background: var(--color-white);
-  border: 1px solid var(--color-neutral-300);
-  border-radius: var(--radius-lg);
-  transition: all var(--duration-fast) var(--ease-out);
-  outline: none;
+/* Wrapper */
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-[data-theme="dark"] .input {
-  background: var(--color-obsidian-850);
-  color: var(--color-obsidian-100);
-  border-color: var(--color-obsidian-700);
+.wrapperFullWidth {
+  width: 100%;
+}
+
+/* Base Input Styles */
+.input {
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  outline: none;
+  transition: all var(--duration-fast) var(--ease-out);
+  backdrop-filter: blur(8px);
 }
 
 .input::placeholder {
-  color: var(--color-neutral-500);
-}
-
-[data-theme="dark"] .input::placeholder {
-  color: var(--color-obsidian-500);
-}
-
-.input:hover:not(:disabled) {
-  border-color: var(--color-neutral-400);
-}
-
-[data-theme="dark"] .input:hover:not(:disabled) {
-  border-color: var(--color-obsidian-600);
+  color: var(--color-text-placeholder);
 }
 
 .input:focus {
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-[data-theme="dark"] .input:focus {
-  border-color: var(--color-primary-400);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
 }
 
 .input:disabled {
-  background: var(--color-neutral-100);
-  color: var(--color-neutral-500);
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-[data-theme="dark"] .input:disabled {
-  background: var(--color-obsidian-900);
-  color: var(--color-obsidian-600);
-}
-
-/* Input Variants */
-.input--error {
-  border-color: var(--color-error-500);
-}
-
-.input--error:focus {
-  border-color: var(--color-error-600);
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-}
-
-/* Input Sizes */
-.input--sm {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-sm);
-}
-
-.input--md {
-  /* Default size - no additional styles needed */
-}
-
-.input--lg {
-  padding: var(--space-3) var(--space-4);
-  font-size: var(--text-lg);
-}
-
-/* Input with Icon */
-.input-wrapper {
-  position: relative;
+.inputFullWidth {
   width: 100%;
 }
 
-.input-wrapper__icon {
+/* Error State */
+.inputError {
+  border-color: var(--color-accent-error);
+}
+
+.inputError:focus {
+  border-color: var(--color-accent-error);
+  box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.2);
+}
+
+/* Input Sizes */
+.inputSmall {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-sm);
+  height: 32px;
+}
+
+.inputMedium {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-base);
+  height: 40px;
+}
+
+.inputLarge {
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-lg);
+  height: 48px;
+}
+
+/* Icon Styles */
+.icon {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-neutral-500);
   pointer-events: none;
+  color: var(--color-text-tertiary);
+  z-index: 1;
 }
 
-.input-wrapper__icon--left {
-  left: var(--space-3);
+.iconLeft {
+  left: var(--space-2);
 }
 
-.input-wrapper__icon--right {
-  right: var(--space-3);
+.iconRight {
+  right: var(--space-2);
 }
 
-.input--with-icon-left {
-  padding-left: var(--space-10);
+/* Input with icon padding adjustments */
+.inputWithLeftIcon {
+  padding-left: calc(var(--space-5) + var(--space-2));
 }
 
-.input--with-icon-right {
-  padding-right: var(--space-10);
+.inputWithRightIcon {
+  padding-right: calc(var(--space-5) + var(--space-2));
+}
+
+/* Error Message */
+.errorMessage {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-accent-error);
 }
 
 /* Input Group */
-.input-group {
+.inputGroup {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
-.input-group__label {
+.inputGroupLabel {
   font-size: var(--text-sm);
-  font-weight: var(--font-medium);
-  color: var(--color-neutral-700);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
 }
 
-.input-group__error {
+.inputGroupHint {
   font-size: var(--text-sm);
-  color: var(--color-error-600);
+  color: var(--color-text-tertiary);
 }
-
-.input-group__hint {
-  font-size: var(--text-sm);
-  color: var(--color-neutral-600);
-} 

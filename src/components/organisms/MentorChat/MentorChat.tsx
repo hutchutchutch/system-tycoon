@@ -10,7 +10,7 @@ import type { RootState } from '../../../store';
 // Real-time subscriptions deferred to Phase 5 (Durable Objects)
 import { useConversationSession } from '../../../hooks/useConversationSession';
 import { useAppSelector } from '../../../hooks/redux';
-import { 
+import {
   selectRequirementsStatus,
   selectCanvasValidation,
   selectNodes,
@@ -58,12 +58,12 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const reduxEdges = useAppSelector(selectEdges);
   const requirementsStatus = useAppSelector(selectRequirementsStatus);
   const canvasValidation = useAppSelector(selectCanvasValidation);
-  
+
   // Use Redux state if available, fall back to props
   const nodes = reduxNodes.length > 0 ? reduxNodes : canvasNodes;
   const edges = reduxEdges.length > 0 ? reduxEdges : canvasEdges;
-  const currentRequirements = requirementsStatus.requirements.length > 0 
-    ? requirementsStatus.requirements 
+  const currentRequirements = requirementsStatus.requirements.length > 0
+    ? requirementsStatus.requirements
     : requirements;
 
   // Update global session ID when it changes
@@ -73,7 +73,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
   // ProductTour state management
   const [showProductTour, setShowProductTour] = useState(false);
-  
+
   // Page-specific notification state
   const [currentNotification, setCurrentNotification] = useState<{
     title: string;
@@ -83,7 +83,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
 
   // Get current user and profile from Redux store
   const { user, profile, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  
+
   // Use preferred mentor from profile, fallback to 'linda-wu'
   const [selectedMentorId, setSelectedMentorId] = useState(() => {
     return profile?.preferred_mentor_id || 'linda-wu';
@@ -105,13 +105,13 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       }, 100);
     }
   }, [isExpanded]);
-  
+
   // Auto-scroll to bottom when new messages arrive (only if already at bottom)
   useEffect(() => {
     if (chatMessagesContainerRef.current && messages.length > 0) {
       const container = chatMessagesContainerRef.current;
       const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-      
+
       // Only auto-scroll if user is already near the bottom
       if (isNearBottom) {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -146,13 +146,13 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     if (isAuthenticated && user && location.pathname === '/game') {
       // Check if user has seen the tour before
       const hasSeenTour = localStorage.getItem('saas_hasSeenProductTour');
-      
+
       if (!hasSeenTour) {
         // Start tour after a brief delay to ensure components are rendered
         const timer = setTimeout(() => {
           setShowProductTour(true);
         }, 2000);
-        
+
         return () => clearTimeout(timer);
       }
     }
@@ -167,7 +167,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         setShowProductTour(true);
         console.log('Product tour manually triggered via keyboard shortcut');
       }
-      
+
       // Reset notifications with Ctrl+Shift+R (or Cmd+Shift+R on Mac)
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'R') {
         event.preventDefault();
@@ -210,19 +210,19 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             setTimeout(() => {
               const title = 'Explore and Discover! 🔍';
               const message = 'Use the category filters to explore subjects that interest you, then look for bento cards where someone needs your help. Click "Contact" to reach out and make a difference!';
-              
+
               setCurrentNotification({
                 title,
                 message,
                 actionLabel: 'Got it!'
               });
-              
+
               // Add as chat message
               addNotificationAsMessage(title, message);
             }, 3000); // Show after 3 seconds
           }
           break;
-        
+
         case '/email':
           // Email page notification
           const hasSeenEmailNotification = localStorage.getItem('saas_hasSeenEmailNotification');
@@ -230,33 +230,33 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             setTimeout(() => {
               const title = 'Check Your Inbox! 📧';
               const message = 'Look for mission briefings and urgent requests from communities. Red dots indicate high-priority communications that need your immediate attention.';
-              
+
               setCurrentNotification({
                 title,
                 message,
                 actionLabel: 'Understood!'
               });
-              
+
               // Add as chat message
               addNotificationAsMessage(title, message);
             }, 2000);
           }
           break;
-        
+
         case '/crisis-design':
-          // Crisis design page notification  
+          // Crisis design page notification
           const hasSeenDesignNotification = localStorage.getItem('saas_hasSeenDesignNotification');
           if (!hasSeenDesignNotification) {
             setTimeout(() => {
               const title = 'Design Your Solution! 🎨';
               const message = 'Drag components from the left panel onto the canvas to architect your system. Connect components to show data flow and relationships.';
-              
+
               setCurrentNotification({
                 title,
                 message,
                 actionLabel: 'Let\'s build!'
               });
-              
+
               // Add as chat message
               addNotificationAsMessage(title, message);
             }, 2000);
@@ -270,19 +270,19 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             setTimeout(() => {
               const title = 'Welcome to Mission Selection! 🚀';
               const message = 'Choose your first mission to start helping communities solve real-world problems. Each mission will challenge you to design systems that make a difference.';
-              
+
               setCurrentNotification({
                 title,
                 message,
                 actionLabel: 'Show me around!'
               });
-              
+
               // Add as chat message
               addNotificationAsMessage(title, message);
             }, 1500);
           }
           break;
-        
+
         default:
           break;
       }
@@ -294,7 +294,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const loadChatHistory = async () => {
     try {
       const history = await mentorChatService.getChatHistory(conversationSessionId);
-      
+
       if (history.length === 0) {
         // Add welcome message if no history exists
         const welcomeMessage: ChatMessage = {
@@ -476,7 +476,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       };
 
       const mentorResponse = await mentorChatService.sendMessage(session, userMessage.content);
-      
+
       const mentorMessage: ChatMessage = {
         id: `mentor-${Date.now()}`,
         content: mentorResponse,
@@ -559,7 +559,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   // Show login prompt if user is not authenticated
   if (!isAuthenticated || !user) {
     return (
-      <div 
+      <div
         style={{
           position: 'fixed',
           bottom: '20px',
@@ -599,7 +599,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   if (!isExpanded) {
     return (
       <>
-        <div 
+        <div
           style={{
             position: 'fixed',
             bottom: '20px',
@@ -621,8 +621,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               justifyContent: 'center',
               color: 'white',
               cursor: 'pointer',
-              boxShadow: currentNotification 
-                ? '0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.6)' 
+              boxShadow: currentNotification
+                ? '0 8px 25px rgba(0, 0, 0, 0.15), 0 0 20px rgba(59, 130, 246, 0.6)'
                 : '0 8px 25px rgba(0, 0, 0, 0.15)',
               transition: 'all 0.3s ease',
               animation: currentNotification ? 'mentorPulse 2s infinite' : 'none'
@@ -652,7 +652,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             )}
           </button>
         </div>
-        
+
         {/* ProductTour - renders globally */}
         {showProductTour && (
           <ProductTour
@@ -665,7 +665,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   }
 
   return (
-    <div 
+    <div
       style={{
         position: 'fixed',
         bottom: '20px',
@@ -707,7 +707,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               <p className={styles.mentorTitle}>
                 {selectedMentor?.title || 'System Design Assistant'}
               </p>
-              
+
               {/* Mentor Selector Dropdown */}
               {showMentorSelector && (
                 <div className={styles.mentorDropdown}>
@@ -751,9 +751,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               <div className={styles.messageContent}>
                 <div className={styles.messageText}>{message.content}</div>
                 <div className={styles.messageTime}>
-                  {message.timestamp.toLocaleTimeString([], { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
+                  {message.timestamp.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
                   })}
                 </div>
               </div>
@@ -891,7 +891,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
               }}>
                 {currentNotification.message}
               </p>
-              
+
               {/* Action button */}
               {currentNotification.actionLabel && (
                 <button
@@ -929,4 +929,4 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       )}
     </div>
   );
-}; 
+};

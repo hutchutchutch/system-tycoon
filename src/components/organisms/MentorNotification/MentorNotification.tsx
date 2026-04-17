@@ -7,10 +7,10 @@ import { api } from '../../../services/cloudflareApi';
 import styles from './MentorNotification.module.css';
 
 // Highlight overlay component that creates a spotlight effect on target elements
-const HighlightOverlay: React.FC<HighlightOverlayProps> = ({ 
-  targetSelector, 
+const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
+  targetSelector,
   onClick,
-  padding = 8 
+  padding = 8
 }) => {
   const [bounds, setBounds] = useState<DOMRect | null>(null);
 
@@ -41,11 +41,11 @@ const HighlightOverlay: React.FC<HighlightOverlayProps> = ({
   if (!bounds) return null;
 
   return (
-    <div 
+    <div
       className={styles.highlightOverlay}
       onClick={onClick}
     >
-      <div 
+      <div
         className={styles.highlightCutout}
         style={{
           top: bounds.top - padding,
@@ -110,7 +110,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
 
   // Get current user and profile from Redux store
   const { user, profile } = useSelector((state: RootState) => state.auth);
-  
+
   // Use preferred mentor from profile, fallback to 'linda-wu'
   const selectedMentorId = profile?.preferred_mentor_id || 'linda-wu';
 
@@ -125,7 +125,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         message: fullMessage,
         missionStageId
       });
-      
+
       saveNotificationAsSystemMessage(
         user.id,
         selectedMentorId,
@@ -153,10 +153,10 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
       if (element) {
         const rect = element.getBoundingClientRect();
         setHighlightBounds(rect);
-        
+
         // Add highlight class to the element
         element.classList.add(styles.highlightedElement);
-        
+
         return () => {
           element.classList.remove(styles.highlightedElement);
         };
@@ -239,7 +239,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   return (
     <>
       {targetElement && (
-        <HighlightOverlay 
+        <HighlightOverlay
           targetSelector={targetElement}
           onClick={handleClose}
         />
@@ -252,7 +252,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         {showArrow && targetElement && (
           <div className={`${styles.arrow} ${styles[`arrow--${position}`]}`} />
         )}
-        
+
         <button
           onClick={handleClose}
           className={styles.closeButton}

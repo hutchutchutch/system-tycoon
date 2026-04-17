@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkAuth } from '../../features/auth/authSlice';
-import { MentorChat } from '../molecules/MentorChat';
+import { MentorChat } from '../organisms/MentorChat';
 
 export const RootLayout: React.FC = () => {
   const dispatch = useAppDispatch();
