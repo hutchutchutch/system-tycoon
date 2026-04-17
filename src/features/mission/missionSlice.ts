@@ -24,6 +24,8 @@ export interface DatabaseMissionStage {
   completed?: boolean;
 }
 
+// Keep the old Mission interface exported for any external references,
+// but it is no longer used as the primary model.
 export interface Mission {
   id: string;
   title: string;
@@ -35,7 +37,7 @@ export interface Mission {
   completedAt?: string;
 }
 
-// Database mission interface
+// DatabaseMission is the primary mission model (comes from the API)
 export interface DatabaseMission {
   id: string;
   title: string;
@@ -49,8 +51,7 @@ export interface DatabaseMission {
 }
 
 interface MissionState {
-  currentMission: Mission | null;
-  currentDatabaseMission: DatabaseMission | null; // New field for database missions
+  currentMission: DatabaseMission | null;
   completedMissions: string[];
   unlockedComponents: string[];
   crisisMetrics: {
@@ -59,47 +60,11 @@ interface MissionState {
     familiesHelped: number;
     systemUptime: number;
   };
-  timerTestTriggered: boolean; // Track if test was triggered by timer
+  timerTestTriggered: boolean;
 }
-
-const healthCrisisMission: Mission = {
-  id: 'health_crisis',
-  title: 'Community Health Crisis',
-  description: 'Help Alex save the neighborhood by fixing the symptom reporting system',
-  currentStepIndex: 0,
-  completed: false,
-  steps: [
-    {
-      id: 'separate_concerns',
-      title: 'Desperate Plea',
-      description: 'Alex\'s laptop is crashing from running both web server and database',
-      objective: 'Separate the web server from the database',
-      completed: false,
-      unlocksComponents: ['web_server', 'database'],
-    },
-    {
-      id: 'load_balancing',
-      title: 'Media Attention',
-      description: 'News coverage brings 1000+ families, overwhelming the single server',
-      objective: 'Add a load balancer to distribute traffic',
-      completed: false,
-      unlocksComponents: ['load_balancer'],
-    },
-    {
-      id: 'database_replication',
-      title: 'Data Loss Crisis',
-      description: 'Database crash loses critical symptom reports',
-      objective: 'Implement database replication for resilience',
-      completed: false,
-      unlocksComponents: ['replica_db'],
-    },
-    // Additional steps would be added here
-  ],
-};
 
 const initialState: MissionState = {
   currentMission: null,
-  currentDatabaseMission: null,
   completedMissions: [],
   unlockedComponents: ['web_server', 'database'], // Start with basic components
   crisisMetrics: {
@@ -115,17 +80,7 @@ const missionSlice = createSlice({
   name: 'mission',
   initialState,
   reducers: {
-    startMission: (state, action: PayloadAction<string>) => {
-      if (action.payload === 'health_crisis') {
-        state.currentMission = {
-          ...healthCrisisMission,
-          startedAt: new Date().toISOString(),
-        };
-      }
-    },
-
-    // New action for database missions
-    setDatabaseMission: (state, action: PayloadAction<{
+    setCurrentMission: (state, action: PayloadAction<{
       id: string;
       title: string;
       description: string;
@@ -134,7 +89,7 @@ const missionSlice = createSlice({
       currentStageIndex?: number;
     }>) => {
       const { id, title, description, slug, stages, currentStageIndex = 0 } = action.payload;
-      state.currentDatabaseMission = {
+      state.currentMission = {
         id,
         title,
         description,
@@ -149,52 +104,49 @@ const missionSlice = createSlice({
       };
     },
 
-    // Complete database mission stage
-    completeDatabaseStage: (state, action: PayloadAction<string>) => {
-      if (!state.currentDatabaseMission) return;
+    // Complete a mission stage by id
+    completeStage: (state, action: PayloadAction<string>) => {
+      if (!state.currentMission) return;
 
-      const stageIndex = state.currentDatabaseMission.stages.findIndex(
+      const stageIndex = state.currentMission.stages.findIndex(
         (stage) => stage.id === action.payload
       );
 
       if (stageIndex !== -1) {
-        state.currentDatabaseMission.stages[stageIndex].completed = true;
-        
+        state.currentMission.stages[stageIndex].completed = true;
+
         // Move to next stage
-        if (stageIndex === state.currentDatabaseMission.currentStageIndex) {
-          state.currentDatabaseMission.currentStageIndex++;
+        if (stageIndex === state.currentMission.currentStageIndex) {
+          state.currentMission.currentStageIndex++;
         }
 
         // Check if mission is complete
-        if (state.currentDatabaseMission.stages.every((stage) => stage.completed)) {
-          state.currentDatabaseMission.completed = true;
-          state.currentDatabaseMission.completedAt = new Date().toISOString();
-          state.completedMissions.push(state.currentDatabaseMission.id);
+        if (state.currentMission.stages.every((stage) => stage.completed)) {
+          state.currentMission.completed = true;
+          state.currentMission.completedAt = new Date().toISOString();
+          state.completedMissions.push(state.currentMission.id);
         }
       }
     },
 
     completeStep: (state, action: PayloadAction<string>) => {
+      // completeStep now delegates to the same logic as completeStage
+      // since the old Mission model with steps has been removed.
+      // This keeps the action available for any code that still dispatches it.
       if (!state.currentMission) return;
 
-      const stepIndex = state.currentMission.steps.findIndex(
-        (step) => step.id === action.payload
+      const stageIndex = state.currentMission.stages.findIndex(
+        (stage) => stage.id === action.payload
       );
 
-      if (stepIndex !== -1) {
-        state.currentMission.steps[stepIndex].completed = true;
-        
-        // Unlock components
-        const unlockedComponents = state.currentMission.steps[stepIndex].unlocksComponents || [];
-        state.unlockedComponents.push(...unlockedComponents);
+      if (stageIndex !== -1) {
+        state.currentMission.stages[stageIndex].completed = true;
 
-        // Move to next step
-        if (stepIndex === state.currentMission.currentStepIndex) {
-          state.currentMission.currentStepIndex++;
+        if (stageIndex === state.currentMission.currentStageIndex) {
+          state.currentMission.currentStageIndex++;
         }
 
-        // Check if mission is complete
-        if (state.currentMission.steps.every((step) => step.completed)) {
+        if (state.currentMission.stages.every((stage) => stage.completed)) {
           state.currentMission.completed = true;
           state.currentMission.completedAt = new Date().toISOString();
           state.completedMissions.push(state.currentMission.id);
@@ -215,9 +167,9 @@ const missionSlice = createSlice({
       }
     },
 
-    // Clear database mission when leaving the canvas
-    clearDatabaseMission: (state) => {
-      state.currentDatabaseMission = null;
+    // Clear mission when leaving the canvas
+    clearCurrentMission: (state) => {
+      state.currentMission = null;
     },
 
     // Trigger test system action from timer
@@ -225,7 +177,7 @@ const missionSlice = createSlice({
       state.timerTestTriggered = true;
       console.log('Test system triggered from timer');
     },
-    
+
     // Reset timer test trigger
     resetTimerTestTrigger: (state) => {
       state.timerTestTriggered = false;
@@ -233,15 +185,39 @@ const missionSlice = createSlice({
   },
 });
 
-export const { 
-  startMission, 
-  setDatabaseMission, 
-  completeDatabaseStage, 
-  completeStep, 
-  updateMetrics, 
-  unlockComponent, 
-  clearDatabaseMission,
+// Primary exports (new names)
+export const {
+  setCurrentMission,
+  completeStage,
+  completeStep,
+  updateMetrics,
+  unlockComponent,
+  clearCurrentMission,
   triggerTestSystem,
-  resetTimerTestTrigger 
+  resetTimerTestTrigger
 } = missionSlice.actions;
+
+// Backwards-compatible aliases so existing imports don't break
+export const setDatabaseMission = setCurrentMission;
+export const completeDatabaseStage = completeStage;
+export const clearDatabaseMission = clearCurrentMission;
+
+// No-op startMission kept as alias for backwards compatibility.
+// Code that dispatches startMission('health_crisis') will silently do nothing;
+// missions should now be loaded from the API via setCurrentMission.
+export const startMission = (() => {
+  // Return a thunk-like plain action that the reducer ignores.
+  // This prevents runtime errors in existing call sites.
+  return ((_payload: string) => ({ type: 'mission/startMission_deprecated' })) as unknown as (payload: string) => { type: string; payload: string };
+})();
+
+// Selectors
+export const selectCurrentMission = (state: { mission: MissionState }) => state.mission.currentMission;
+export const selectCompletedMissions = (state: { mission: MissionState }) => state.mission.completedMissions;
+export const selectCrisisMetrics = (state: { mission: MissionState }) => state.mission.crisisMetrics;
+export const selectUnlockedComponents = (state: { mission: MissionState }) => state.mission.unlockedComponents;
+
+// Backwards-compatible alias: code that reads state.mission.currentDatabaseMission
+// will need to be updated to state.mission.currentMission (same field now).
+
 export default missionSlice.reducer;

@@ -376,8 +376,8 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     }
     
     // Log which node is being used as source
-    const sourceNode = nodes.find(n => n.id === params.source);
-    const targetNode = nodes.find(n => n.id === params.target);
+    const sourceNode = nodes.find((n: any) => n.id === params.source);
+    const targetNode = nodes.find((n: any) => n.id === params.target);
     console.log('📍 Connecting:', sourceNode?.data.label, '→', targetNode?.data.label);
     console.log('📊 Node IDs:', { sourceId: params.source, targetId: params.target });
     

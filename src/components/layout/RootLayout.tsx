@@ -10,10 +10,10 @@ export const RootLayout: React.FC = () => {
   const { isAuthenticated } = useAppSelector(state => state.auth);
   
   // Get current mission context if available
-  const currentMission = useAppSelector(state => state.mission.currentDatabaseMission || state.mission.currentMission);
-  const currentStageIndex = useAppSelector(state => state.mission.currentDatabaseMission?.currentStageIndex || 0);
+  const currentMission = useAppSelector(state => state.mission.currentMission);
+  const currentStageIndex = useAppSelector(state => state.mission.currentMission?.currentStageIndex || 0);
   
-  // Handle both Mission (with steps) and DatabaseMission (with stages)
+  // Extract mission context from the current (database) mission
   const missionContext = (() => {
     if (!currentMission) {
       return {
@@ -22,32 +22,12 @@ export const RootLayout: React.FC = () => {
         problemDescription: ''
       };
     }
-    
-    // Check if it's a DatabaseMission (has stages)
-    if ('stages' in currentMission && currentMission.stages) {
-      const currentStage = currentMission.stages[currentStageIndex];
-      return {
-        missionStageId: currentStage?.id || '',
-        missionTitle: currentMission.title || '',
-        problemDescription: currentStage?.problem_description || ''
-      };
-    }
-    
-    // Otherwise it's a Mission (has steps)
-    if ('steps' in currentMission && currentMission.steps) {
-      const currentStep = currentMission.steps[currentMission.currentStepIndex || 0];
-      return {
-        missionStageId: currentStep?.id || '',
-        missionTitle: currentMission.title || '',
-        problemDescription: currentStep?.description || ''
-      };
-    }
-    
-    // Fallback
+
+    const currentStage = currentMission.stages[currentStageIndex];
     return {
-      missionStageId: '',
+      missionStageId: currentStage?.id || '',
       missionTitle: currentMission.title || '',
-      problemDescription: ''
+      problemDescription: currentStage?.problem_description || ''
     };
   })();
 

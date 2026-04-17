@@ -1,5 +1,7 @@
 import type { Middleware } from '@reduxjs/toolkit';
-import type { RootState } from '../index';
+// NOTE: Do NOT import RootState from ../index here — it creates a circular
+// type reference since the store's type depends on this middleware.
+// Use `any` for the state generic; runtime types are correct regardless.
 import {
   updateCanvasNodes,
   updateCanvasEdges,
@@ -21,7 +23,7 @@ declare global {
 // Auto-save timeout management
 let autoSaveTimeouts: Record<string, NodeJS.Timeout> = {};
 
-export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => (action) => {
+export const canvasMiddleware: Middleware = (store) => (next) => (action) => {
   const result = next(action);
   const state = store.getState();
 
@@ -33,14 +35,14 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
     updateCanvasState.match(action)
   ) {
     const { canvas, auth } = state;
-    
+
     if (!canvas.autoSaveEnabled || !canvas.activeStageId || !auth?.user?.id) {
       return result;
     }
 
     const stageId = canvas.activeStageId;
     const canvasState = canvas.canvasStates[stageId];
-    
+
     if (!canvasState || !canvasState.isDirty) {
       return result;
     }
@@ -54,11 +56,11 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
     autoSaveTimeouts[stageId] = setTimeout(async () => {
       try {
         store.dispatch(setSavingStatus('saving'));
-        
+
         // Get current canvas state
         const currentState = store.getState();
         const currentCanvasState = currentState.canvas.canvasStates[stageId];
-        
+
         if (!currentCanvasState || !currentState.auth?.user?.id) {
           return;
         }
@@ -72,24 +74,24 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
         };
 
         // Get mission ID from current state
-        const missionId = currentState.mission?.currentDatabaseMission?.id || 'default';
+        const missionId = currentState.mission?.currentMission?.id || 'default';
 
         // Save to server via RTK Query (using dispatch directly)
-        const _saveAction = canvasApi.endpoints.saveCanvasState.initiate({ // TODO: Use saveAction
+        const saveAction = canvasApi.endpoints.saveCanvasState.initiate({
           missionId,
           stageId,
           canvasState: canvasStateData,
         });
 
         try {
-          // await (store.dispatch(saveAction) as any).unwrap(); // TODO: Fix dispatch typing
-          // Mark as saved in Redux state
+          await (store.dispatch as any)(saveAction);
           store.dispatch(markCanvasSaved(stageId));
-          console.log(`Auto-saved canvas state for stage: ${stageId}`);
+          store.dispatch(setSavingStatus('saved'));
+          console.log(`[${new Date().toISOString()}] Auto-saved canvas state for stage: ${stageId}`);
         } catch (saveError) {
           throw saveError;
         }
-        
+
       } catch (error) {
         console.error('Failed to auto-save canvas state:', error);
         store.dispatch(setSavingStatus('error'));
@@ -105,19 +107,19 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
         // Page is being hidden, save immediately
         const currentState = store.getState();
         const { canvas, auth } = currentState;
-        
+
         if (canvas.activeStageId && auth?.user?.id) {
           const canvasState = canvas.canvasStates[canvas.activeStageId];
-          
+
           if (canvasState?.isDirty) {
             // Cancel auto-save timeout and save immediately
             if (autoSaveTimeouts[canvas.activeStageId]) {
               clearTimeout(autoSaveTimeouts[canvas.activeStageId]);
             }
-            
+
             // Prepare save data for keepalive request
             const saveData = {
-              missionId: currentState.mission?.currentDatabaseMission?.id || 'default',
+              missionId: currentState.mission?.currentMission?.id || 'default',
               stageId: canvas.activeStageId,
               canvasState: {
                 nodes: canvasState.nodes,
@@ -154,7 +156,7 @@ export const canvasMiddleware: Middleware<{}, RootState> = (store) => (next) => 
 export const cleanupCanvasMiddleware = () => {
   Object.values(autoSaveTimeouts).forEach(timeout => clearTimeout(timeout));
   autoSaveTimeouts = {};
-  
+
   if (typeof window !== 'undefined') {
     window.__canvasVisibilityListenerAdded = false;
   }
@@ -162,21 +164,21 @@ export const cleanupCanvasMiddleware = () => {
 
 // Helper function to manually trigger save
 export const triggerCanvasSave = (stageId: string) => {
-  return async (dispatch: any, getState: () => RootState) => {
+  return async (dispatch: any, getState: () => any) => {
     const state = getState();
     const { canvas, auth } = state;
-    
+
     if (!auth?.user?.id || !canvas.canvasStates[stageId]) {
       throw new Error('Cannot save: missing user or canvas state');
     }
 
     const canvasState = canvas.canvasStates[stageId];
-    
+
     try {
       dispatch(setSavingStatus('saving'));
-      
+
       const saveAction = canvasApi.endpoints.saveCanvasState.initiate({
-        missionId: state.mission?.currentDatabaseMission?.id || 'default',
+        missionId: state.mission?.currentMission?.id || 'default',
         stageId,
         canvasState: {
           nodes: canvasState.nodes,
@@ -195,4 +197,4 @@ export const triggerCanvasSave = (stageId: string) => {
       throw error;
     }
   };
-}; 
+};

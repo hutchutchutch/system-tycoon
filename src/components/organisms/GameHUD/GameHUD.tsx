@@ -19,7 +19,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { profile } = useAppSelector(state => state.auth);
-  const { currentMission, currentDatabaseMission, crisisMetrics } = useAppSelector(state => state.mission);
+  const { currentMission, crisisMetrics } = useAppSelector(state => state.mission);
   
   // Avatar dropdown state
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
@@ -58,14 +58,14 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   // Get the correct stage ID - FIXED: was incorrectly using emailId as stageId
   const stageId = (() => {
     // First, try to get stage ID from current database mission
-    const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+    const currentStageId = currentMission?.stages?.[currentMission?.currentStageIndex || 0]?.id;
     if (currentStageId) {
       return currentStageId;
     }
     
     // Fallback: if we have valid email and mission context, use the first available stage
     // This ensures we always have a valid stage ID for invitations
-    if (emailId && currentDatabaseMission?.id === '11111111-1111-1111-1111-111111111111') {
+    if (emailId && currentMission?.id === '11111111-1111-1111-1111-111111111111') {
       // For Community Health Tracker mission, use first stage
       return '550e8400-e29b-41d4-a716-446655440001'; // "Separate Database from Web Server"
     }
@@ -73,7 +73,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     return null;
   })();
   
-  const missionId = currentDatabaseMission?.id || currentMission?.id;
+  const missionId = currentMission?.id;
   
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -91,7 +91,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Timer effect - start timer when on crisis canvas AND all mentor notifications are complete
   useEffect(() => {
-    const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+    const currentStageId = currentMission?.stages?.[currentMission?.currentStageIndex || 0]?.id;
     const notificationsCompleted = currentStageId ? (mentorNotificationProgress[currentStageId] || 0) >= 3 : false;
     
     if (isOnCrisisCanvas && !isTimerActive && notificationsCompleted) {
@@ -106,7 +106,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         timerRef.current = null;
       }
     }
-  }, [isOnCrisisCanvas, isTimerActive, mentorNotificationProgress, currentDatabaseMission]);
+  }, [isOnCrisisCanvas, isTimerActive, mentorNotificationProgress, currentMission]);
   
   // Function to update mentor notification progress
   const updateMentorNotificationProgress = (stageId: string, step: number) => {
@@ -269,17 +269,17 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                                location.pathname.includes('/system-design') ||
                                location.pathname.includes('/email/');
   
-  // Prioritize database mission over hardcoded mission
-  const activeMission = currentDatabaseMission || currentMission;
-  const hasStages = currentDatabaseMission 
-    ? currentDatabaseMission.stages && currentDatabaseMission.stages.length > 0
-    : currentMission && currentMission.steps && currentMission.steps.length > 0;
+  // Active mission is the current mission from the API
+  const activeMission = currentMission;
+  const hasStages = currentMission
+    ? currentMission.stages && currentMission.stages.length > 0
+    : false;
   
   // Show mission stages ONLY if we're on a system design page
   const showMissionStages = isOnSystemDesignPage && activeMission && hasStages;
   
   // Check if mentor notifications are pending for current stage
-  const currentStageId = currentDatabaseMission?.stages?.[currentDatabaseMission?.currentStageIndex || 0]?.id;
+  const currentStageId = currentMission?.stages?.[currentMission?.currentStageIndex || 0]?.id;
   const notificationsCompleted = currentStageId ? (mentorNotificationProgress[currentStageId] || 0) >= 3 : false;
   const showMentorNotificationPending = isOnCrisisCanvas && currentStageId && !notificationsCompleted;
 
@@ -290,16 +290,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     isOnCrisisCanvas,
     showMissionStages,
     hasStages,
-    currentDatabaseMission: currentDatabaseMission ? {
-      id: currentDatabaseMission.id,
-      title: currentDatabaseMission.title,
-      stagesCount: currentDatabaseMission.stages?.length || 0,
-      currentStageIndex: currentDatabaseMission.currentStageIndex
-    } : null,
     currentMission: currentMission ? {
       id: currentMission.id,
       title: currentMission.title,
-      stepsCount: currentMission.steps?.length || 0
+      stagesCount: currentMission.stages?.length || 0,
+      currentStageIndex: currentMission.currentStageIndex
     } : null,
     activeMission: activeMission ? {
       id: activeMission.id,
@@ -435,49 +430,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 <div className={styles.missionStages}>
                   <span className={styles.stageLabel}>Stage:</span>
                   <div className={styles.stageIndicators}>
-                    {currentDatabaseMission ? (
-                      // Render database mission stages
-                      currentDatabaseMission.stages.map((stage, index) => {
-                        const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
-                        const isCompleted = stage.completed || false;
-                        const isUpcoming = index > currentDatabaseMission.currentStageIndex;
-                        
-                        return (
-                          <div
-                            key={stage.id}
-                            className={clsx(styles.stageIndicator, {
-                              [styles['stageIndicator--current']]: isCurrentStage,
-                              [styles['stageIndicator--completed']]: isCompleted,
-                              [styles['stageIndicator--upcoming']]: isUpcoming,
-                            })}
-                            title={stage.title}
-                          >
-                            {stage.stage_number}
-                          </div>
-                        );
-                      })
-                    ) : (
-                      // Render hardcoded mission steps (fallback)
-                      currentMission?.steps.map((step, index) => {
-                        const isCurrentStage = index === currentMission.currentStepIndex;
-                        const isCompleted = step.completed;
-                        const isUpcoming = index > currentMission.currentStepIndex;
-                        
-                        return (
-                          <div
-                            key={step.id}
-                            className={clsx(styles.stageIndicator, {
-                              [styles['stageIndicator--current']]: isCurrentStage,
-                              [styles['stageIndicator--completed']]: isCompleted,
-                              [styles['stageIndicator--upcoming']]: isUpcoming,
-                            })}
-                            title={step.title}
-                          >
-                            {index + 1}
-                          </div>
-                        );
-                      })
-                    )}
+                    {currentMission?.stages.map((stage: any, index: number) => {
+                      const isCurrentStage = index === currentMission.currentStageIndex;
+                      const isCompleted = stage.completed || false;
+                      const isUpcoming = index > currentMission.currentStageIndex;
+
+                      return (
+                        <div
+                          key={stage.id}
+                          className={clsx(styles.stageIndicator, {
+                            [styles['stageIndicator--current']]: isCurrentStage,
+                            [styles['stageIndicator--completed']]: isCompleted,
+                            [styles['stageIndicator--upcoming']]: isUpcoming,
+                          })}
+                          title={stage.title}
+                        >
+                          {stage.stage_number}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -490,49 +461,25 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
             <div className={styles.missionStages}>
               <span className={styles.stageLabel}>Stage:</span>
               <div className={styles.stageIndicators}>
-                {currentDatabaseMission ? (
-                  // Render database mission stages
-                  currentDatabaseMission.stages.map((stage, index) => {
-                    const isCurrentStage = index === currentDatabaseMission.currentStageIndex;
-                    const isCompleted = stage.completed || false;
-                    const isUpcoming = index > currentDatabaseMission.currentStageIndex;
-                    
-                    return (
-                      <div
-                        key={stage.id}
-                        className={clsx(styles.stageIndicator, {
-                          [styles['stageIndicator--current']]: isCurrentStage,
-                          [styles['stageIndicator--completed']]: isCompleted,
-                          [styles['stageIndicator--upcoming']]: isUpcoming,
-                        })}
-                        title={stage.title}
-                      >
-                        {stage.stage_number}
-                      </div>
-                    );
-                  })
-                ) : (
-                  // Render hardcoded mission steps (fallback)
-                  currentMission?.steps.map((step, index) => {
-                    const isCurrentStage = index === currentMission.currentStepIndex;
-                    const isCompleted = step.completed;
-                    const isUpcoming = index > currentMission.currentStepIndex;
-                    
-                    return (
-                      <div
-                        key={step.id}
-                        className={clsx(styles.stageIndicator, {
-                          [styles['stageIndicator--current']]: isCurrentStage,
-                          [styles['stageIndicator--completed']]: isCompleted,
-                          [styles['stageIndicator--upcoming']]: isUpcoming,
-                        })}
-                        title={step.title}
-                      >
-                        {index + 1}
-                      </div>
-                    );
-                  })
-                )}
+                {currentMission?.stages.map((stage: any, index: number) => {
+                  const isCurrentStage = index === currentMission.currentStageIndex;
+                  const isCompleted = stage.completed || false;
+                  const isUpcoming = index > currentMission.currentStageIndex;
+
+                  return (
+                    <div
+                      key={stage.id}
+                      className={clsx(styles.stageIndicator, {
+                        [styles['stageIndicator--current']]: isCurrentStage,
+                        [styles['stageIndicator--completed']]: isCompleted,
+                        [styles['stageIndicator--upcoming']]: isUpcoming,
+                      })}
+                      title={stage.title}
+                    >
+                      {stage.stage_number}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : (

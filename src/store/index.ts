@@ -30,6 +30,9 @@ import { emailApi } from './api/emailApi';
 import { canvasApi } from './api/canvasApi';
 import { mentorApi } from './api/mentorApi';
 
+// Import middleware
+import { canvasMiddleware } from './middleware/canvasMiddleware';
+
 // Persist configuration following Redux patterns
 const persistConfig = {
   key: 'system-design-tycoon',
@@ -37,14 +40,14 @@ const persistConfig = {
   storage,
   whitelist: ['auth', 'user'], // Only persist user data and auth
   blacklist: [
-    'game', 
-    'mission', 
-    'design', 
-    'email', 
-    'canvas', 
+    'game',
+    'mission',
+    'design',
+    'email',
+    'canvas',
     'mentor', // Don't persist real-time chat state
     'collaboration', // Don't persist invitation state
-    'emailApi', 
+    'emailApi',
     'canvasApi',
     'mentorApi'
   ],
@@ -57,14 +60,14 @@ const rootReducer = combineReducers({
   game: gameReducer,
   user: userReducer,
   mission: missionReducer,
-  design: designReducer,
-  
+  design: designReducer, // Ephemeral React Flow canvas state (non-serializable nodes/edges)
+
   // Cross-cutting concerns (shared across features)
   email: emailReducer,
-  canvas: canvasReducer,
+  canvas: canvasReducer, // Serializable canvas persistence state (synced from design, saved to D1)
   mentor: mentorReducer,
   collaboration: collaborationReducer,
-  
+
   // RTK Query APIs for server state
   [emailApi.reducerPath]: emailApi.reducer,
   [canvasApi.reducerPath]: canvasApi.reducer,
@@ -90,16 +93,22 @@ export const store = configureStore({
           'design/setDraggedComponent',
           // Ignore mentor chat real-time data
           'mentor/addMessage',
+          // Ignore canvas middleware dispatches containing non-serializable node data
+          'canvas/updateCanvasState',
+          'canvas/updateCanvasNodes',
+          'canvas/updateCanvasEdges',
         ],
         ignoredPaths: [
           'design.draggedComponent',
           'mentor.messages.*.timestamp', // Date objects in messages
+          'canvas.canvasStates',
         ],
       },
     })
     .concat(emailApi.middleware)
     .concat(canvasApi.middleware)
-    .concat(mentorApi.middleware), // Add mentor API middleware
+    .concat(mentorApi.middleware)
+    .concat(canvasMiddleware),
   devTools: process.env.NODE_ENV !== 'production' && {
     name: 'System Design Tycoon',
     trace: true,

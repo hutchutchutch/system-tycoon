@@ -125,3 +125,11 @@ const userSlice = createSlice({
 
 export const { addAchievement, updateStats } = userSlice.actions;
 export default userSlice.reducer;
+
+// Selectors
+export const selectUserStats = (state: { user: UserSliceState }) => state.user.stats;
+export const selectAchievements = (state: { user: UserSliceState }) => state.user.achievements;
+export const selectUserAchievements = (state: { user: UserSliceState }) => state.user.userAchievements;
+export const selectComponentMastery = (state: { user: UserSliceState }) => state.user.componentMastery;
+export const selectUserLoading = (state: { user: UserSliceState }) => state.user.isLoading;
+export const selectUserError = (state: { user: UserSliceState }) => state.user.error;
