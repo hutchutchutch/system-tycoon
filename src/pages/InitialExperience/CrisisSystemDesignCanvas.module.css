@@ -6,7 +6,7 @@
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
 }
 
 /* Requirements on the right side */
@@ -56,8 +56,8 @@
   display: flex;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #f1f5f9;
+  background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
+  color: var(--color-obsidian-100);
   font-family: var(--font-sans);
   overflow: hidden;
   transition: all var(--duration-fast) var(--ease-out);
@@ -71,7 +71,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
 }
 
 .loadingSpinner {
@@ -81,7 +81,7 @@
   box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(71, 85, 105, 0.5);
   font-size: var(--text-lg);
-  color: #e2e8f0;
+  color: var(--color-obsidian-200);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -93,7 +93,7 @@
   width: 20px;
   height: 20px;
   border: 2px solid rgba(148, 163, 184, 0.3);
-  border-top: 2px solid #3b82f6;
+  border-top: 2px solid var(--color-blue-600);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -112,8 +112,8 @@
   gap: var(--space-4);
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  color: #ef4444;
+  background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
+  color: var(--color-accent-error);
   padding: var(--space-8);
   text-align: center;
 }
@@ -129,7 +129,7 @@
 .reactFlowWrapper {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
 }
 
 .reactFlow {
@@ -158,7 +158,7 @@
 .reactFlowControls button {
   background: rgba(255, 255, 255, 0.05) !important;
   border: none !important;
-  color: #e2e8f0 !important;
+  color: var(--color-obsidian-200) !important;
 }
 
 .reactFlowControls button:hover {
@@ -207,7 +207,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #e5e7eb;
+  color: var(--color-obsidian-200);
   transition: all 0.3s ease;
 }
 
@@ -220,7 +220,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 2px;
-  color: #f1f5f9;
+  color: var(--color-obsidian-100);
 }
 
 .nodeSubtitle {
@@ -234,8 +234,8 @@
 .nodeHandle {
   width: 12px !important;
   height: 12px !important;
-  background: #64748b !important;
-  border: 2px solid #1e293b !important;
+  background: var(--color-obsidian-500) !important;
+  border: 2px solid var(--color-obsidian-800) !important;
   transition: all 0.3s ease !important;
   cursor: crosshair !important;
   z-index: 10 !important;
@@ -243,17 +243,17 @@
 }
 
 .nodeHandle:hover {
-  background: #3b82f6 !important;
+  background: var(--color-blue-600) !important;
   box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2) !important;
 }
 
 /* Handle states */
 :global(.react-flow__handle.connecting) {
-  background: #10b981 !important;
+  background: var(--color-green-500) !important;
 }
 
 :global(.react-flow__handle.valid) {
-  background: #22c55e !important;
+  background: var(--color-green-500) !important;
   box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.3) !important;
 }
 
@@ -347,13 +347,13 @@
 
 /* Broken Node Styling */
 .brokenNode {
-  border: 3px solid #ef4444 !important;
+  border: 3px solid var(--color-accent-error) !important;
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.3), 0 4px 20px rgba(239, 68, 68, 0.2) !important;
   animation: brokenPulse 2s ease-in-out infinite;
 }
 
 .brokenNode .nodeTitle {
-  color: #ef4444;
+  color: var(--color-accent-error);
 }
 
 @keyframes brokenPulse {
@@ -369,16 +369,16 @@
 
 /* Compute Nodes - Green */
 .compute-node {
-  border-color: #22c55e;
+  border-color: var(--color-green-500);
 }
 
 .compute-node .nodeIcon {
   background: rgba(34, 197, 94, 0.2);
-  color: #4ade80;
+  color: var(--color-green-400);
 }
 
 .compute-node:hover {
-  border-color: #16a34a;
+  border-color: var(--color-green-600);
   box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
 }
 
@@ -389,12 +389,12 @@
 
 /* Database Nodes - Orange */
 .database-node {
-  border-color: #f59e0b;
+  border-color: var(--color-accent-warning);
 }
 
 .database-node .nodeIcon {
   background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
+  color: var(--color-yellow-300);
 }
 
 .database-node:hover {
@@ -409,12 +409,12 @@
 
 /* Storage Nodes - Purple */
 .storage-node {
-  border-color: #a855f7;
+  border-color: var(--color-violet-500);
 }
 
 .storage-node .nodeIcon {
   background: rgba(168, 85, 247, 0.2);
-  color: #c084fc;
+  color: var(--color-violet-300);
 }
 
 .storage-node:hover {
@@ -429,12 +429,12 @@
 
 /* Network Nodes - Yellow */
 .network-node {
-  border-color: #eab308;
+  border-color: var(--color-yellow-500);
 }
 
 .network-node .nodeIcon {
   background: rgba(234, 179, 8, 0.2);
-  color: #facc15;
+  color: var(--color-yellow-400);
 }
 
 .network-node:hover {
@@ -449,16 +449,16 @@
 
 /* Security Nodes - Violet */
 .security-node {
-  border-color: #8b5cf6;
+  border-color: var(--color-violet-500);
 }
 
 .security-node .nodeIcon {
   background: rgba(139, 92, 246, 0.2);
-  color: #a78bfa;
+  color: var(--color-violet-400);
 }
 
 .security-node:hover {
-  border-color: #7c3aed;
+  border-color: var(--color-violet-600);
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
 }
 
@@ -469,16 +469,16 @@
 
 /* User/Stakeholder Nodes - Blue */
 .user-node {
-  border-color: #3b82f6;
+  border-color: var(--color-blue-600);
 }
 
 .user-node .nodeIcon {
   background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
+  color: var(--color-blue-400);
 }
 
 .user-node:hover {
-  border-color: #2563eb;
+  border-color: var(--color-blue-700);
   box-shadow: 0 0 30px rgba(59, 130, 246, 0.3);
 }
 
@@ -489,16 +489,16 @@
 
 /* Monitoring Nodes - Cyan */
 .monitoring-node {
-  border-color: #06b6d4;
+  border-color: var(--color-cyan-500);
 }
 
 .monitoring-node .nodeIcon {
   background: rgba(6, 182, 212, 0.2);
-  color: #22d3ee;
+  color: var(--color-cyan-400);
 }
 
 .monitoring-node:hover {
-  border-color: #0891b2;
+  border-color: var(--color-cyan-600);
   box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
 }
 
@@ -509,16 +509,16 @@
 
 /* Analytics Nodes - Pink */
 .analytics-node {
-  border-color: #ec4899;
+  border-color: var(--color-pink-500);
 }
 
 .analytics-node .nodeIcon {
   background: rgba(236, 72, 153, 0.2);
-  color: #f472b6;
+  color: var(--color-pink-300);
 }
 
 .analytics-node:hover {
-  border-color: #db2777;
+  border-color: var(--color-pink-600);
   box-shadow: 0 0 30px rgba(236, 72, 153, 0.3);
 }
 
@@ -529,16 +529,16 @@
 
 /* Default Node - Gray */
 .default-node {
-  border-color: #64748b;
+  border-color: var(--color-obsidian-500);
 }
 
 .default-node .nodeIcon {
   background: rgba(100, 116, 139, 0.2);
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
 }
 
 .default-node:hover {
-  border-color: #475569;
+  border-color: var(--color-obsidian-600);
   box-shadow: 0 0 30px rgba(100, 116, 139, 0.3);
 }
 
@@ -579,7 +579,7 @@
 .drawerTitle {
   font-size: var(--text-lg);
   font-weight: var(--font-weight-semibold);
-  color: #f1f5f9;
+  color: var(--color-obsidian-100);
   margin: 0;
 }
 
@@ -590,7 +590,7 @@
 .drawerToggle {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
   cursor: pointer;
   padding: var(--space-1);
   border-radius: var(--radius-md);
@@ -602,7 +602,7 @@
 
 .drawerToggle:hover {
   background: rgba(100, 116, 139, 0.2);
-  color: #e2e8f0;
+  color: var(--color-obsidian-200);
 }
 
 .drawerContent {
@@ -652,12 +652,12 @@
 
 .drawerHint {
   font-size: var(--text-sm);
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
   margin: 0 0 var(--space-4) 0;
   padding: var(--space-3);
   background: rgba(100, 116, 139, 0.1);
   border-radius: var(--radius-md);
-  border-left: 3px solid #3b82f6;
+  border-left: 3px solid var(--color-blue-600);
 }
 
 /* Component Cards in Drawer */
@@ -676,7 +676,7 @@
 }
 
 .componentCard:hover {
-  border-color: #3b82f6;
+  border-color: var(--color-blue-600);
   background: rgba(59, 130, 246, 0.1);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
@@ -688,7 +688,7 @@
 }
 
 .componentIcon {
-  color: #60a5fa;
+  color: var(--color-blue-400);
   flex-shrink: 0;
 }
 
@@ -700,14 +700,14 @@
 .componentName {
   font-size: var(--text-sm);
   font-weight: var(--font-weight-medium);
-  color: #f1f5f9;
+  color: var(--color-obsidian-100);
   margin: 0 0 var(--space-1) 0;
   line-height: 1.2;
 }
 
 .componentDescription {
   font-size: var(--text-xs);
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
   margin: 0;
   line-height: 1.3;
   display: -webkit-box;
@@ -722,7 +722,7 @@
   right: var(--spacing-xs);
   background: none;
   border: none;
-  color: #64748b;
+  color: var(--color-obsidian-500);
   cursor: pointer;
   padding: var(--spacing-xs);
   border-radius: var(--radius-sm);
@@ -741,7 +741,7 @@
 
 .infoButton:hover {
   background-color: rgba(100, 116, 139, 0.2);
-  color: #3b82f6;
+  color: var(--color-blue-600);
 }
 
 /* Floating Requirements Card */
@@ -778,42 +778,42 @@
   gap: var(--space-2);
   font-size: var(--text-xl);
   font-weight: var(--font-weight-semibold);
-  color: #4ade80;
+  color: var(--color-green-400);
   margin: 0 0 var(--space-3) 0;
 }
 
 .successDescription {
   font-size: var(--text-base);
-  color: #e2e8f0;
+  color: var(--color-obsidian-200);
   margin: 0;
   line-height: 1.5;
 }
 
 /* React Flow Edge Styling */
 :global(.react-flow__edge-path) {
-  stroke: #475569 !important;
+  stroke: var(--color-obsidian-600) !important;
   stroke-width: 2 !important;
 }
 
 :global(.react-flow__edge.selected .react-flow__edge-path) {
-  stroke: #3b82f6 !important;
+  stroke: var(--color-blue-600) !important;
   stroke-width: 3 !important;
 }
 
 :global(.react-flow__edge-path:hover) {
-  stroke: #64748b !important;
+  stroke: var(--color-obsidian-500) !important;
   stroke-width: 3 !important;
 }
 
 :global(.react-flow__connectionline) {
-  stroke: #3b82f6 !important;
+  stroke: var(--color-blue-600) !important;
   stroke-width: 2 !important;
   stroke-dasharray: 5, 5 !important;
 }
 
 /* Crisis Edge Animation */
 :global(.crisis-edge .react-flow__edge-path) {
-  stroke: #ef4444 !important;
+  stroke: var(--color-accent-error) !important;
   stroke-width: 3 !important;
   animation: crisisFlow 2s ease-in-out infinite;
   filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.5));

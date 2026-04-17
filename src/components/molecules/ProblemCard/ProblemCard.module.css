@@ -31,22 +31,22 @@
 }
 
 .urgencyBadge[data-urgency="critical"] {
-  background: #ef4444;
+  background: var(--color-accent-error);
   color: white;
 }
 
 .urgencyBadge[data-urgency="high"] {
-  background: #f59e0b;
+  background: var(--color-accent-warning);
   color: white;
 }
 
 .urgencyBadge[data-urgency="medium"] {
-  background: #eab308;
+  background: var(--color-yellow-500);
   color: white;
 }
 
 .urgencyBadge[data-urgency="low"] {
-  background: #3b82f6;
+  background: var(--color-blue-600);
   color: white;
 }
 
@@ -71,14 +71,14 @@
 .title {
   font-size: var(--text-lg);
   font-weight: var(--font-weight-semibold);
-  color: #f1f5f9;
+  color: var(--color-obsidian-100);
   margin: 0 0 var(--space-2) 0;
   line-height: var(--line-height-tight);
 }
 
 .problem {
   font-size: var(--text-base);
-  color: #e2e8f0;
+  color: var(--color-obsidian-200);
   line-height: var(--line-height-normal);
   margin: 0 0 var(--space-3) 0;
 }
@@ -94,11 +94,11 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--text-sm);
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
 }
 
 .metaItem svg {
-  color: #94a3b8;
+  color: var(--color-obsidian-400);
 }
 
 .actions {

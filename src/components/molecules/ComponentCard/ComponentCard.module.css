@@ -293,7 +293,7 @@
 }
 
 .iconWrapper .icon {
-  color: #a78bfa;
+  color: var(--color-violet-400);
 }
 
 .info {

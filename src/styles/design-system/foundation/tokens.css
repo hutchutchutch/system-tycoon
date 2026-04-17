@@ -37,6 +37,36 @@
   --color-blue-500: #4F9CF9;           /* Medium blue */
   --color-blue-600: #3B82F6;           /* Darker blue */
   --color-blue-700: #2563EB;           /* Deep blue */
+  --color-blue-800: #1E40AF;           /* Navy blue */
+
+  /* Cyan Color Scale */
+  --color-cyan-400: #22D3EE;           /* Light cyan */
+  --color-cyan-500: #06B6D4;           /* Medium cyan */
+  --color-cyan-600: #0891B2;           /* Dark cyan */
+
+  /* Pink Color Scale */
+  --color-pink-300: #F472B6;           /* Light pink */
+  --color-pink-500: #EC4899;           /* Medium pink */
+  --color-pink-600: #DB2777;           /* Dark pink */
+
+  /* Violet Color Scale */
+  --color-violet-300: #C4B5FD;         /* Light violet */
+  --color-violet-400: #A78BFA;         /* Medium-light violet */
+  --color-violet-500: #8B5CF6;         /* Medium violet */
+  --color-violet-600: #7C3AED;         /* Dark violet */
+
+  /* Green Color Scale */
+  --color-green-400: #4ADE80;          /* Light green */
+  --color-green-500: #22C55E;          /* Medium green */
+  --color-green-600: #16A34A;          /* Dark green */
+
+  /* Yellow Color Scale */
+  --color-yellow-300: #FBBF24;         /* Light yellow */
+  --color-yellow-400: #FACC15;         /* Medium yellow */
+  --color-yellow-500: #EAB308;         /* Dark yellow */
+
+  /* Orange Color Scale */
+  --color-orange-500: #F97316;         /* Medium orange */
   
   /* Interactive States */
   --color-interactive-primary: #4F9CF9;       /* Primary button */

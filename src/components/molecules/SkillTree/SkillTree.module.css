@@ -91,7 +91,7 @@
 }
 
 .connectingLinePath {
-  stroke: #e5e7eb;
+  stroke: var(--color-obsidian-200);
   stroke-width: 2;
 }
 

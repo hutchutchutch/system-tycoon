@@ -18,13 +18,13 @@
 .leftSide {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, #4ade80, #16a34a);
+  background: linear-gradient(to bottom, var(--color-green-400), var(--color-green-600));
 }
 
 .rightSide {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, #2563eb, #1e40af);
+  background: linear-gradient(to bottom, var(--color-blue-700), var(--color-blue-800));
 }
 
 /* Assets */
@@ -156,7 +156,7 @@
   transform: translate(-50%, -50%);
   width: 1.5rem;
   height: 1.5rem;
-  border: 2px solid #9ca3af;
+  border: 2px solid var(--color-obsidian-400);
   border-radius: 50%;
 }
 
