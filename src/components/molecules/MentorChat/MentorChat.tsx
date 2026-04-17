@@ -563,8 +563,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         style={{
           position: 'fixed',
           bottom: '20px',
-          left: '20px',
-          zIndex: 99999,
+          right: '20px',
+          zIndex: 9999,
           pointerEvents: 'auto'
         }}
       >
@@ -603,8 +603,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           style={{
             position: 'fixed',
             bottom: '20px',
-            left: '20px',
-            zIndex: 99999,
+            right: '20px',
+            zIndex: 9999,
             pointerEvents: 'auto'
           }}
         >
@@ -669,9 +669,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       style={{
         position: 'fixed',
         bottom: '20px',
-        left: '20px',
-        zIndex: 99999,
-        width: '420px',
+        right: '20px',
+        zIndex: 9999,
+        width: 'min(420px, calc(100vw - 40px))',
         height: '500px',
         pointerEvents: 'auto'
       }}
@@ -801,10 +801,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       {currentNotification && !isExpanded && (
         <div style={{
           position: 'fixed',
-          bottom: '20px',
-          left: '100px', // Positioned to the right of the MentorChat icon (60px width + 20px margin + 20px gap)
-          right: window.innerWidth < 768 ? '20px' : 'auto', // Make responsive on mobile
-          zIndex: 99998, // Just below MentorChat but above everything else
+          bottom: '90px',
+          right: '20px',
+          zIndex: 9998, // Just below MentorChat but above page content
           pointerEvents: 'auto',
           maxWidth: window.innerWidth < 768 ? 'calc(100vw - 140px)' : '320px'
         }}>
