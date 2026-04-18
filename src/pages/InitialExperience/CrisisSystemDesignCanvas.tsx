@@ -18,6 +18,7 @@ import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Bo
 // import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
+import { CostEstimation } from '../../components/molecules/CostEstimation';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
 import { MentorNotification } from '../../components/organisms/MentorNotification/MentorNotification';
 import { MentorChat } from '../../components/organisms/MentorChat/MentorChat';
@@ -1911,12 +1912,19 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
           )}
         </div>
 
-        {/* Floating Requirements on the right side */}
+        {/* Floating Requirements + Cost Estimation on the right side */}
         {missionStageData && showRequirements && (
           <div className={styles.floatingRequirements}>
             <Requirements
               onTestSystem={handleRunTest}
               className={styles.bottomRequirements}
+            />
+            <CostEstimation
+              userScale={
+                ((missionStageData as any)?.stage_number || 1) <= 2 ? 200 :
+                ((missionStageData as any)?.stage_number || 1) === 3 ? 2000 :
+                ((missionStageData as any)?.stage_number || 1) === 4 ? 10000 : 50000
+              }
             />
           </div>
         )}
