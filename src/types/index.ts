@@ -81,36 +81,45 @@ export interface SuccessCriteria {
   maxErrorRate?: number;
 }
 
-// Component Types
-export interface Component {
+// Resource Types (infrastructure building blocks — formerly "Component")
+export interface Resource {
   id: string;
   name: string;
-  category: ComponentCategory;
+  category: ResourceCategory;
   cost: number;
   capacity: number;
   description: string;
   iconUrl?: string;
   minLevel: number;
   connections: string[];
-  properties: ComponentProperties;
+  properties: ResourceProperties;
   createdAt: string;
 }
 
-export type ComponentCategory = 
-  | 'frontend' 
-  | 'backend' 
-  | 'storage' 
-  | 'networking' 
-  | 'security' 
+// Legacy alias
+export type Component = Resource;
+
+export type ResourceCategory =
+  | 'frontend'
+  | 'backend'
+  | 'storage'
+  | 'networking'
+  | 'security'
   | 'operations';
 
-export interface ComponentProperties {
+// Legacy alias
+export type ComponentCategory = ResourceCategory;
+
+export interface ResourceProperties {
   throughput?: number;
   latency?: number;
   storage?: number;
   bandwidth?: number;
   [key: string]: any;
 }
+
+// Legacy alias
+export type ComponentProperties = ResourceProperties;
 
 export interface ComponentMastery {
   userId: string;
@@ -227,21 +236,24 @@ export interface SimulationPhaseState {
   isRunning: boolean;
   currentPhase: SimulationPhase;
   metrics: PerformanceMetrics;
-  componentStates: { [id: string]: ComponentState };
+  componentStates: { [id: string]: ResourceState };
 }
 
-export type SimulationPhase = 
-  | 'normal' 
-  | 'peak' 
-  | 'viral' 
+export type SimulationPhase =
+  | 'normal'
+  | 'peak'
+  | 'viral'
   | 'recovery';
 
-export type ComponentState = 
-  | 'idle' 
-  | 'active' 
-  | 'stressed' 
-  | 'overloaded' 
+export type ResourceState =
+  | 'idle'
+  | 'active'
+  | 'stressed'
+  | 'overloaded'
   | 'failed';
+
+// Legacy alias
+export type ComponentState = ResourceState;
 
 // Mentor Types
 export interface Mentor {
@@ -310,7 +322,7 @@ export interface InitialNode {
   position: { x: number; y: number };
   data: {
     label: string;
-    componentType: string;
+    resourceType: string;
     cost: number;
     capacity: number;
     description: string;
@@ -319,20 +331,14 @@ export interface InitialNode {
   style?: Record<string, any>;
 }
 
-export interface CollaborationSettings {
-  maxPlayers: number;
-  allowedRoles: ('architect' | 'engineer' | 'reviewer')[];
-  consensusRequired: boolean;
-  timeLimit?: number;
-  allowRealTimeEditing: boolean;
-}
-
-export interface ComponentSelection {
-  componentType: string;
-  mode: 'mentor' | 'collaboration';
+export interface ResourceSelection {
+  resourceType: string;
+  mode: 'mentor';
   scenarioId: string;
   requirements: ComponentRequirement[];
   initialNodes: InitialNode[];
-  collaborationSettings?: CollaborationSettings;
   selectedAt: number;
 }
+
+// Legacy alias
+export type ComponentSelection = ResourceSelection;

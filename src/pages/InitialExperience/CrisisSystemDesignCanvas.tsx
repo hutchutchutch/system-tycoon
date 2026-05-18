@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { 
   ReactFlow, 
   ReactFlowProvider,
@@ -15,31 +15,25 @@ import type { Connection, Node, NodeProps } from '@xyflow/react';
 import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
 
 
-// import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
-import { ComponentDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
+import { ResourceDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
 import { Requirements } from '../../components/molecules/Requirements/Requirements';
 import { CostEstimation } from '../../components/molecules/CostEstimation';
 import { MultiConnectionLine } from '../../components/molecules/MultiConnectionLine/MultiConnectionLine';
 import { MentorNotification } from '../../components/organisms/MentorNotification/MentorNotification';
 import { MentorChat } from '../../components/organisms/MentorChat/MentorChat';
 import { useConversationSession } from '../../hooks/useConversationSession';
-import { CursorManager } from '../../components/organisms/CursorManager/CursorManager';
-
-import { ComponentDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
+import { ResourceDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
 import type { ValidationResponse } from '../../services/missionService';
 import { useTheme } from '../../contexts/ThemeContext';
 import { api } from '../../services/cloudflareApi';
-import { realtimeCollaborationService } from '../../services/realtimeCollaboration';
-
 // Redux imports following the established patterns
 import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { skipToken } from '@reduxjs/toolkit/query';
 import { store } from '../../store';
 import { completeStep, updateMetrics, setDatabaseMission, completeDatabaseStage, clearDatabaseMission, resetTimerTestTrigger } from '../../features/mission/missionSlice';
-import { loadCollaborationInvitations } from '../../store/slices/collaborationSlice';
-import { 
+import {
   addNode, 
   setDraggedComponent,
   onNodesChange,
@@ -256,16 +250,15 @@ const createUserNodeBreakdown = (totalUsers: number) => {
   return breakdown;
 };
 
-interface CrisisSystemDesignCanvasProps {
+interface MissionWhiteboardProps {
   missionSlug?: string;
   // emailId is now obtained from route params, not props
 }
 
-const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = ({ 
+const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   missionSlug = 'health-tracker-crisis'
 }) => {
   const { emailId } = useParams<{ emailId: string }>();
-  const [searchParams] = useSearchParams();
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
@@ -282,13 +275,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   const [activeMission, setActiveMission] = useState<MissionData | null>(null);
   const [missionStageData, setMissionStageData] = useState<MissionStageData | null>(null);
   
-  // Collaboration state
-  const sessionId = searchParams.get('session');
-  const [isCollaborative, setIsCollaborative] = useState(false);
-  const [collaborationSession, setCollaborationSession] = useState<any>(null);
-  const [collaborators, setCollaborators] = useState<any[]>([]);
-  const [cursors, setCursors] = useState<Record<string, { x: number; y: number; timestamp: number }>>({});
-  const collaborationChannelRef = useRef<any>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasInitializedRef = useRef<boolean>(false);
   
@@ -1287,13 +1273,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     };
   }, [emailId, missionSlug, dispatch]);
 
-  // Load collaboration invitations when user is authenticated
-  useEffect(() => {
-    if (user?.id) {
-      dispatch(loadCollaborationInvitations());
-    }
-  }, [user?.id, dispatch]);
-
   // Load all component details for compatibility resolution
   useEffect(() => {
     const loadAllComponents = async () => {
@@ -1656,16 +1635,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         canvasState: canvasStateData
       }).unwrap();
       
-      // If in collaborative mode, update the session
-      if (isCollaborative && sessionId) {
-        await realtimeCollaborationService.updateCanvasState(sessionId, nodes, edges);
-      }
-      
       console.log('Canvas state saved successfully');
     } catch (error) {
       console.error('Failed to save canvas state:', error);
     }
-  }, [user?.id, missionStageData, nodes, edges, saveCanvasStateMutation, isCollaborative, sessionId]);
+  }, [user?.id, missionStageData, nodes, edges, saveCanvasStateMutation]);
 
   // Initialize canvas when stage data is available
   useEffect(() => {
@@ -1689,66 +1663,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
     return () => clearTimeout(timeoutId);
   }, [nodes, edges, user, missionStageData, persistCanvasState]);
 
-  // Handle collaboration session
-  useEffect(() => {
-    if (!sessionId || !user) return;
-
-    const initializeCollaboration = async () => {
-      try {
-        // Join the session
-        const session = await realtimeCollaborationService.joinSession(sessionId);
-        setCollaborationSession(session);
-        setIsCollaborative(true);
-
-        // Phase 5 TODO: Replace with Durable Objects WebSocket for real-time updates
-        // For now, collaboration session is joined but real-time sync is not active
-        console.log(`Collaboration session ${sessionId} joined. Real-time sync deferred to Phase 5.`);
-
-        // Stub: no real-time subscription
-        const collaboratorList: any[] = [];
-        setCollaborators(collaboratorList);
-            
-            // Update cursors
-            const newCursors: Record<string, { x: number; y: number; timestamp: number }> = {};
-            collaboratorList.forEach((collab: any) => {
-              if (collab.userId !== user.id && collab.cursor) {
-                newCursors[collab.userId] = {
-                  ...collab.cursor,
-                  timestamp: Date.now()
-                };
-              }
-            });
-            setCursors(newCursors);
-
-        return () => {
-          // Phase 5: cleanup WebSocket connection
-        };
-      } catch (error) {
-        console.error('Failed to join collaboration session:', error);
-        setError('Failed to join collaboration session');
-      }
-    };
-
-    initializeCollaboration();
-  }, [sessionId, user, dispatch]);
-
-  // Track mouse movement for collaborative cursor
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
-    if (!isCollaborative || !collaborationChannelRef.current) return;
-
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-
-    // Throttle cursor updates
-    if (collaborationChannelRef.current) {
-      collaborationChannelRef.current.track({
-        userId: user?.id,
-        username: user?.email?.split('@')[0] || 'Anonymous',
-        cursor: { x, y }
-      });
-    }
-  }, [isCollaborative, user]);
 
   // Debug useEffect to check if nodes and edges are loaded for MentorChat
   useEffect(() => {
@@ -1787,11 +1701,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
   }
 
   const miniMapNodeColor = (node: Node) => {
-    const type = node.data?.componentType || node.type;
-    return componentTypeColors[type as keyof typeof componentTypeColors] || componentTypeColors.default;
+    const type = node.data?.resourceType || node.data?.componentType || node.type;
+    return resourceTypeColors[type as keyof typeof resourceTypeColors] || resourceTypeColors.default;
   };
 
-  const componentTypeColors = {
+  const resourceTypeColors = {
     api: '#3B82F6',
     database: '#2563EB',
     queue: '#8B5CF6',
@@ -1809,21 +1723,20 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         {/* Component Drawer - Shows when needed */}
         {showComponentDrawer && (
           <div className={styles.componentDrawer}>
-            <ComponentDrawer
+            <ResourceDrawer
               components={drawerComponents}
               categories={componentCategories}
               searchQuery={drawerSearchQuery}
               onSearchChange={setDrawerSearchQuery}
-              onComponentSelect={(component) => {
-                console.log('Component selected:', component);
-                // Could add component to canvas here
+              onComponentSelect={(_resource) => {
+                // Resource selected - could add to whiteboard here
               }}
               className={styles.drawerContainer}
             />
           </div>
         )}
 
-            <div className={styles.reactFlowWrapper} onMouseMove={handleMouseMove} ref={canvasRef}>
+            <div className={styles.reactFlowWrapper} ref={canvasRef}>
               <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -1894,22 +1807,6 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
             />
           </ReactFlow>
           
-          {/* Render collaborator cursors */}
-          {isCollaborative && canvasRef.current && (
-            <CursorManager
-              cursors={cursors}
-              participants={Object.fromEntries(
-                collaborators.map((c: any) => [c.userId, { 
-                  id: c.userId,
-                  name: c.username,
-                  color: '#' + Math.floor(Math.random()*16777215).toString(16),
-                  last_seen: Date.now(),
-                  status: 'active' as const
-                }])
-              )}
-              canvasRef={canvasRef as React.RefObject<HTMLDivElement>}
-            />
-          )}
         </div>
 
         {/* Floating Requirements + Cost Estimation on the right side */}
@@ -1976,7 +1873,7 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
         )}
 
         {/* Component Detail Modal */}
-        <ComponentDetailModal
+        <ResourceDetailModal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           component={selectedComponent}
@@ -1988,8 +1885,11 @@ const CrisisSystemDesignCanvasInner: React.FC<CrisisSystemDesignCanvasProps> = (
 };
 
 // Export wrapped with ReactFlowProvider
-export const CrisisSystemDesignCanvas: React.FC<CrisisSystemDesignCanvasProps> = (props) => (
+export const MissionWhiteboard: React.FC<MissionWhiteboardProps> = (props) => (
   <ReactFlowProvider>
-    <CrisisSystemDesignCanvasInner {...props} />
+    <MissionWhiteboardInner {...props} />
   </ReactFlowProvider>
 );
+
+// Legacy alias
+export const CrisisSystemDesignCanvas = MissionWhiteboard;

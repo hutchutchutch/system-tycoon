@@ -72,7 +72,7 @@ export interface CategoryData {
   icon: string;
 }
 
-export interface ComponentDrawerProps {
+export interface ResourceDrawerProps {
   components: DrawerComponent[];
   categories: CategoryData[];
   searchQuery: string;
@@ -92,3 +92,6 @@ export interface ComponentDrawerProps {
   checkSelectionRules?: (offering: ComponentOffering) => SelectionResult;
   className?: string;
 }
+
+// Legacy alias
+export type ComponentDrawerProps = ResourceDrawerProps;

@@ -31,7 +31,7 @@ interface SerializableEdge {
   selected?: boolean;
 }
 
-interface CanvasState {
+interface WhiteboardState {
   // Active canvas states by stage ID
   canvasStates: Record<string, {
     nodes: SerializableNode[];
@@ -54,7 +54,7 @@ interface CanvasState {
   saveError: string | null;
 }
 
-const initialState: CanvasState = {
+const initialState: WhiteboardState = {
   canvasStates: {},
   activeStageId: null,
   autoSaveEnabled: true,
@@ -64,7 +64,7 @@ const initialState: CanvasState = {
   saveError: null,
 };
 
-const canvasSlice = createSlice({
+const whiteboardSlice = createSlice({
   name: 'canvas',
   initialState,
   reducers: {
@@ -223,9 +223,9 @@ export const {
   setAutoSaveInterval,
   clearCanvasState,
   resetCanvasStates,
-} = canvasSlice.actions;
+} = whiteboardSlice.actions;
 
-export default canvasSlice.reducer;
+export default whiteboardSlice.reducer;
 
 // Type exports
 export type { SerializableNode, SerializableEdge, CanvasViewport };
@@ -265,28 +265,34 @@ export const deserializeEdge = (edge: SerializableEdge): Edge => ({
 });
 
 // Selectors
-export const selectCanvasState = (stageId: string) => (state: { canvas: CanvasState }) =>
+export const selectWhiteboardState = (stageId: string) => (state: { canvas: WhiteboardState }) =>
   state.canvas.canvasStates[stageId];
 
-export const selectActiveCanvasState = (state: { canvas: CanvasState }) => {
+// Alias for backward compatibility within the file
+export const selectCanvasState = selectWhiteboardState;
+
+export const selectActiveWhiteboardState = (state: { canvas: WhiteboardState }) => {
   const { activeStageId, canvasStates } = state.canvas;
   return activeStageId ? canvasStates[activeStageId] : null;
 };
 
-export const selectCanvasNodes = (stageId: string) => (state: { canvas: CanvasState }) =>
+export const selectCanvasNodes = (stageId: string) => (state: { canvas: WhiteboardState }) =>
   state.canvas.canvasStates[stageId]?.nodes || [];
 
-export const selectCanvasEdges = (stageId: string) => (state: { canvas: CanvasState }) =>
+export const selectCanvasEdges = (stageId: string) => (state: { canvas: WhiteboardState }) =>
   state.canvas.canvasStates[stageId]?.edges || [];
 
-export const selectCanvasViewport = (stageId: string) => (state: { canvas: CanvasState }) =>
+export const selectCanvasViewport = (stageId: string) => (state: { canvas: WhiteboardState }) =>
   state.canvas.canvasStates[stageId]?.viewport || { x: 0, y: 0, zoom: 0.6 };
 
-export const selectIsCanvasDirty = (stageId: string) => (state: { canvas: CanvasState }) =>
+export const selectIsCanvasDirty = (stageId: string) => (state: { canvas: WhiteboardState }) =>
   state.canvas.canvasStates[stageId]?.isDirty || false;
 
-export const selectSavingStatus = (state: { canvas: CanvasState }) =>
+export const selectSavingStatus = (state: { canvas: WhiteboardState }) =>
   state.canvas.savingStatus;
 
-export const selectCanvasSaveError = (state: { canvas: CanvasState }) =>
-  state.canvas.saveError; 
+export const selectCanvasSaveError = (state: { canvas: WhiteboardState }) =>
+  state.canvas.saveError;
+
+// Type export
+export type { WhiteboardState };

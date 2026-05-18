@@ -32,10 +32,10 @@ export { BentoGrid, BentoCard } from './BentoGrid';
 export type { BentoGridProps, BentoCardProps } from './BentoGrid';
 
 // Business and design molecules (keep existing for now)
-export { ComponentCard } from './ComponentCard';
+export { ResourceCard, ComponentCard } from './ComponentCard';
 export type { ComponentCardProps } from './ComponentCard';
 
-export { ComponentDetailModal } from './ComponentDetailModal';
+export { ResourceDetailModal, ComponentDetailModal } from './ComponentDetailModal';
 export type { ComponentDetail } from './ComponentDetailModal';
 
 export { ImageComparison } from './ImageComparison';

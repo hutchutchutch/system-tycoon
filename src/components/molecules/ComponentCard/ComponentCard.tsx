@@ -22,7 +22,7 @@ import type { ComponentCardProps } from './ComponentCard.types';
  * - Parent dispatches addNode when dropped on canvas
  */
 
-export const ComponentCard: React.FC<ComponentCardProps> = ({
+export const ResourceCard: React.FC<ComponentCardProps> = ({
   data,
   drawerComponent,
   variant = 'drawer',

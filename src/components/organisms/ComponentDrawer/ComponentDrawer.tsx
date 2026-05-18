@@ -2,18 +2,18 @@ import React, { useState, useCallback, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Input } from '../../atoms/Input';
-import { ComponentCard } from '../../molecules/ComponentCard';
+import { ResourceCard } from '../../molecules/ComponentCard';
 import { Badge } from '../../atoms/Badge';
 import { Button } from '../../atoms/Button';
-import type { 
-  ComponentDrawerProps, 
-  DrawerComponent, 
+import type {
+  ResourceDrawerProps,
+  DrawerComponent,
   ComponentOffering,
-  DetailedComponentView 
+  DetailedComponentView
 } from './ComponentDrawer.types';
 import styles from './ComponentDrawer.module.css';
 
-export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
+export const ResourceDrawer: React.FC<ResourceDrawerProps> = ({
   components,
   categories,
   searchQuery,
@@ -329,7 +329,7 @@ export const ComponentDrawer: React.FC<ComponentDrawerProps> = ({
                   ) : (
                     categoryComponents.map(component => (
                       <div key={component.id} className={styles.componentWrapper}>
-                        <ComponentCard
+                        <ResourceCard
                           drawerComponent={component}
                           variant="drawer"
                           isExpanded={expandedComponent === component.id}

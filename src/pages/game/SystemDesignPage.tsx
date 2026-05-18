@@ -13,17 +13,15 @@ import {
 } from '@xyflow/react';
 import type { Connection, Edge, Node } from '@xyflow/react';
 import type { Mentor } from '../../components/molecules/MentorCard';
-import { Search, ChevronDown, Minimize2, ChevronsRight, Users } from 'lucide-react';
+import { Search, ChevronDown, Minimize2, ChevronsRight } from 'lucide-react';
 import { Input } from '../../components/atoms/Input';
 import { Icon } from '../../components/atoms/Icon';
 import { useAppSelector } from '../../hooks/redux';
 import { useTheme } from '../../contexts/ThemeContext';
-import { 
-  selectSelectedComponent, 
-  selectIsCollaborationMode, 
-  selectComponentRequirements, 
+import {
+  selectSelectedComponent,
+  selectComponentRequirements,
   selectComponentInitialNodes,
-  selectCollaborationSettings 
 } from '../../features/game/gameSlice';
 import '@xyflow/react/dist/style.css';
 
@@ -101,10 +99,8 @@ export const SystemDesignPage: React.FC = () => {
   
   // Redux selectors
   const selectedComponent = useAppSelector(selectSelectedComponent);
-  const isCollaborationMode = useAppSelector(selectIsCollaborationMode);
   const componentRequirements = useAppSelector(selectComponentRequirements);
   const componentInitialNodes = useAppSelector(selectComponentInitialNodes);
-  const collaborationSettings = useAppSelector(selectCollaborationSettings);
   
   // Get initial nodes from Redux or use defaults
   const initialNodes = componentInitialNodes.length > 0 ? componentInitialNodes : defaultInitialNodes;
@@ -141,17 +137,14 @@ export const SystemDesignPage: React.FC = () => {
     // Log Redux component selection state
     if (selectedComponent) {
       console.log(`📋 Component selection from Redux:`, selectedComponent);
-      console.log(`🎯 Component type: ${selectedComponent.componentType}`);
+      console.log(`🎯 Component type: ${selectedComponent.resourceType}`);
       console.log(`🎯 Mode: ${selectedComponent.mode}`);
       console.log(`🎯 Scenario ID: ${selectedComponent.scenarioId}`);
       console.log(`📋 Requirements:`, componentRequirements);
       
-      if (isCollaborationMode) {
-        console.log(`👥 Collaboration mode active:`, collaborationSettings);
-      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedComponent, componentRequirements, isCollaborationMode, collaborationSettings]); // Dependencies for Redux state
+  }, [selectedComponent, componentRequirements]); // Dependencies for Redux state
 
   // Update nodes when component selection changes
   useEffect(() => {
@@ -224,12 +217,6 @@ export const SystemDesignPage: React.FC = () => {
             <div className="bg-gray-800 px-4 py-2 rounded shadow-lg text-white">
               Budget: $0 / $200
             </div>
-            {isCollaborationMode && (
-              <div className="bg-green-600 px-4 py-2 rounded shadow-lg text-white flex items-center gap-2">
-                <Users size={16} />
-                <span>Collaboration Mode</span>
-              </div>
-            )}
           </div>
         </Panel>
 
@@ -411,7 +398,7 @@ export const SystemDesignPage: React.FC = () => {
                         </div>
                         <div className="flex flex-col gap-1 max-w-[240px]">
                           <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
-                            <p>I'll help you design <span style={{ color: 'var(--color-primary-600)' }} className="font-medium">{selectedComponent.componentType || 'system'}</span> components{isCollaborationMode ? ' in collaboration mode' : ''}.</p>
+                            <p>I'll help you design <span style={{ color: 'var(--color-primary-600)' }} className="font-medium">{selectedComponent.resourceType || 'system'}</span> components.</p>
                           </div>
                           <span className="text-xs text-gray-400 ml-2">just now</span>
                         </div>
@@ -445,7 +432,7 @@ export const SystemDesignPage: React.FC = () => {
                       </div>
                                               <div className="flex flex-col gap-1 max-w-[240px]">
                           <div className="bg-white text-gray-800 p-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
-                            <p>💡 <span className="font-medium">Pro tip:</span> Start with the fundamentals and build incrementally. Focus on {selectedComponent?.componentType || 'system'} scalability patterns.</p>
+                            <p>💡 <span className="font-medium">Pro tip:</span> Start with the fundamentals and build incrementally. Focus on {selectedComponent?.resourceType || 'system'} scalability patterns.</p>
                           </div>
                           <span className="text-xs text-gray-400 ml-2">just now</span>
                         </div>

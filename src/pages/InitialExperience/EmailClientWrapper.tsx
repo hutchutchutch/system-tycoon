@@ -286,9 +286,9 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
               
               <div className={styles.emailDetailContent}>
                 {/* Render email content with markdown formatting */}
-                <div 
+                <div
                   dangerouslySetInnerHTML={{
-                    __html: selectedEmail.body
+                    __html: (selectedEmail.body || '')
                       .replace(/\n/g, '<br />')
                       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                       .replace(/\*(.*?)\*/g, '<em>$1</em>')

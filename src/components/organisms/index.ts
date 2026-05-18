@@ -36,18 +36,13 @@ export type { AuthPromoBannerProps } from './AuthPromoBanner';
 // Keep existing organisms temporarily
 export { AchievementToast } from './AchievementToast';
 // export * from './CareerMap'; // Component doesn't exist
-export { ComponentDrawer } from './ComponentDrawer';
+export { ResourceDrawer, ComponentDrawer } from './ComponentDrawer';
 export { GameHUD } from './GameHUD';
 export { MetricsDashboard } from './MetricsDashboard';
 export { ProductTour } from './ProductTour';
 export type { ProductTourProps, TourStep } from './ProductTour';
-export { SystemDesignCanvas } from './SystemDesignCanvas';
+export { Whiteboard, SystemDesignCanvas } from './SystemDesignCanvas';
 export type { SystemDesignCanvasProps } from './SystemDesignCanvas';
-export { CollaborationPanel } from './CollaborationPanel';
-export type { CollaborationPanelProps } from './CollaborationPanel';
-export { CursorManager } from './CursorManager';
-export type { CursorManagerProps } from './CursorManager';
-
 // News and content organisms
 export { BentoGrid } from '../molecules/BentoGrid';
 export type { BentoGridProps } from '../molecules/BentoGrid';

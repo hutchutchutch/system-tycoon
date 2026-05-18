@@ -21,7 +21,7 @@ interface ComponentDetailModalProps {
   availableComponents?: ComponentDetail[]; // For resolving compatible component names
 }
 
-export const ComponentDetailModal: React.FC<ComponentDetailModalProps> = ({
+export const ResourceDetailModal: React.FC<ComponentDetailModalProps> = ({
   isOpen,
   onClose,
   component,

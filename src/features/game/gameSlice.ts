@@ -3,22 +3,21 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type {
   GameState,
   Scenario,
-  Component,
+  Resource,
   ScenarioProgress,
   Mentor,
   Requirement,
   ArchitectureSnapshot,
   PerformanceMetrics,
-  ComponentState,
+  ResourceState,
   SimulationPhase,
-  ComponentSelection,
-  CollaborationSettings,
+  ResourceSelection,
 } from '../../types';
 import { api } from '../../services/cloudflareApi';
 
 interface GameSliceState extends GameState {
   scenarios: Scenario[];
-  components: Component[];
+  components: Resource[];
   progress: ScenarioProgress[];
   isLoading: boolean;
   error: string | null;
@@ -37,8 +36,8 @@ interface GameSliceState extends GameState {
     progress: any[];
     lastUpdate: number;
   };
-  // Component Selection State
-  selectedComponent: ComponentSelection | null;
+  // Resource Selection State
+  selectedComponent: ResourceSelection | null;
 }
 
 const initialState: GameSliceState = {
@@ -76,7 +75,7 @@ export const fetchScenarios = createAsyncThunk(
 export const fetchComponents = createAsyncThunk(
   'game/fetchComponents',
   async () => {
-    return api.get<Component[]>('/game/components');
+    return api.get<Resource[]>('/game/components');
   }
 );
 
@@ -169,7 +168,7 @@ const gameSlice = createSlice({
         ...action.payload,
       } as GameState['simulationPhase'];
     },
-    updateComponentState: (state, action: PayloadAction<{ id: string; state: ComponentState }>) => {
+    updateComponentState: (state, action: PayloadAction<{ id: string; state: ResourceState }>) => {
       if (state.simulationPhase) {
         state.simulationPhase.componentStates[action.payload.id] = action.payload.state;
       }
@@ -204,35 +203,25 @@ const gameSlice = createSlice({
       };
     },
 
-    // Component Selection Actions
+    // Resource Selection Actions
     selectComponentForMode: (state, action: PayloadAction<{
-      componentType: string;
-      mode: 'mentor' | 'collaboration';
+      resourceType: string;
+      mode: 'mentor';
       scenarioId: string;
     }>) => {
-      const { componentType, mode, scenarioId } = action.payload;
+      const { resourceType, mode, scenarioId } = action.payload;
       state.selectedComponent = {
-        componentType,
+        resourceType,
         mode,
         scenarioId,
         requirements: [],      // loaded by component from API
         initialNodes: [],       // loaded by component from API
-        collaborationSettings: undefined,
         selectedAt: Date.now(),
       };
     },
 
     clearComponentSelection: (state) => {
       state.selectedComponent = null;
-    },
-
-    updateCollaborationSettings: (state, action: PayloadAction<Partial<CollaborationSettings>>) => {
-      if (state.selectedComponent && state.selectedComponent.mode === 'collaboration') {
-        state.selectedComponent.collaborationSettings = {
-          ...state.selectedComponent.collaborationSettings!,
-          ...action.payload,
-        };
-      }
     },
 
     resetGameState: (state) => {
@@ -304,7 +293,6 @@ export const {
   updateCareerMapData,
   selectComponentForMode,
   clearComponentSelection,
-  updateCollaborationSettings,
   resetGameState,
 } = gameSlice.actions;
 
@@ -323,25 +311,24 @@ export const selectIsAssetOnLeftSide = (worldX: number) => (state: any) => {
 // Component Selection Selectors
 export const selectSelectedComponent = (state: any) => state.game.selectedComponent;
 
-export const selectIsCollaborationMode = (state: any) =>
-  state.game.selectedComponent?.mode === 'collaboration';
-
 export const selectComponentRequirements = (state: any) =>
   state.game.selectedComponent?.requirements || [];
 
 export const selectComponentInitialNodes = (state: any) =>
   state.game.selectedComponent?.initialNodes || [];
 
-export const selectCollaborationSettings = (state: any) =>
-  state.game.selectedComponent?.collaborationSettings;
+export const selectSelectedResourceType = (state: any) =>
+  state.game.selectedComponent?.resourceType;
 
-export const selectSelectedComponentType = (state: any) =>
-  state.game.selectedComponent?.componentType;
+// Legacy alias
+export const selectSelectedComponentType = selectSelectedResourceType;
 
 // Typed selectors
 export const selectGameState = (state: { game: GameSliceState }) => state.game;
 export const selectScenarios = (state: { game: GameSliceState }) => state.game.scenarios;
-export const selectComponents = (state: { game: GameSliceState }) => state.game.components;
+export const selectResources = (state: { game: GameSliceState }) => state.game.components;
+// Legacy alias
+export const selectComponents = selectResources;
 export const selectProgress = (state: { game: GameSliceState }) => state.game.progress;
 export const selectCurrentScreen = (state: { game: GameSliceState }) => state.game.currentScreen;
 export const selectCurrentScenario = (state: { game: GameSliceState }) => state.game.currentScenario;

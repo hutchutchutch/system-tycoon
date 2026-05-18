@@ -293,9 +293,8 @@ export const EmailClient: React.FC<EmailClientProps> = ({
               <div className={styles.emailDetailContent}>
                 {selectedEmailDetail.content}
                 
-                {/* Handle collaboration invitations */}
                 {selectedEmailDetail.body && selectedEmailDetail.body.includes('Open System Builder') && (
-                  <div 
+                  <div
                     className={styles.emailHtmlContent}
                     dangerouslySetInnerHTML={{ __html: selectedEmailDetail.body }}
                   />

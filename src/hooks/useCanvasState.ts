@@ -4,7 +4,7 @@ import {
   setActiveCanvas,
   updateCanvasState,
   loadCanvasState,
-  selectCanvasState,
+  selectWhiteboardState,
   selectCanvasNodes,
   selectCanvasEdges,
   selectCanvasViewport,
@@ -23,26 +23,26 @@ import { useLoadCanvasStateQuery, useSaveCanvasStateMutation } from '../store/ap
 import { skipToken } from '@reduxjs/toolkit/query';
 import type { Node, Edge } from '@xyflow/react';
 
-interface UseCanvasStateProps {
+interface UseWhiteboardStateProps {
   stageId: string;
   userId?: string;
   missionId?: string;
 }
 
 /**
- * Custom hook for managing canvas state with Redux and Supabase persistence
- * 
+ * Custom hook for managing whiteboard state with Redux and Supabase persistence
+ *
  * Provides a clean interface for:
- * - Loading/saving canvas state
+ * - Loading/saving whiteboard state
  * - Managing nodes, edges, and viewport
  * - Auto-save functionality
  * - Loading and error states
  */
-export const useCanvasState = ({ stageId, userId, missionId }: UseCanvasStateProps) => {
+export const useWhiteboardState = ({ stageId, userId, missionId }: UseWhiteboardStateProps) => {
   const dispatch = useAppDispatch();
   
   // Redux selectors
-  const canvasState = useAppSelector(state => selectCanvasState(stageId)(state));
+  const canvasState = useAppSelector(state => selectWhiteboardState(stageId)(state));
   const nodes = useAppSelector(state => selectCanvasNodes(stageId)(state));
   const edges = useAppSelector(state => selectCanvasEdges(stageId)(state));
   const viewport = useAppSelector(state => selectCanvasViewport(stageId)(state));

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { CrisisSystemDesignCanvas } from './CrisisSystemDesignCanvas';
+import { MissionWhiteboard } from './CrisisSystemDesignCanvas';
 import styles from './SystemDesignCanvasWrapper.module.css';
 
-interface SystemDesignCanvasWrapperProps {
+interface WhiteboardWrapperProps {
   onMissionComplete?: () => void;
   emailId?: string;
 }
 
-export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps> = ({ 
+export const WhiteboardWrapper: React.FC<WhiteboardWrapperProps> = ({
   onMissionComplete,
   emailId
 }) => {
@@ -42,7 +42,7 @@ export const SystemDesignCanvasWrapper: React.FC<SystemDesignCanvasWrapperProps>
 
   return (
     <div className={styles.systemDesignWrapper}>      
-      <CrisisSystemDesignCanvas />
+      <MissionWhiteboard />
     </div>
   );
 };

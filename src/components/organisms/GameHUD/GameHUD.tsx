@@ -4,7 +4,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../../hooks/redux';
 import { CAREER_TITLES } from '../../../constants';
 import { User, Trophy, Star, AlertTriangle, Mail, Globe, FileText, Clock, Users, Menu, LogOut } from 'lucide-react';
-import { InviteCollaboratorModal } from '../InviteCollaboratorModal';
 import { getUnreadEmailCount } from '../../../services/emailService';
 import { triggerTestSystem } from '../../../features/mission/missionSlice';
 import { signOut } from '../../../features/auth/authSlice';
@@ -25,9 +24,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
   const avatarRef = useRef<HTMLDivElement>(null);
   
-  // Invite modal state
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
-  
   // Timer state
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [isTimerActive, setIsTimerActive] = useState(false);
@@ -38,11 +34,6 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   
   // Mentor notification progress state
   const [mentorNotificationProgress, setMentorNotificationProgress] = useState<{[stageId: string]: number}>({});
-  
-  // Collaboration notification state
-  const [activeCollaborators, setActiveCollaborators] = useState<{id: string; username: string}[]>([]);
-  const [showCollaboratorNotification, setShowCollaboratorNotification] = useState(false);
-  const [latestCollaborator, setLatestCollaborator] = useState<string | null>(null);
   
   // Check if we're on the crisis system design canvas
   const isOnCrisisCanvas = location.pathname.includes('/crisis-design/') || location.pathname.includes('/game/email/');
@@ -116,41 +107,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
     }));
   };
   
-  // Function to handle collaborator presence
-  const handleCollaboratorPresence = (type: 'joined' | 'left', collaborator: {id: string; username: string}) => {
-    if (type === 'joined') {
-      setActiveCollaborators(prev => {
-        // Avoid duplicates
-        if (prev.some(c => c.id === collaborator.id)) return prev;
-        return [...prev, collaborator];
-      });
-      
-      // Show notification
-      setLatestCollaborator(collaborator.username);
-      setShowCollaboratorNotification(true);
-      setTimeout(() => {
-        setShowCollaboratorNotification(false);
-      }, 5000); // Show for 5 seconds
-    } else {
-      // Remove collaborator when they leave
-      setActiveCollaborators(prev => prev.filter(c => c.id !== collaborator.id));
-    }
-  };
-  
   // Expose the progress update function globally so other components can use it
   useEffect(() => {
     (window as any).updateMentorNotificationProgress = updateMentorNotificationProgress;
-    (window as any).handleCollaboratorPresence = handleCollaboratorPresence;
-    
+
     return () => {
       delete (window as any).updateMentorNotificationProgress;
-      delete (window as any).handleCollaboratorPresence;
     };
   }, []);
   
-  // Timer countdown effect - pause when invite modal is open
+  // Timer countdown effect
   useEffect(() => {
-    if (isTimerActive && timerSeconds > 0 && !isInviteModalOpen) {
+    if (isTimerActive && timerSeconds > 0) {
       timerRef.current = setInterval(() => {
         setTimerSeconds(prev => {
           if (prev <= 1) {
@@ -175,7 +143,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
         clearInterval(timerRef.current);
       }
     };
-  }, [isTimerActive, timerSeconds, isOnCrisisCanvas, isInviteModalOpen, dispatch]);
+  }, [isTimerActive, timerSeconds, isOnCrisisCanvas, dispatch]);
   
   // Email notification animation state
   const [showEmailNotification, setShowEmailNotification] = useState(false);
@@ -226,13 +194,8 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   };
 
   const handleUserProfileClick = () => {
-    if (isOnCrisisCanvas && stageId && missionId) {
-      // Open invite modal when on crisis canvas
-      setIsInviteModalOpen(true);
-    } else {
-      // Default behavior - could open user profile
-      console.log('User profile clicked');
-    }
+    // Default behavior - could open user profile
+    console.log('User profile clicked');
   };
   
   // Format timer display
@@ -264,7 +227,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
       // Check if we're on the Choose Mission screen
   const isOnChooseMission = location.pathname === '/browser/news' || location.pathname === '/game';
   
-  // Check if we're on a system design page (CrisisSystemDesignCanvas or SystemDesignPage)
+  // Check if we're on a system design page (MissionWhiteboard or SystemDesignPage)
   const isOnSystemDesignPage = location.pathname.includes('/crisis-design/') ||
                                location.pathname.includes('/system-design') ||
                                location.pathname.includes('/email/');
@@ -525,45 +488,18 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
               </button>
             </div>
             
-            {/* Collaborator Notification */}
-            {showCollaboratorNotification && latestCollaborator && (
-              <div className={styles.collaboratorNotification}>
-                <Users size={12} />
-                <span>{latestCollaborator} is in the canvas</span>
-              </div>
-            )}
-            
-            {/* Active Collaborators Display */}
-            {activeCollaborators.length > 0 && isOnCrisisCanvas && (
-              <div className={styles.activeCollaborators}>
-                <Users size={14} />
-                <span>{activeCollaborators.length}</span>
-              </div>
-            )}
-            
-            <button 
-              className={clsx(styles.actionButton, {
-                [styles['actionButton--collaborate']]: isOnCrisisCanvas
-              })} 
+            <button
+              className={styles.actionButton}
               onClick={handleUserProfileClick}
-              aria-label={isOnCrisisCanvas ? "Invite collaborator" : "User profile"}
-              title={isOnCrisisCanvas ? "Invite collaborator" : "User profile"}
+              aria-label="User profile"
+              title="User profile"
             >
-              {isOnCrisisCanvas ? <Users size={16} /> : <User size={16} />}
+              <User size={16} />
             </button>
           </div>
         </div>
       </header>
       
-      {/* Invite Collaborator Modal */}
-      {isInviteModalOpen && stageId && missionId && (
-        <InviteCollaboratorModal
-          isOpen={isInviteModalOpen}
-          onClose={() => setIsInviteModalOpen(false)}
-          stageId={stageId}
-          missionId={missionId}
-        />
-      )}
     </>
   );
 };

@@ -23,8 +23,6 @@ import designReducer from '../features/design/designSlice';
 import emailReducer from './slices/emailSlice';
 import canvasReducer from './slices/canvasSlice';
 import mentorReducer from './slices/mentorSlice';
-import collaborationReducer from './slices/collaborationSlice';
-
 // Import RTK Query APIs
 import { emailApi } from './api/emailApi';
 import { canvasApi } from './api/canvasApi';
@@ -46,7 +44,6 @@ const persistConfig = {
     'email',
     'canvas',
     'mentor', // Don't persist real-time chat state
-    'collaboration', // Don't persist invitation state
     'emailApi',
     'canvasApi',
     'mentorApi'
@@ -66,7 +63,6 @@ const rootReducer = combineReducers({
   email: emailReducer,
   canvas: canvasReducer, // Serializable canvas persistence state (synced from design, saved to D1)
   mentor: mentorReducer,
-  collaboration: collaborationReducer,
 
   // RTK Query APIs for server state
   [emailApi.reducerPath]: emailApi.reducer,

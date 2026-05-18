@@ -17,7 +17,7 @@ import { InitialExperience } from './pages/InitialExperience';
 import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
 
 import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
-import { CrisisSystemDesignCanvas } from './pages/InitialExperience/CrisisSystemDesignCanvas';
+import { MissionWhiteboard } from './pages/InitialExperience/CrisisSystemDesignCanvas';
 import { BlankSystemDesignPage } from './pages/BlankSystemDesignPage';
 // import { MeetingRoomPage } from './pages/game/MeetingRoomPage'; // Removed
 import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
@@ -96,7 +96,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <CrisisSystemDesignCanvas />,
+            element: <MissionWhiteboard />,
           },
         ],
       },

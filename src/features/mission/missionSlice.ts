@@ -53,7 +53,7 @@ export interface DatabaseMission {
 interface MissionState {
   currentMission: DatabaseMission | null;
   completedMissions: string[];
-  unlockedComponents: string[];
+  unlockedResources: string[];
   crisisMetrics: {
     totalReportsSaved: number;
     totalDataLost: number;
@@ -66,7 +66,7 @@ interface MissionState {
 const initialState: MissionState = {
   currentMission: null,
   completedMissions: [],
-  unlockedComponents: ['web_server', 'database'], // Start with basic components
+  unlockedResources: ['web_server', 'database'], // Start with basic components
   crisisMetrics: {
     totalReportsSaved: 0,
     totalDataLost: 0,
@@ -162,8 +162,8 @@ const missionSlice = createSlice({
     },
 
     unlockComponent: (state, action: PayloadAction<string>) => {
-      if (!state.unlockedComponents.includes(action.payload)) {
-        state.unlockedComponents.push(action.payload);
+      if (!state.unlockedResources.includes(action.payload)) {
+        state.unlockedResources.push(action.payload);
       }
     },
 
@@ -215,7 +215,9 @@ export const startMission = (() => {
 export const selectCurrentMission = (state: { mission: MissionState }) => state.mission.currentMission;
 export const selectCompletedMissions = (state: { mission: MissionState }) => state.mission.completedMissions;
 export const selectCrisisMetrics = (state: { mission: MissionState }) => state.mission.crisisMetrics;
-export const selectUnlockedComponents = (state: { mission: MissionState }) => state.mission.unlockedComponents;
+export const selectUnlockedResources = (state: { mission: MissionState }) => state.mission.unlockedResources;
+// Legacy alias
+export const selectUnlockedComponents = selectUnlockedResources;
 
 // Backwards-compatible alias: code that reads state.mission.currentDatabaseMission
 // will need to be updated to state.mission.currentMission (same field now).
