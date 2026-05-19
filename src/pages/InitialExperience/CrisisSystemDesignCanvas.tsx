@@ -23,6 +23,7 @@ import { MultiConnectionLine } from '../../components/molecules/MultiConnectionL
 import { MentorNotification } from '../../components/organisms/MentorNotification/MentorNotification';
 import { MentorChat } from '../../components/organisms/MentorChat/MentorChat';
 import { useConversationSession } from '../../hooks/useConversationSession';
+import { computeInitialViewport } from '../../utils/canvasViewport';
 import { ResourceDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
@@ -268,12 +269,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const edges = useAppSelector(state => state.design?.edges || []);
   const draggedComponent = useAppSelector(state => state.design?.draggedComponent);
   
-  const { screenToFlowPosition } = useReactFlow();
+  const { screenToFlowPosition, setViewport } = useReactFlow();
   const viewport = useViewport();
 
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeMission, setActiveMission] = useState<MissionData | null>(null);
@@ -281,6 +283,27 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasInitializedRef = useRef<boolean>(false);
+
+  /** Animate the viewport to frame the current nodes nicely. */
+  const fitNodesToView = useCallback((placedNodes: Array<{ id: string; type?: string; position: { x: number; y: number } }>) => {
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (!rect || placedNodes.length === 0) return;
+
+    const drawerWidth = isDrawerCollapsed ? 56 : 280;
+    const HUD_HEIGHT = 60;
+
+    const viewport = computeInitialViewport(placedNodes, {
+      canvasWidth: rect.width,
+      canvasHeight: rect.height - HUD_HEIGHT,
+      drawerWidth,
+      minZoom: 0.9,
+      maxZoom: 2.4,
+      fillRatio: 0.70,
+    });
+
+    console.log('🎯 Computed initial viewport:', viewport);
+    setViewport(viewport, { duration: 500 });
+  }, [isDrawerCollapsed, setViewport]);
   
   // Canvas state from Redux (after missionStageData is available)
   const canvasState = useAppSelector(state => 
@@ -885,6 +908,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         } else {
           console.log('✅ SUCCESS: No Margaret nodes detected in final state');
         }
+
+        // Fit viewport to the freshly loaded nodes
+        fitNodesToView(finalNodes.map(n => ({
+          id: n.id,
+          type: n.type as string | undefined,
+          position: n.position,
+        })));
       }, 100);
     } catch (error) {
       console.error('Failed to load initial system state:', error);
@@ -976,6 +1006,17 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         targetHandle: 'current-system-fallback-input'
       }));
     });
+
+    // Fit viewport once nodes are rendered
+    const fallbackNodes = [
+      { id: 'current-system-fallback', type: 'custom', position: { x: centerX + 100, y: centerY } },
+      ...userNodes.map((u, i) => {
+        const nodeHeight = 122, nodeSpacing = nodeHeight + nodeHeight / 2;
+        const totalHeight = (userNodes.length - 1) * nodeSpacing;
+        return { id: u.id, type: 'user', position: { x: centerX - 400, y: centerY - totalHeight / 2 + i * nodeSpacing } };
+      }),
+    ];
+    setTimeout(() => fitNodesToView(fallbackNodes), 100);
   };
 
   // Fetch components from database based on mission stage requirements
@@ -1797,16 +1838,10 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
             nodeTypes={nodeTypes}
             connectionLineComponent={MultiConnectionLine}
             multiSelectionKeyCode={["Meta", "Control"]}
-            fitView
-            fitViewOptions={{
-              padding: 0.5,
-              includeHiddenNodes: false,
-              maxZoom: 0.8
-            }}
             colorMode={theme}
-            defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
+            defaultViewport={{ x: 0, y: 0, zoom: 1.0 }}
             minZoom={0.2}
-            maxZoom={2}
+            maxZoom={2.5}
             className={styles.reactFlow}
             deleteKeyCode={["Backspace", "Delete"]}
             panOnScroll={false}
