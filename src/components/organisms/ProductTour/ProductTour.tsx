@@ -38,7 +38,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     id: 'contact',
     title: 'Reach Out 💬',
-    content: "Hover any card to reveal a Contact button. Clicking it sends a message to the hero and opens their mission in your email.",
+    content: "Hover any card to reveal a Contact button. Clicking it sends a message to the Client and opens their mission in your Email.",
     target: '.bento-card',
     position: 'top',
     autoHideDuration: 0

@@ -62,7 +62,7 @@ export const ResultsPage: React.FC = () => {
             <button
               className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
             >
-              Next Scenario
+              Next Mission
             </button>
           </div>
         </div>

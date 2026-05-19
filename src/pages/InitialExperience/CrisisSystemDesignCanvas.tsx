@@ -1539,6 +1539,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
       
       // Only load saved state if canvas is empty and state is valid
       if (savedCanvasData.canvasState.nodes.length > 0 && currentNodes.length === 0) {
+
         console.log('✅ Loading validated saved canvas state into design slice');
         
         // Load saved nodes into design slice
@@ -1592,8 +1593,10 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           edges: savedCanvasData.canvasState.edges,
           viewport: savedCanvasData.canvasState.viewport
         }));
-      } else {
-        console.log('⚠️ Skipping saved state load - nodes already exist in canvas or no saved state');
+      } else if (currentNodes.length === 0) {
+        // Saved state exists but is empty — load the initial stage state instead
+        console.log('⚠️ Saved state has no nodes - loading initial state');
+        loadInitialSystemState(missionStageData.id);
       }
     } else if (missionStageData.id && !savedCanvasData?.canvasState && currentNodes.length === 0) {
       console.log('🆕 No saved canvas state and canvas is empty, will load initial system state');

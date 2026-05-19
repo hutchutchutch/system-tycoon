@@ -315,7 +315,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                     <Star size={16} />
                   </div>
                   <div className={styles.statContent}>
-                    <div className={styles.statLabel}>Reputation</div>
+                    <div className={styles.statLabel}>Impact</div>
                     <div className={styles.statValue}>
                       {reputationPoints.toLocaleString()}
                     </div>

@@ -61,6 +61,7 @@ export interface MissionStage {
   required_components: string; // JSON string
   validation_rules: string; // JSON string
   system_requirements: string; // JSON string
+  initial_system_state: string | null; // JSON string — broken starting state for the Whiteboard
   created_at: string;
   updated_at: string;
 }

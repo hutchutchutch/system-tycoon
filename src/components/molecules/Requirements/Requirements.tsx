@@ -93,7 +93,7 @@ export const Requirements: React.FC<RequirementsProps> = ({
           className={styles.testSystemButton}
         >
           <Play size={16} />
-          Test System
+          Run Simulation
         </Button>
       </div>
     </div>

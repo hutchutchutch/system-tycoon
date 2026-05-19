@@ -73,7 +73,7 @@ export const MentorDetailCard: React.FC<MentorDetailCardProps> = ({
           onClick={handleSelect}
           className={styles.selectButton}
         >
-          Choose {mentor.name} as My Guide
+          Choose {mentor.name} as My Mentor
         </Button>
       </div>
     </motion.div>

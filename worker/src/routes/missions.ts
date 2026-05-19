@@ -124,6 +124,7 @@ missionRoutes.get('/stage/:stageId', async (c) => {
     required_components: parseJson(stage.required_components, []),
     validation_rules: parseJson(stage.validation_rules, {}),
     system_requirements: parseJson(stage.system_requirements, []),
+    initial_system_state: parseJson(stage.initial_system_state, null),
     mission: {
       slug: stage.mission_slug,
       title: stage.mission_title,
