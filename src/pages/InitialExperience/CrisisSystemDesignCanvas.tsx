@@ -1,18 +1,19 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
-  ReactFlow, 
+  ReactFlow,
   ReactFlowProvider,
-  Controls, 
+  Controls,
   Background,
   BackgroundVariant,
   MiniMap,
   Handle,
   Position,
-  useReactFlow
+  useReactFlow,
+  useViewport,
 } from '@xyflow/react';
 import type { Connection, Node, NodeProps } from '@xyflow/react';
-import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info, Settings, Clipboard, ClipboardCheck, X } from 'lucide-react';
 
 
 import { ResourceDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
@@ -268,8 +269,11 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const draggedComponent = useAppSelector(state => state.design?.draggedComponent);
   
   const { screenToFlowPosition } = useReactFlow();
-  
+  const viewport = useViewport();
+
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
+  const [isDebugOpen, setIsDebugOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeMission, setActiveMission] = useState<MissionData | null>(null);
@@ -1488,6 +1492,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
       stageTitle: missionStageData.title,
       expectedMissionId: missionStageData.mission.id
     });
+    console.log('🗺️ Viewport on init:', { x: viewport.x, y: viewport.y, zoom: viewport.zoom });
+    console.log('📍 Node positions on init:', currentNodes.map(n => ({
+      id: n.id,
+      type: (n as any).type,
+      label: (n as any).data?.label ?? (n as any).data?.name,
+      position: n.position,
+    })));
     
     // Mark as initialized
     canvasInitializedRef.current = true;
@@ -1873,7 +1884,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
 
         {/* Mentor Chat - Only render when stage data and initial state are loaded */}
         {missionStageData && (
-          <MentorChat 
+          <MentorChat
             missionStageId={emailId}
             missionTitle={missionStageData?.title}
             problemDescription={missionStageData?.problem_description}
@@ -1883,6 +1894,147 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
             availableComponents={availableComponents}
           />
         )}
+
+        {/* ── Debug Widget ─────────────────────────────────────────────── */}
+        {/* FAB */}
+        <button
+          onClick={() => setIsDebugOpen(o => !o)}
+          title="Canvas debug"
+          style={{
+            position: 'fixed',
+            bottom: '1.5rem',
+            left: '1.5rem',
+            zIndex: 9999,
+            width: 40,
+            height: 40,
+            borderRadius: '50%',
+            border: 'none',
+            background: isDebugOpen ? '#6366f1' : '#1e293b',
+            color: '#e2e8f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+            transition: 'background 0.15s',
+          }}
+        >
+          {isDebugOpen ? <X size={16} /> : <Settings size={16} />}
+        </button>
+
+        {/* Panel */}
+        {isDebugOpen && (() => {
+          const debugData = {
+            viewport: { x: Math.round(viewport.x * 10) / 10, y: Math.round(viewport.y * 10) / 10, zoom: Math.round(viewport.zoom * 1000) / 1000 },
+            nodeCount: nodes.length,
+            connectionCount: edges.length,
+            nodes: nodes.map(n => ({
+              id: n.id,
+              type: (n as any).type ?? 'custom',
+              label: (n as any).data?.label ?? (n as any).data?.name ?? n.id,
+              position: { x: Math.round((n.position?.x ?? 0) * 10) / 10, y: Math.round((n.position?.y ?? 0) * 10) / 10 },
+              category: (n as any).data?.category ?? '—',
+              status: (n as any).data?.status ?? '—',
+            })),
+            connections: edges.map(e => ({
+              id: e.id,
+              source: e.source,
+              target: e.target,
+              sourceHandle: e.sourceHandle ?? '—',
+              targetHandle: e.targetHandle ?? '—',
+            })),
+          };
+
+          const handleCopy = () => {
+            navigator.clipboard.writeText(JSON.stringify(debugData, null, 2)).then(() => {
+              setCopied(true);
+              setTimeout(() => setCopied(false), 2000);
+            });
+          };
+
+          return (
+            <div style={{
+              position: 'fixed',
+              bottom: '4.5rem',
+              left: '1.5rem',
+              zIndex: 9998,
+              width: 340,
+              maxHeight: 'calc(100vh - 6rem)',
+              overflowY: 'auto',
+              background: '#0f172a',
+              border: '1px solid #334155',
+              borderRadius: 8,
+              boxShadow: '0 4px 24px rgba(0,0,0,0.6)',
+              fontFamily: 'monospace',
+              fontSize: 11,
+              color: '#94a3b8',
+            }}>
+              {/* Header */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #1e293b', background: '#0d1b2a' }}>
+                <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 12 }}>Canvas Debug</span>
+                <button
+                  onClick={handleCopy}
+                  title="Copy all as JSON"
+                  style={{ background: 'none', border: 'none', color: copied ? '#4ade80' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
+                >
+                  {copied ? <ClipboardCheck size={13} /> : <Clipboard size={13} />}
+                  {copied ? 'Copied!' : 'Copy JSON'}
+                </button>
+              </div>
+
+              {/* Viewport */}
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b' }}>
+                <div style={{ color: '#6366f1', fontWeight: 600, marginBottom: 4 }}>Viewport</div>
+                <div>x: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.x}</span></div>
+                <div>y: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.y}</span></div>
+                <div>zoom: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.zoom}</span></div>
+              </div>
+
+              {/* Summary */}
+              <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b', display: 'flex', gap: 16 }}>
+                <span>Resources: <span style={{ color: '#f1f5f9' }}>{debugData.nodeCount}</span></span>
+                <span>Connections: <span style={{ color: '#f1f5f9' }}>{debugData.connectionCount}</span></span>
+              </div>
+
+              {/* Nodes */}
+              {debugData.nodes.length > 0 && (
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b' }}>
+                  <div style={{ color: '#22d3ee', fontWeight: 600, marginBottom: 6 }}>Resources ({debugData.nodeCount})</div>
+                  {debugData.nodes.map((n, i) => (
+                    <div key={n.id} style={{ marginBottom: 8, paddingBottom: 8, borderBottom: i < debugData.nodes.length - 1 ? '1px solid #1e293b' : 'none' }}>
+                      <div style={{ color: '#e2e8f0', marginBottom: 2 }}>{n.label}</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1px 8px' }}>
+                        <span style={{ color: '#475569' }}>id:</span><span style={{ color: '#94a3b8', wordBreak: 'break-all' }}>{n.id}</span>
+                        <span style={{ color: '#475569' }}>type:</span><span>{n.type}</span>
+                        <span style={{ color: '#475569' }}>cat:</span><span>{n.category}</span>
+                        <span style={{ color: '#475569' }}>status:</span><span style={{ color: n.status === 'broken' ? '#f87171' : '#94a3b8' }}>{n.status}</span>
+                        <span style={{ color: '#475569' }}>x:</span><span style={{ color: '#fbbf24' }}>{n.position.x}</span>
+                        <span style={{ color: '#475569' }}>y:</span><span style={{ color: '#fbbf24' }}>{n.position.y}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Connections */}
+              {debugData.connections.length > 0 && (
+                <div style={{ padding: '8px 12px' }}>
+                  <div style={{ color: '#a78bfa', fontWeight: 600, marginBottom: 6 }}>Connections ({debugData.connectionCount})</div>
+                  {debugData.connections.map((e, i) => (
+                    <div key={e.id} style={{ marginBottom: 6, paddingBottom: 6, borderBottom: i < debugData.connections.length - 1 ? '1px solid #1e293b' : 'none' }}>
+                      <div style={{ color: '#94a3b8', wordBreak: 'break-all', marginBottom: 2 }}>{e.source} → {e.target}</div>
+                      <div style={{ color: '#475569', fontSize: 10 }}>{e.sourceHandle} / {e.targetHandle}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {nodes.length === 0 && edges.length === 0 && (
+                <div style={{ padding: '16px 12px', textAlign: 'center', color: '#475569' }}>No resources on canvas yet</div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Component Detail Modal */}
         <ResourceDetailModal
