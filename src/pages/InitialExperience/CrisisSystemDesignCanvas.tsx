@@ -319,6 +319,10 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   }, []);
 
   // Track viewport changes in positionLog
+  // Always-current viewport ref — used by persistCanvasState without re-render churn
+  const liveViewportRef = useRef(viewport);
+  useEffect(() => { liveViewportRef.current = viewport; }, [viewport]);
+
   const prevViewport = useRef({ x: 0, y: 0, zoom: 0 });
   useEffect(() => {
     const { x, y, zoom } = viewport;
@@ -699,26 +703,20 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         // Break down user count into multiple nodes with different capacities
         const totalUsers = 200;
         const userNodes = createUserNodeBreakdown(totalUsers);
-        
-        console.log('👥 Creating user nodes:', {
-          totalUsers,
-          userNodesCount: userNodes.length,
-          userBreakdown: userNodes.map(un => ({ id: un.id, label: un.label, count: un.userCount }))
-        });
-        
+
+        // ── Precompute positions so we can set the viewport BEFORE dispatching ──
+        const nodeHeight = 122;
+        const nodeSpacing = nodeHeight + nodeHeight / 2; // 183px between centers
+        const totalHeight = (userNodes.length - 1) * nodeSpacing;
+        const startY = centerY - totalHeight / 2;
+        const precomputedPositions = [
+          ...userNodes.map((u, i) => ({ id: u.id, type: 'user', position: { x: centerX - 400, y: startY + i * nodeSpacing } })),
+          ...initialNodes.map((n: any) => ({ id: n.id, type: n.type || 'custom', position: n.position || { x: centerX + 100, y: centerY } })),
+        ];
+        fitNodesToView(precomputedPositions); // snap viewport now — nodes will render at correct zoom
+        // ────────────────────────────────────────────────────────────────────────
+
         userNodes.forEach((userNode, index) => {
-          // UserNode height is ~122px (90px + 32px padding)
-          // We need at least half a node height (61px) as gap between nodes
-          // So total spacing should be: node height (122px) + gap (61px) = 183px
-          const nodeHeight = 122;
-          const nodeGap = nodeHeight / 2; // Half the node height as gap
-          const nodeSpacing = nodeHeight + nodeGap; // Total spacing between node centers
-          
-          // Calculate total height of all nodes
-          const totalHeight = (userNodes.length - 1) * nodeSpacing;
-          
-          // Position nodes starting from top, with proper spacing
-          const startY = centerY - (totalHeight / 2);
           const yPosition = startY + (index * nodeSpacing);
           
           console.log(`👤 Adding user node ${index + 1}:`, {
@@ -955,12 +953,6 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           console.log('✅ SUCCESS: No Margaret nodes detected in final state');
         }
 
-        // Fit viewport to the freshly loaded nodes
-        fitNodesToView(finalNodes.map(n => ({
-          id: n.id,
-          type: n.type as string | undefined,
-          position: n.position,
-        })));
       }, 100);
     } catch (error) {
       console.error('Failed to load initial system state:', error);
@@ -1006,13 +998,19 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
     // Add user nodes
     const totalUsers = 200;
     const userNodes = createUserNodeBreakdown(totalUsers);
-    
+
+    // Precompute positions → set viewport before dispatching
+    const _nh = 122, _ns = _nh + _nh / 2, _th = (userNodes.length - 1) * _ns, _sy = centerY - _th / 2;
+    fitNodesToView([
+      { id: 'current-system-fallback', type: 'custom', position: { x: centerX + 100, y: centerY } },
+      ...userNodes.map((u, i) => ({ id: u.id, type: 'user', position: { x: centerX - 400, y: _sy + i * _ns } })),
+    ]);
+
     userNodes.forEach((userNode, index) => {
       const nodeHeight = 122;
-      const nodeGap = nodeHeight / 2;
-      const nodeSpacing = nodeHeight + nodeGap;
+      const nodeSpacing = nodeHeight + nodeHeight / 2;
       const totalHeight = (userNodes.length - 1) * nodeSpacing;
-      const startY = centerY - (totalHeight / 2);
+      const startY = centerY - totalHeight / 2;
       const yPosition = startY + (index * nodeSpacing);
       
       dispatch(addNode({
@@ -1053,16 +1051,6 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
       }));
     });
 
-    // Fit viewport once nodes are rendered
-    const fallbackNodes = [
-      { id: 'current-system-fallback', type: 'custom', position: { x: centerX + 100, y: centerY } },
-      ...userNodes.map((u, i) => {
-        const nodeHeight = 122, nodeSpacing = nodeHeight + nodeHeight / 2;
-        const totalHeight = (userNodes.length - 1) * nodeSpacing;
-        return { id: u.id, type: 'user', position: { x: centerX - 400, y: centerY - totalHeight / 2 + i * nodeSpacing } };
-      }),
-    ];
-    setTimeout(() => fitNodesToView(fallbackNodes), 100);
   };
 
   // Fetch components from database based on mission stage requirements
@@ -1543,7 +1531,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         stageId: stageId,
         nodes: [],
         edges: [],
-        viewport: { x: 0, y: 0, zoom: 0.6 }
+        viewport: liveViewportRef.current
       }));
       
     } catch (error) {
@@ -1721,7 +1709,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         stageId: missionStageData.id,
         nodes: currentNodes.map(serializeNode),
         edges: currentEdges.map(serializeEdge),
-        viewport: { x: 0, y: 0, zoom: 0.6 }
+        viewport: liveViewportRef.current
       }));
     }
   }, [dispatch, missionStageData?.id, savedCanvasData, clearCorruptedCanvasState, emailId]);
@@ -1730,10 +1718,11 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const persistCanvasState = useCallback(async () => {
     if (!user?.id || !missionStageData?.id || nodes.length === 0) return;
     
+    const { x: vx, y: vy, zoom: vz } = liveViewportRef.current;
     const canvasStateData = {
       nodes: nodes.map(serializeNode),
       edges: edges.map(serializeEdge),
-      viewport: { x: 0, y: 0, zoom: 0.6 },
+      viewport: { x: vx, y: vy, zoom: vz },
       timestamp: new Date().toISOString()
     };
     

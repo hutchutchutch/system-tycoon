@@ -28,7 +28,7 @@ canvasRoutes.get('/:stageId', async (c) => {
  * PUT /canvas
  * Save (upsert) canvas state for a mission stage.
  */
-canvasRoutes.put('/canvas', async (c) => {
+canvasRoutes.put('/', async (c) => {
   const user = c.get('user') as AuthUser;
   const body = await c.req.json<{
     missionId: string;
