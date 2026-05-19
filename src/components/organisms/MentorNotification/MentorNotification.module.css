@@ -8,10 +8,11 @@
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1);
-  z-index: 100000;
+  z-index: var(--z-notification, 3000);
   opacity: 0;
   transform: translateY(20px) scale(0.95);
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
+              transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
   backdrop-filter: blur(10px);
   pointer-events: all;
 }
@@ -123,7 +124,7 @@
   cursor: pointer;
   padding: 4px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: background 150ms ease-out, color 150ms ease-out;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -183,7 +184,7 @@
   height: 6px;
   background: rgba(100, 116, 139, 0.4);
   border-radius: 50%;
-  transition: all 0.3s ease;
+  transition: width 250ms ease-out, background 250ms ease-out;
 }
 
 .progressStepActive {
@@ -208,7 +209,7 @@
   cursor: pointer;
   padding: 4px 8px;
   border-radius: 4px;
-  transition: all 0.2s ease;
+  transition: background 150ms ease-out, color 150ms ease-out;
   white-space: nowrap;
 }
 
@@ -227,7 +228,7 @@
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 150ms ease-out, box-shadow 150ms ease-out;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -272,27 +273,26 @@
 .highlightCutout {
   position: absolute;
   border-radius: 8px;
-  box-shadow: 
-    0 0 0 9999px rgba(0, 0, 0, 0.5),
-    0 0 0 2px rgba(59, 130, 246, 0.5),
-    0 0 20px rgba(59, 130, 246, 0.3);
-  animation: pulseGlow 2s ease-in-out infinite;
+  /* Static scrim — not animated, cheap */
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
 
-@keyframes pulseGlow {
-  0%, 100% {
-    box-shadow: 
-      0 0 0 9999px rgba(0, 0, 0, 0.5),
-      0 0 0 2px rgba(59, 130, 246, 0.5),
-      0 0 20px rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    box-shadow: 
-      0 0 0 9999px rgba(0, 0, 0, 0.5),
-      0 0 0 3px rgba(59, 130, 246, 0.7),
-      0 0 30px rgba(59, 130, 246, 0.5);
-  }
+/* Pulsing ring on a pseudo-element — only animates opacity, GPU-composited */
+.highlightCutout::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px solid rgba(59, 130, 246, 0.7);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+  animation: pulseRing 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes pulseRing {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
 }
 
 /* Highlighted element — lifted above the scrim (which is at 99999).
@@ -344,5 +344,20 @@
   to {
     opacity: 0;
     transform: translateY(20px) scale(0.95);
+  }
+}
+
+/* ── Accessibility: respect prefers-reduced-motion ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .notification {
+    transition: opacity 0.01ms !important;
+    transform: none !important;
+  }
+  .highlightCutout::before {
+    animation: none !important;
+    opacity: 1;
+  }
+  .highlightOverlay {
+    animation: none !important;
   }
 }

@@ -716,110 +716,69 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         fitNodesToView(precomputedPositions); // snap viewport now — nodes will render at correct zoom
         // ────────────────────────────────────────────────────────────────────────
 
-        userNodes.forEach((userNode, index) => {
-          const yPosition = startY + (index * nodeSpacing);
-          
-          console.log(`👤 Adding user node ${index + 1}:`, {
-            id: userNode.id,
-            label: userNode.label,
-            userCount: userNode.userCount,
-            position: { x: centerX - 400, y: yPosition }
-          });
-          
-          dispatch(addNode({
-            component: {
-              id: userNode.id,
-              name: userNode.name,
-              type: 'user',
-              category: 'stakeholder',
-              cost: 0,
-              capacity: userNode.userCount,
-              description: userNode.description,
-              icon: 'users'
-            },
-            position: { x: centerX - 400, y: yPosition }, // Absolute positioning with proper spacing
-            nodeType: 'user',
-            nodeData: {
-              id: userNode.id,
-              name: userNode.name,
-              type: 'user',
-              category: 'stakeholder',
-              cost: 0,
-              capacity: userNode.userCount,
-              description: userNode.description,
-              label: userNode.label,
-              icon: 'users',
-              userCount: userNode.userCount
-            }
-          }));
-        });
+        // ── Staggered reveal: system node first, then users, then edges ──
+        const STAGGER = 60; // ms between each user node
 
-        // Set the initial nodes from database
+        // T+0 — broken system node (the thing to fix)
         if (initialNodes.length > 0) {
-          console.log('💻 Adding initial system nodes from database:');
-          initialNodes.forEach((node: any, index: number) => {
-            // Position nodes in a layout - system nodes go to the right
-            let position = node.position || { x: centerX + 100, y: centerY };
-            
-            console.log(`🖥️ Adding initial system node ${index + 1}:`, {
-              id: node.id,
-              label: node.data?.label || 'Current System',
-              category: node.data?.category || 'compute',
-              position: position,
-              type: node.type || 'custom'
-            });
-            
-            // Regular component node - mark as broken
+          initialNodes.forEach((node: any) => {
+            const position = node.position || { x: centerX + 100, y: centerY };
             dispatch(addNode({
               component: {
-                id: node.id,
-                name: node.data?.label || 'Current System',
-                type: node.type || 'custom',
-                category: node.data?.category || 'compute',
-                cost: 0,
-                capacity: 1000,
-                description: node.data?.description || 'Current laptop running everything',
-                icon: node.data?.icon || 'server'
+                id: node.id, name: node.data?.label || 'Current System',
+                type: node.type || 'custom', category: node.data?.category || 'compute',
+                cost: 0, capacity: 1000, description: node.data?.description || '', icon: node.data?.icon || 'server'
               },
-              position: position,
+              position,
               nodeData: {
-                id: node.id,
-                name: node.data?.label || 'Current System',
-                type: node.type || 'custom',
-                category: node.data?.category || 'compute',
-                cost: 0,
-                capacity: 1000,
-                description: node.data?.description || 'Current laptop running everything',
-                label: node.data?.label || 'Current System',
-                icon: node.data?.icon || 'server',
-                status: 'broken' // Mark as broken to show red outline
+                id: node.id, name: node.data?.label || 'Current System',
+                type: node.type || 'custom', category: node.data?.category || 'compute',
+                cost: 0, capacity: 1000, description: node.data?.description || '',
+                label: node.data?.label || 'Current System', icon: node.data?.icon || 'server', status: 'broken'
               }
             }));
           });
         }
 
-        // Add edges from all user nodes to system node (horizontal layout)
-        if (initialNodes.length > 0) {
-          userNodes.forEach((userNode) => {
-            dispatch(addEdgeAction({
-              source: userNode.id,
-              target: initialNodes[0].id,
-              sourceHandle: `${userNode.id}-output`,
-              targetHandle: `${initialNodes[0].id}-input`
+        // T+80, T+140, … — user nodes staggered
+        userNodes.forEach((userNode, index) => {
+          const yPosition = startY + (index * nodeSpacing);
+          setTimeout(() => {
+            dispatch(addNode({
+              component: {
+                id: userNode.id, name: userNode.name, type: 'user', category: 'stakeholder',
+                cost: 0, capacity: userNode.userCount, description: userNode.description, icon: 'users'
+              },
+              position: { x: centerX - 400, y: yPosition },
+              nodeType: 'user',
+              nodeData: {
+                id: userNode.id, name: userNode.name, type: 'user', category: 'stakeholder',
+                cost: 0, capacity: userNode.userCount, description: userNode.description,
+                label: userNode.label, icon: 'users', userCount: userNode.userCount
+              }
             }));
-          });
-        }
+          }, 80 + index * STAGGER);
+        });
 
-        if (initialEdges.length > 0) {
+        // After all nodes land — add edges
+        const edgeDelay = 80 + userNodes.length * STAGGER + 60;
+        setTimeout(() => {
+          if (initialNodes.length > 0) {
+            userNodes.forEach((userNode) => {
+              dispatch(addEdgeAction({
+                source: userNode.id, target: initialNodes[0].id,
+                sourceHandle: `${userNode.id}-output`, targetHandle: `${initialNodes[0].id}-input`
+              }));
+            });
+          }
           initialEdges.forEach((edge: any) => {
             dispatch(addEdgeAction({
-              source: edge.source,
-              target: edge.target,
+              source: edge.source, target: edge.target,
               sourceHandle: edge.sourceHandle || `${edge.source}-output`,
               targetHandle: edge.targetHandle || `${edge.target}-input`
             }));
           });
-        }
+        }, edgeDelay);
       } else {
         console.log('No initial system state found for stage:', stageId);
         // If no initial state, create default nodes
@@ -1487,7 +1446,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
       const timer = setTimeout(() => {
         setNotificationStep(1);
         setNotificationFlowStarted(true);
-      }, 2000); // 2 second delay for dramatic effect
+      }, 1000);
       
       return () => clearTimeout(timer);
     }
