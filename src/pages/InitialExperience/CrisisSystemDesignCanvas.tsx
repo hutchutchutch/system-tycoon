@@ -275,6 +275,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
   const [isDebugOpen, setIsDebugOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedLogs, setCopiedLogs] = useState(false);
+
+  // Rolling console log buffer — stores last 300 entries with timestamps
+  const consoleLogBuffer = useRef<Array<{ ts: number; level: string; msg: string }>>([]);
+
+  // Position change history — stores up to 50 viewport snapshots
+  const positionLog = useRef<Array<{ ts: number; x: number; y: number; zoom: number }>>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -283,6 +290,45 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   
   const canvasRef = useRef<HTMLDivElement>(null);
   const canvasInitializedRef = useRef<boolean>(false);
+
+  // Intercept console.* on mount so the debug widget can capture logs
+  useEffect(() => {
+    const MAX = 300;
+    const patch = (level: string, original: (...args: any[]) => void) =>
+      (...args: any[]) => {
+        original.apply(console, args);
+        const msg = args.map(a => {
+          try { return typeof a === 'object' ? JSON.stringify(a) : String(a); } catch { return String(a); }
+        }).join(' ');
+        consoleLogBuffer.current.push({ ts: Date.now(), level, msg });
+        if (consoleLogBuffer.current.length > MAX) consoleLogBuffer.current.shift();
+      };
+
+    const origLog   = console.log;
+    const origWarn  = console.warn;
+    const origError = console.error;
+    console.log   = patch('log',   origLog);
+    console.warn  = patch('warn',  origWarn);
+    console.error = patch('error', origError);
+
+    return () => {
+      console.log   = origLog;
+      console.warn  = origWarn;
+      console.error = origError;
+    };
+  }, []);
+
+  // Track viewport changes in positionLog
+  const prevViewport = useRef({ x: 0, y: 0, zoom: 0 });
+  useEffect(() => {
+    const { x, y, zoom } = viewport;
+    const prev = prevViewport.current;
+    if (Math.abs(x - prev.x) > 2 || Math.abs(y - prev.y) > 2 || Math.abs(zoom - prev.zoom) > 0.005) {
+      prevViewport.current = { x, y, zoom };
+      positionLog.current.push({ ts: Date.now(), x: Math.round(x * 10) / 10, y: Math.round(y * 10) / 10, zoom: Math.round(zoom * 1000) / 1000 });
+      if (positionLog.current.length > 50) positionLog.current.shift();
+    }
+  }, [viewport]);
 
   /** Animate the viewport to frame the current nodes nicely. */
   const fitNodesToView = useCallback((placedNodes: Array<{ id: string; type?: string; position: { x: number; y: number } }>) => {
@@ -302,7 +348,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
     });
 
     console.log('🎯 Computed initial viewport:', viewport);
-    setViewport(viewport, { duration: 500 });
+    setViewport(viewport);
   }, [isDrawerCollapsed, setViewport]);
   
   // Canvas state from Redux (after missionStageData is available)
@@ -1987,6 +2033,22 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
             });
           };
 
+          const handleCopyLogs = () => {
+            const cutoff = Date.now() - 5000;
+            const recent = consoleLogBuffer.current.filter(e => e.ts >= cutoff);
+            const text = recent.map(e => {
+              const t = new Date(e.ts);
+              const ts = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}:${t.getSeconds().toString().padStart(2,'0')}.${t.getMilliseconds().toString().padStart(3,'0')}`;
+              return `[${ts}] [${e.level.toUpperCase()}] ${e.msg}`;
+            }).join('\n') || '(no logs in last 5s)';
+            navigator.clipboard.writeText(text).then(() => {
+              setCopiedLogs(true);
+              setTimeout(() => setCopiedLogs(false), 2000);
+            });
+          };
+
+          const recentPositions = [...positionLog.current].reverse().slice(0, 8);
+
           return (
             <div style={{
               position: 'fixed',
@@ -2007,23 +2069,52 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: '1px solid #1e293b', background: '#0d1b2a' }}>
                 <span style={{ color: '#e2e8f0', fontWeight: 600, fontSize: 12 }}>Canvas Debug</span>
-                <button
-                  onClick={handleCopy}
-                  title="Copy all as JSON"
-                  style={{ background: 'none', border: 'none', color: copied ? '#4ade80' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
-                >
-                  {copied ? <ClipboardCheck size={13} /> : <Clipboard size={13} />}
-                  {copied ? 'Copied!' : 'Copy JSON'}
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={handleCopyLogs}
+                    title="Copy last 5s of console logs"
+                    style={{ background: 'none', border: 'none', color: copiedLogs ? '#4ade80' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
+                  >
+                    {copiedLogs ? <ClipboardCheck size={13} /> : <Clipboard size={13} />}
+                    {copiedLogs ? 'Copied!' : '5s logs'}
+                  </button>
+                  <button
+                    onClick={handleCopy}
+                    title="Copy canvas state as JSON"
+                    style={{ background: 'none', border: 'none', color: copied ? '#4ade80' : '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, fontSize: 11 }}
+                  >
+                    {copied ? <ClipboardCheck size={13} /> : <Clipboard size={13} />}
+                    {copied ? 'Copied!' : 'JSON'}
+                  </button>
+                </div>
               </div>
 
-              {/* Viewport */}
+              {/* Viewport (live) */}
               <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b' }}>
-                <div style={{ color: '#6366f1', fontWeight: 600, marginBottom: 4 }}>Viewport</div>
-                <div>x: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.x}</span></div>
-                <div>y: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.y}</span></div>
-                <div>zoom: <span style={{ color: '#f1f5f9' }}>{debugData.viewport.zoom}</span></div>
+                <div style={{ color: '#6366f1', fontWeight: 600, marginBottom: 4 }}>Viewport (live)</div>
+                <div style={{ display: 'grid', gridTemplateColumns: '40px 1fr', gap: '2px 8px' }}>
+                  <span style={{ color: '#475569' }}>x:</span><span style={{ color: '#f1f5f9' }}>{debugData.viewport.x}</span>
+                  <span style={{ color: '#475569' }}>y:</span><span style={{ color: '#f1f5f9' }}>{debugData.viewport.y}</span>
+                  <span style={{ color: '#475569' }}>zoom:</span><span style={{ color: '#f1f5f9' }}>{debugData.viewport.zoom}</span>
+                </div>
               </div>
+
+              {/* Position log */}
+              {recentPositions.length > 0 && (
+                <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b' }}>
+                  <div style={{ color: '#38bdf8', fontWeight: 600, marginBottom: 4 }}>Position log (recent → oldest)</div>
+                  {recentPositions.map((p, i) => {
+                    const t = new Date(p.ts);
+                    const ts = `${t.getHours().toString().padStart(2,'0')}:${t.getMinutes().toString().padStart(2,'0')}:${t.getSeconds().toString().padStart(2,'0')}`;
+                    return (
+                      <div key={i} style={{ display: 'grid', gridTemplateColumns: '50px 1fr', gap: '1px 6px', marginBottom: 3, opacity: 1 - i * 0.1 }}>
+                        <span style={{ color: '#334155' }}>{ts}</span>
+                        <span style={{ color: '#64748b' }}>x={p.x} y={p.y} z={p.zoom}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Summary */}
               <div style={{ padding: '8px 12px', borderBottom: '1px solid #1e293b', display: 'flex', gap: 16 }}>
