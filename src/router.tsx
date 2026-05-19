@@ -15,6 +15,7 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { VerifyEmailSentPage } from './pages/auth/VerifyEmailSentPage';
 import { InitialExperience } from './pages/InitialExperience';
 import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
+import { ErrorPage } from './pages/ErrorPage';
 
 import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
 import { MissionWhiteboard } from './pages/InitialExperience/CrisisSystemDesignCanvas';
@@ -34,6 +35,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <ErrorPage />,
     children: [
       {
         path: 'onboarding',
@@ -183,6 +185,10 @@ export const router = createBrowserRouter([
             element: <ResultsPage />,
           },
         ],
+      },
+      {
+        path: '*',
+        element: <ErrorPage />,
       },
     ],
   },
