@@ -36,11 +36,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const [mentorNotificationProgress, setMentorNotificationProgress] = useState<{[stageId: string]: number}>({});
   
   // Check if we're on the crisis system design canvas
-  const isOnCrisisCanvas = location.pathname.includes('/crisis-design/') || location.pathname.includes('/game/email/');
+  const isOnCrisisCanvas = location.pathname.includes('/whiteboard/') || location.pathname.includes('/game/email/');
   
-  // Extract email ID from URL if on crisis canvas (the route is /crisis-design/:emailId)
+  // Extract email ID from URL if on crisis canvas (the route is /whiteboard/:emailId)
   const getEmailIdFromPath = () => {
-    const match = location.pathname.match(/\/crisis-design\/([^/?]+)/);
+    const match = location.pathname.match(/\/whiteboard\/([^/?]+)/);
     return match ? match[1] : null;
   };
   
@@ -228,7 +228,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
   const isOnChooseMission = location.pathname === '/browser/news' || location.pathname === '/game';
   
   // Check if we're on a system design page (MissionWhiteboard or SystemDesignPage)
-  const isOnSystemDesignPage = location.pathname.includes('/crisis-design/') ||
+  const isOnSystemDesignPage = location.pathname.includes('/whiteboard/') ||
                                location.pathname.includes('/system-design') ||
                                location.pathname.includes('/email/');
   
@@ -349,11 +349,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({ className = '' }) => {
                 <button
                   className={styles.dropdownItem}
                   onClick={() => handleDropdownItemClick(() => {
-                    navigate('/design-canvas');
+                    navigate('/whiteboard');
                   })}
                 >
                   <Globe size={14} />
-                  <span>System Design Canvas</span>
+                  <span>Whiteboard</span>
                 </button>
                 <div className={styles.dropdownDivider} />
                 <button

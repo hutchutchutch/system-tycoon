@@ -57,7 +57,7 @@ export const collectPageContext = (pathname: string, additionalData?: any): Page
         relevantEntities: additionalData?.emailList || []
       };
 
-    case pathname.includes('/crisis-design') || pathname.includes('CrisisSystemDesign'):
+    case pathname.includes('/whiteboard') || pathname.includes('CrisisSystemDesign'):
       return {
         currentPage: 'CrisisSystemDesign',
         purpose: 'Users design system architecture solutions to fix technical problems, drag components onto canvas, make connections, and validate their solutions meet requirements.',

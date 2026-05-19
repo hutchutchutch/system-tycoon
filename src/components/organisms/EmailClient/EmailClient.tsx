@@ -310,7 +310,7 @@ export const EmailClient: React.FC<EmailClientProps> = ({
                       className={styles.systemDesignButton}
                       onClick={onOpenSystemDesign}
                     >
-                      Open System Design Canvas
+                      Open Whiteboard
                     </button>
                   </div>
                 )}

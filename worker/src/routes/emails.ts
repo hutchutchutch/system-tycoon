@@ -4,6 +4,20 @@ import { generateId, now, queryOne, query, execute, parseJson, toJson } from '..
 
 export const emailRoutes = new Hono<{ Bindings: Env }>();
 
+// Transform DB row to frontend EmailData shape
+function toEmailData(e: MissionEmail & { inbox_status?: string; read_at?: string | null; delivered_at?: string | null }) {
+  return {
+    ...e,
+    content: e.body ?? '',
+    timestamp: e.created_at,
+    status: (e.inbox_status ?? e.status) as 'unread' | 'read' | 'draft' | 'sent',
+    preview: e.preview ?? '',
+    sender_avatar: e.sender_avatar ?? undefined,
+    has_attachments: Boolean(e.has_attachments),
+    tags: parseJson<string[]>(e.tags, []),
+  };
+}
+
 /**
  * GET /emails
  * Get emails for the current user's active mission stage.
@@ -40,11 +54,7 @@ emailRoutes.get('/', async (c) => {
   );
 
   if (inboxEmails.length > 0) {
-    const parsed = inboxEmails.map((e) => ({
-      ...e,
-      tags: parseJson<string[]>(e.tags, []),
-    }));
-    return c.json(parsed);
+    return c.json(inboxEmails.map(toEmailData));
   }
 
   // No inbox entries — return undelivered mission_start emails for the current stage
@@ -56,10 +66,7 @@ emailRoutes.get('/', async (c) => {
     [stageId]
   );
 
-  const parsed = defaultEmails.map((e) => ({
-    ...e,
-    tags: parseJson<string[]>(e.tags, []),
-  }));
+  const parsed = defaultEmails.map(toEmailData);
 
   return c.json(parsed);
 });
@@ -82,10 +89,7 @@ emailRoutes.get('/:id', async (c) => {
     return c.json({ error: 'Email not found' }, 404);
   }
 
-  return c.json({
-    ...email,
-    tags: parseJson<string[]>(email.tags, []),
-  });
+  return c.json(toEmailData(email));
 });
 
 /**
@@ -143,10 +147,7 @@ emailRoutes.post('/', async (c) => {
 
   const created = await queryOne<MissionEmail>(db, 'SELECT * FROM mission_emails WHERE id = ?', [id]);
 
-  return c.json({
-    ...created,
-    tags: parseJson<string[]>(created?.tags ?? null, []),
-  }, 201);
+  return c.json(toEmailData(created!), 201);
 });
 
 /**

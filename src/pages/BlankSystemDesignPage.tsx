@@ -233,7 +233,7 @@ const BlankSystemDesignCanvasInner: React.FC = () => {
                   <Lightbulb size={32} className={styles.ideaIcon} />
                 </div>
                 
-                <h1 className={styles.modalTitle}>System Design Canvas</h1>
+                <h1 className={styles.modalTitle}>Whiteboard</h1>
                 <p className={styles.modalSubtitle}>
                   Tell us what you want to build, and we'll help you design the system architecture
                 </p>

@@ -91,7 +91,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
   const handleOpenSystemDesign = (emailId: string) => {
     console.log('Opening system design canvas for email:', emailId);
     // Navigate to crisis design route with email ID
-    navigate(`/crisis-design/${emailId}`);
+    navigate(`/whiteboard/${emailId}`);
   };
 
   useEffect(() => {
@@ -311,16 +311,16 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
                  selectedEmail.subject?.toLowerCase().includes('urgent')) && (
                   <div className={styles.missionActionSection}>
                     <hr className={styles.divider} />
-                    <h3 className={styles.missionActionTitle}>🔧 System Design Required</h3>
+                    <h3 className={styles.missionActionTitle}>🔧 Whiteboard Required</h3>
                     <p className={styles.missionActionDescription}>
-                      This mission requires you to design a system solution. Click below to open the System Design Canvas.
+                      This mission requires you to design a system solution. Click below to open the Whiteboard.
                     </p>
-                    <button 
+                    <button
                       className={styles.openSystemDesignButton}
                       onClick={() => handleOpenSystemDesign(selectedEmail.id)}
                     >
                       <span className={styles.buttonIcon}>🚀</span>
-                      Open System Design Canvas
+                      Open Whiteboard
                     </button>
                   </div>
                 )}
@@ -332,7 +332,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
                       className={styles.systemDesignButton}
                       onClick={() => handleOpenSystemDesign(selectedEmail.id)}
                     >
-                      Open Crisis System Design Canvas
+                      Open Whiteboard
                     </button>
                   </div>
                 )}

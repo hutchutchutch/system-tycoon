@@ -87,7 +87,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: 'crisis-design/:emailId',
+        path: 'whiteboard/:emailId',
         element: (
           <ProtectedRoute>
             <GameLayout />
@@ -101,7 +101,7 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: 'design-canvas',
+        path: 'whiteboard',
         element: (
           <ProtectedRoute>
             <GameLayout />

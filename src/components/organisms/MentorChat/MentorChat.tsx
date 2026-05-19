@@ -243,7 +243,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
           }
           break;
 
-        case '/crisis-design':
+        case '/whiteboard':
           // Crisis design page notification
           const hasSeenDesignNotification = localStorage.getItem('saas_hasSeenDesignNotification');
           if (!hasSeenDesignNotification) {
@@ -534,7 +534,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         case '/email':
           localStorage.setItem('saas_hasSeenEmailNotification', 'true');
           break;
-        case '/crisis-design':
+        case '/whiteboard':
           localStorage.setItem('saas_hasSeenDesignNotification', 'true');
           break;
         case '/game':
