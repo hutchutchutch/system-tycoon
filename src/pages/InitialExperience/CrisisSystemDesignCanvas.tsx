@@ -363,8 +363,8 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const saveError = useAppSelector(selectCanvasSaveError);
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [notificationStep, setNotificationStep] = useState<number>(0); // 0: none, 1: issue analysis, 2: requirements explanation, 3: component drawer guidance
-  const [showRequirements, setShowRequirements] = useState(false);
-  const [showComponentDrawer, setShowComponentDrawer] = useState(false);
+  const [showRequirements, setShowRequirements] = useState(true);
+  const [showComponentDrawer, setShowComponentDrawer] = useState(true);
   const conversationSessionId = useConversationSession();
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
