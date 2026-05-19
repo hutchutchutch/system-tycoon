@@ -518,13 +518,22 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         return null;
       }
 
-      if (!emailData.stage_id) {
-        console.warn('Email has no stage_id:', emailData);
+      let resolvedStageId = emailData.stage_id;
+
+      // If the email has no stage_id, look up stage 1 of the mission by mission_id
+      if (!resolvedStageId && emailData.mission_id) {
+        console.log('Email has no stage_id — loading first stage for mission:', emailData.mission_id);
+        const firstStage = await api.get<{ id: string }>(`/missions/first-stage/${emailData.mission_id}`).catch(() => null);
+        resolvedStageId = firstStage?.id ?? null;
+      }
+
+      if (!resolvedStageId) {
+        console.warn('Could not resolve a stage_id for email:', emailData);
         return null;
       }
 
       // Load the mission stage data using the missionService
-      const stageData = await missionService.loadMissionStageById(emailData.stage_id);
+      const stageData = await missionService.loadMissionStageById(resolvedStageId);
       
       if (stageData) {
         console.log('Successfully loaded mission stage from database:', stageData);

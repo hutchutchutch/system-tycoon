@@ -81,6 +81,57 @@ missionRoutes.get('/:slug', async (c) => {
 });
 
 // ----------------------------------------------------------------
+// GET /first-stage/:missionId
+// Load stage 1 for a mission given its ID — used when an email
+// has a mission_id but no stage_id.
+// ----------------------------------------------------------------
+missionRoutes.get('/first-stage/:missionId', async (c) => {
+  const { missionId } = c.req.param();
+  const db = c.env.DB;
+
+  const stage = await queryOne<MissionStage & { mission_title: string; mission_description: string | null; mission_crisis_description: string | null; mission_slug: string }>(
+    db,
+    `SELECT ms.*, m.title AS mission_title, m.description AS mission_description,
+            m.crisis_description AS mission_crisis_description, m.slug AS mission_slug
+     FROM mission_stages ms
+     JOIN missions m ON m.id = ms.mission_id
+     WHERE ms.mission_id = ?
+     ORDER BY ms.stage_number ASC
+     LIMIT 1`,
+    [missionId],
+  );
+
+  if (!stage) {
+    return c.json({ error: 'No stages found for mission' }, 404);
+  }
+
+  const requirements = await query<any>(
+    db,
+    'SELECT * FROM mission_stage_requirements WHERE stage_id = ? ORDER BY unlock_order',
+    [stage.id],
+  );
+
+  return c.json({
+    id: stage.id,
+    mission_id: stage.mission_id,
+    stage_number: stage.stage_number,
+    title: stage.title,
+    problem_description: stage.problem_description,
+    required_components: parseJson(stage.required_components, []),
+    validation_rules: parseJson(stage.validation_rules, {}),
+    system_requirements: parseJson(stage.system_requirements, []),
+    initial_system_state: parseJson(stage.initial_system_state, null),
+    mission: {
+      slug: stage.mission_slug,
+      title: stage.mission_title,
+      description: stage.mission_description,
+      crisis_description: stage.mission_crisis_description,
+    },
+    requirements: requirements.map((r) => ({ ...r, validation_config: parseJson(r.validation_config, {}) })),
+  });
+});
+
+// ----------------------------------------------------------------
 // GET /stage/:stageId
 // Load a specific mission stage by ID with its requirements.
 // ----------------------------------------------------------------
