@@ -282,6 +282,35 @@ export class MissionService {
     };
   }
 
+  // Fallback requirements for known stages whose DB rows have no requirements yet
+  private static readonly STAGE_REQUIREMENT_FALLBACKS: Record<string, Requirement[]> = {
+    'stage-m4-001': [
+      {
+        id: 'req-m4-001-database',
+        description: 'Add a proper database to replace the shared spreadsheet',
+        completed: false,
+        validation_type: 'component_required',
+        required_nodes: ['database'],
+        min_nodes: 1,
+      },
+      {
+        id: 'req-m4-001-server',
+        description: 'Add a compute server to run application logic',
+        completed: false,
+        validation_type: 'component_required',
+        required_nodes: ['compute'],
+        min_nodes: 1,
+      },
+      {
+        id: 'req-m4-001-connection',
+        description: 'Connect the server to the database',
+        completed: false,
+        validation_type: 'connection_required',
+        required_connection: { from: 'compute', to: 'database' },
+      },
+    ],
+  };
+
   // Load mission stage data by stage ID
   async loadMissionStageById(stageId: string): Promise<MissionStageData | null> {
     try {
@@ -293,13 +322,22 @@ export class MissionService {
 
       // If the Worker returns requirements already transformed, use them;
       // otherwise transform them from raw DB shape.
-      const transformedRequirements = stageData.system_requirements
+      let transformedRequirements: Requirement[] = stageData.system_requirements?.length
         ? stageData.system_requirements.map((req: any) => ({
             ...req,
             completed: false,
             validator: this.createValidatorFunction(req),
           }))
         : this.transformMissionStageRequirements(stageData.requirements || []);
+
+      // If the API returned nothing and we have a known fallback, use it
+      if (transformedRequirements.length === 0 && MissionService.STAGE_REQUIREMENT_FALLBACKS[stageId]) {
+        console.warn(`No requirements from API for stage ${stageId} — using frontend fallback`);
+        transformedRequirements = MissionService.STAGE_REQUIREMENT_FALLBACKS[stageId].map(req => ({
+          ...req,
+          validator: this.createValidatorFunction(req),
+        }));
+      }
 
       return {
         id: stageData.id,
