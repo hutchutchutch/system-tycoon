@@ -1418,10 +1418,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   // 2. User clicks "Test System" button (handleRunTest)
   // 3. Timer test is triggered from GameHUD (timerTestTriggered useEffect)
 
-  // Handle closing mentor notification
+  // Handle closing mentor notification — persist so it doesn't reappear on reload
   const handleCloseMentorNotification = useCallback(() => {
     setNotificationStep(0);
-  }, []);
+    if (emailId) {
+      localStorage.setItem(`saas_seenWhiteboardTour_${emailId}`, 'true');
+    }
+  }, [emailId]);
 
   // Handle mentor notification step progression
   const handleMentorAction = useCallback(() => {
@@ -1473,18 +1476,23 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
     }
   }, [emailId, notificationFlowStarted]);
 
-  // Start mentor notification flow when mission stage loads
+  // Start mentor notification flow when mission stage loads (first visit only)
   useEffect(() => {
     if (missionStageData && !notificationFlowStarted) {
-      // Start the notification flow automatically
+      const alreadySeen = emailId
+        ? localStorage.getItem(`saas_seenWhiteboardTour_${emailId}`) === 'true'
+        : false;
+      if (alreadySeen) {
+        setNotificationFlowStarted(true);
+        return;
+      }
       const timer = setTimeout(() => {
         setNotificationStep(1);
         setNotificationFlowStarted(true);
       }, 1000);
-      
       return () => clearTimeout(timer);
     }
-  }, [missionStageData, notificationFlowStarted]); // Removed notificationStep dependency
+  }, [missionStageData, notificationFlowStarted, emailId]);
 
   const toggleDrawer = () => {
     setIsDrawerCollapsed(!isDrawerCollapsed);
@@ -1971,10 +1979,10 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
             }
             message={
               notificationStep === 1
-                ? `${missionStageData.title}: ${missionStageData.problem_description} Ahhh the classic overloaded server problem. This guy thought he could just run a website from his local computer and everything would be fine.`
+                ? missionStageData.problem_description
                 : notificationStep === 2
-                ? "To fix this system, you need to implement 3 specific architecture requirements: 1) Separate the web server from the database, 2) Connect the web server to the database properly, and 3) Ensure proper data flow between components. I've shown the requirements on the right - now let me show you how to implement them."
-                : "Perfect! Now you can see the available components on the left. To build your architecture: 1) Drag components like 'Web Server' and 'Database' from the drawer onto the canvas, 2) Click and drag from the small circular handles on each component to connect them together, 3) Make sure to connect users → web server → database for proper data flow."
+                ? "Check the Requirements panel on the left — it shows exactly what your architecture needs to satisfy. Once all requirements are green, you're ready to run the simulation."
+                : "Drag components from the Resources bar at the top onto the canvas, then connect them by dragging from a node's output handle to another node's input handle."
             }
             onClose={handleCloseMentorNotification}
             actionLabel={

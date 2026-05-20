@@ -113,26 +113,41 @@
   border-right-color: var(--color-obsidian-800);
 }
 
-/* Close button */
+/* Hidden state — pointer-events off while fade-out animation plays */
+.hidden {
+  pointer-events: none;
+}
+
+/* Close / Skip button */
 .closeButton {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  background: none;
-  border: none;
-  color: var(--color-obsidian-500);
+  top: 10px;
+  right: 10px;
+  background: rgba(100, 116, 139, 0.15);
+  border: 1px solid rgba(100, 116, 139, 0.25);
+  color: var(--color-obsidian-300);
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 150ms ease-out, color 150ms ease-out;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 4px;
+  min-height: 28px;
+  line-height: 1;
 }
 
 .closeButton:hover {
-  background: rgba(100, 116, 139, 0.2);
-  color: var(--color-obsidian-200);
+  background: rgba(100, 116, 139, 0.3);
+  border-color: rgba(100, 116, 139, 0.5);
+  color: var(--color-obsidian-100);
+}
+
+.closeLabel {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 /* Content */
@@ -145,7 +160,7 @@
   font-weight: 600;
   color: var(--color-obsidian-100);
   margin: 0 0 8px 0;
-  padding-right: 24px; /* Space for close button */
+  padding-right: 56px; /* Space for Skip button */
   line-height: 1.4;
 }
 

@@ -166,9 +166,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(() => {
-      onClose?.();
-    }, 300); // Wait for animation to complete
+    onClose?.();
   };
 
   const handleAction = () => {
@@ -246,7 +244,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
       )}
       <div
         ref={notificationRef}
-        className={`${styles.notification} ${styles[`notification--${position}`]} ${isVisible ? styles.visible : ''} ${className}`}
+        className={`${styles.notification} ${styles[`notification--${position}`]} ${isVisible ? styles.visible : styles.hidden} ${className}`}
         style={targetElement && highlightBounds ? getPositionStyles() : undefined}
       >
         {showArrow && targetElement && (
@@ -256,9 +254,10 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         <button
           onClick={handleClose}
           className={styles.closeButton}
-          aria-label="Close notification"
+          aria-label="Dismiss"
         >
-          <X size={16} />
+          <X size={14} />
+          <span className={styles.closeLabel}>Skip</span>
         </button>
 
         <div className={styles.content}>
