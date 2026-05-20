@@ -9,18 +9,25 @@
   background: linear-gradient(135deg, var(--color-obsidian-900) 0%, var(--color-obsidian-800) 100%);
 }
 
-/* Requirements — left sidebar */
+/* Requirements — left sidebar, width matches cost estimate HUD */
 .floatingRequirements {
   position: absolute;
   top: 20px;
   left: 20px;
   z-index: 1000;
-  width: 280px;
-  max-height: calc(100vh - 100px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  width: 260px;
   pointer-events: auto;
+}
+
+/* Cost estimate — compact HUD overlaid top-right of canvas */
+.costHud {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  width: 220px;
+  pointer-events: auto;
+  animation: slideInFromRight 220ms ease-out;
 }
 
 .bottomRequirements {
@@ -69,27 +76,144 @@
   box-shadow: 0 4px 24px rgba(99, 102, 241, 0.3), 0 0 0 1px rgba(99, 102, 241, 0.4);
 }
 
-/* ── Component Library Panel (bottom-center sheet) ─────────────────────── */
-.componentPanel {
+/* ── Category bar — horizontal row of pills above the FAB ──────────────── */
+.categoryBar {
   position: absolute;
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1099;
-  width: min(720px, calc(100% - 360px)); /* stays clear of the requirements panel */
-  max-height: 420px;
-  background: rgba(10, 18, 30, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(99, 102, 241, 0.15);
-  backdrop-filter: blur(16px);
-  overflow: hidden;
-  animation: slideUpPanel 220ms ease-out;
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  animation: slideUpPanel 180ms cubic-bezier(0.215, 0.61, 0.355, 1);
 }
 
 @keyframes slideUpPanel {
-  from { opacity: 0; transform: translateX(-50%) translateY(24px); }
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
   to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Wrapper that anchors the popover above each pill */
+.categoryBtnWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Category pill button */
+.categoryBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease-out, color 150ms ease-out, border-color 150ms ease-out;
+  white-space: nowrap;
+  min-height: 34px; /* ≥44px tap target via touch padding */
+}
+
+.categoryBtn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  color: #e2e8f0;
+}
+
+.categoryBtnActive {
+  background: rgba(99, 102, 241, 0.2) !important;
+  border-color: rgba(99, 102, 241, 0.6) !important;
+  color: #a5b4fc !important;
+}
+
+.catCount {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(99, 102, 241, 0.3);
+  color: #a5b4fc;
+  border-radius: 8px;
+  padding: 1px 5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Per-category popover */
+.categoryPopover {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  background: rgba(10, 18, 30, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.12);
+  backdrop-filter: blur(16px);
+  overflow: hidden;
+  animation: popoverEnter 150ms cubic-bezier(0.215, 0.61, 0.355, 1);
+  transform-origin: bottom center;
+}
+
+@keyframes popoverEnter {
+  from { opacity: 0; transform: translateX(-50%) scale(0.95) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) scale(1) translateY(0); }
+}
+
+.popoverHeader {
+  padding: 8px 12px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #475569;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.popoverEmpty {
+  padding: 12px;
+  font-size: 12px;
+  color: #475569;
+  text-align: center;
+}
+
+/* Draggable component row inside the popover */
+.popoverItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: grab;
+  transition: background 120ms ease-out;
+}
+
+.popoverItem:active { cursor: grabbing; }
+
+.popoverItem:hover { background: rgba(30, 41, 59, 0.8); }
+
+.popoverItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+
+.popoverItemName {
+  font-size: 12px;
+  font-weight: 500;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 @keyframes slideInFromRight {
@@ -1176,8 +1300,18 @@
     transition-duration: 0.01ms !important;
   }
 
-  .componentFab {
+  .componentFab,
+  .categoryBtn {
     transition: none !important;
+  }
+
+  .categoryBar,
+  .categoryPopover {
+    animation: none !important;
+  }
+
+  .costHud {
+    animation: none !important;
   }
 
   .loadingSpinner::before {

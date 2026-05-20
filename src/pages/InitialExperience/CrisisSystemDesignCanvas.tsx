@@ -364,7 +364,8 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   const [requirements, setRequirements] = useState<Requirement[]>([]);
   const [notificationStep, setNotificationStep] = useState<number>(0); // 0: none, 1: issue analysis, 2: requirements explanation, 3: component drawer guidance
   const [showRequirements, setShowRequirements] = useState(true);
-  const [showComponentDrawer, setShowComponentDrawer] = useState(true);
+  const [showComponentDrawer, setShowComponentDrawer] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const conversationSessionId = useConversationSession();
   const [metrics, setMetrics] = useState({
     reportsSaved: 0,
@@ -417,6 +418,32 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
 
   // Component drawer state
   const [drawerSearchQuery, setDrawerSearchQuery] = useState('');
+
+  // Close category popover whenever the drawer closes
+  useEffect(() => { if (!showComponentDrawer) setSelectedCategory(null); }, [showComponentDrawer]);
+
+  // Drag a component from the category popover onto the canvas
+  const handlePopoverDragStart = useCallback((e: React.DragEvent, comp: any) => {
+    e.dataTransfer.setData('application/reactflow', comp.category);
+    e.dataTransfer.setData('application/component', JSON.stringify({
+      id: comp.id, name: comp.name, type: comp.category, category: comp.category,
+      cost: 50, capacity: 1000, description: comp.shortDescription,
+      icon: comp.icon, color: comp.color,
+    }));
+    e.dataTransfer.effectAllowed = 'move';
+  }, []);
+
+  // Map category id → lucide icon component
+  const getCatIcon = (id: string) => {
+    const map: Record<string, React.ReactNode> = {
+      compute: <Server size={14} />, database: <Database size={14} />,
+      storage: <HardDrive size={14} />, networking: <Globe size={14} />,
+      network: <Globe size={14} />, security: <Shield size={14} />,
+      cache: <Zap size={14} />, observability: <BarChart3 size={14} />,
+      analytics: <BarChart3 size={14} />,
+    };
+    return map[id] ?? <Box size={14} />;
+  };
 
   // React Flow event handlers
   const onConnect = useCallback((params: Connection) => {
@@ -1789,19 +1816,51 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           {showComponentDrawer ? 'Close' : 'Resources'}
         </button>
 
-        {/* ── Component Library Panel ────────────────────────────────────── */}
+        {/* ── Category bar + per-category popovers ──────────────────────── */}
         {showComponentDrawer && (
-          <div className={styles.componentPanel}>
-            <div className={styles.componentDrawer}>
-              <ResourceDrawer
-                components={drawerComponents}
-                categories={componentCategories}
-                searchQuery={drawerSearchQuery}
-                onSearchChange={setDrawerSearchQuery}
-                onComponentSelect={(_resource) => {}}
-                className={styles.drawerContainer}
-              />
-            </div>
+          <div className={styles.categoryBar}>
+            {componentCategories.map(cat => {
+              const catComponents = drawerComponents.filter(c => c.category === cat.id);
+              const isOpen = selectedCategory === cat.id;
+              return (
+                <div key={cat.id} className={styles.categoryBtnWrapper}>
+                  {/* Per-category popover */}
+                  {isOpen && (
+                    <div className={styles.categoryPopover}>
+                      <div className={styles.popoverHeader}>{cat.name}</div>
+                      {catComponents.length === 0
+                        ? <p className={styles.popoverEmpty}>No components</p>
+                        : catComponents.map(comp => (
+                          <div
+                            key={comp.id}
+                            className={styles.popoverItem}
+                            draggable
+                            onDragStart={e => handlePopoverDragStart(e, comp)}
+                            title={comp.shortDescription}
+                          >
+                            <span className={styles.popoverItemIcon}>{getCatIcon(comp.category)}</span>
+                            <span className={styles.popoverItemName}>{comp.name}</span>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  )}
+                  {/* Category pill */}
+                  <button
+                    className={`${styles.categoryBtn} ${isOpen ? styles.categoryBtnActive : ''}`}
+                    onClick={() => setSelectedCategory(prev => prev === cat.id ? null : cat.id)}
+                    aria-expanded={isOpen}
+                    aria-label={`${cat.name} components`}
+                  >
+                    {getCatIcon(cat.id)}
+                    <span>{cat.name}</span>
+                    {catComponents.length > 0 && (
+                      <span className={styles.catCount}>{catComponents.length}</span>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -1872,13 +1931,19 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           
         </div>
 
-        {/* Floating Requirements + Cost Estimation on the right side */}
+        {/* Requirements — left sidebar */}
         {missionStageData && showRequirements && (
           <div className={styles.floatingRequirements}>
             <Requirements
               onTestSystem={handleRunTest}
               className={styles.bottomRequirements}
             />
+          </div>
+        )}
+
+        {/* Cost estimate — compact HUD top-right */}
+        {missionStageData && (
+          <div className={styles.costHud}>
             <CostEstimation
               userScale={
                 ((missionStageData as any)?.stage_number || 1) <= 2 ? 200 :
