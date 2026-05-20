@@ -13,7 +13,7 @@ import {
   useViewport,
 } from '@xyflow/react';
 import type { Connection, Node, NodeProps } from '@xyflow/react';
-import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info, Settings, Clipboard, ClipboardCheck, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, AlertTriangle, Users, Server, Database, Zap, Box, HardDrive, Globe, Shield, BarChart3, Info, Settings, Clipboard, ClipboardCheck, X, LayoutGrid } from 'lucide-react';
 
 
 import { ResourceDrawer } from '../../components/organisms/ComponentDrawer/ComponentDrawer';
@@ -339,7 +339,7 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect || placedNodes.length === 0) return;
 
-    const drawerWidth = isDrawerCollapsed ? 56 : 280;
+    const drawerWidth = 300; // requirements panel on left (280px + gap)
     const HUD_HEIGHT = 60;
 
     const viewport = computeInitialViewport(placedNodes, {
@@ -1776,21 +1776,32 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
 
   return (
     <div className={styles.crisisCanvas}>
-      {/* React Flow Canvas - Always visible */}
+      {/* React Flow Canvas */}
       <div className={styles.canvasContainer}>
-        {/* Component Drawer - Shows when needed */}
+
+        {/* ── Component Library FAB ──────────────────────────────────────── */}
+        <button
+          className={`${styles.componentFab} ${showComponentDrawer ? styles.open : ''}`}
+          onClick={() => setShowComponentDrawer(o => !o)}
+          aria-label={showComponentDrawer ? 'Close component library' : 'Open component library'}
+        >
+          {showComponentDrawer ? <X size={15} /> : <LayoutGrid size={15} />}
+          {showComponentDrawer ? 'Close' : 'Resources'}
+        </button>
+
+        {/* ── Component Library Panel ────────────────────────────────────── */}
         {showComponentDrawer && (
-          <div className={styles.componentDrawer}>
-            <ResourceDrawer
-              components={drawerComponents}
-              categories={componentCategories}
-              searchQuery={drawerSearchQuery}
-              onSearchChange={setDrawerSearchQuery}
-              onComponentSelect={(_resource) => {
-                // Resource selected - could add to whiteboard here
-              }}
-              className={styles.drawerContainer}
-            />
+          <div className={styles.componentPanel}>
+            <div className={styles.componentDrawer}>
+              <ResourceDrawer
+                components={drawerComponents}
+                categories={componentCategories}
+                searchQuery={drawerSearchQuery}
+                onSearchChange={setDrawerSearchQuery}
+                onComponentSelect={(_resource) => {}}
+                className={styles.drawerContainer}
+              />
+            </div>
           </div>
         )}
 
