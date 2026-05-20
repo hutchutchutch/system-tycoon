@@ -1125,31 +1125,24 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           setMissionStageData(stageData);
           console.log('Using stage-specific requirements:', stageData.system_requirements);
           
-          // Dispatch system requirements to Redux (Redux best practice)
-          if (stageData.system_requirements && stageData.system_requirements.length > 0) {
-            // Map Requirement to SystemRequirement format
-            const systemReqs = stageData.system_requirements.map(req => ({
-              id: req.id,
-              type: req.type || '',
-              priority: req.priority || '',
-              description: req.description,
-              validation_type: req.validation_type || '',
-              required_nodes: req.required_nodes || [],
-              min_nodes_of_type: req.min_nodes_of_type || {},
-              required_connection: req.required_connection || undefined,
-              forbidden_nodes: [],
-              target_value: req.target_value || 0,
-              target_metric: req.target_metric || ''
-            }));
-            
-            dispatch(setSystemRequirements(systemReqs));
-            console.log('✅ System requirements dispatched to Redux:', systemReqs.length);
-            
-            // Trigger initial validation to populate requirementValidationResults
-            setTimeout(() => {
-              dispatch(validateRequirementsAction());
-            }, 100); // Small delay to ensure state is updated
-          }
+          // Dispatch system requirements to Redux — always dispatch so
+          // requirementValidationResults is populated even for empty stages
+          const systemReqs = (stageData.system_requirements || []).map(req => ({
+            id: req.id,
+            type: req.type || '',
+            priority: req.priority || '',
+            description: req.description,
+            validation_type: req.validation_type || '',
+            required_nodes: req.required_nodes || [],
+            min_nodes_of_type: req.min_nodes_of_type || {},
+            required_connection: req.required_connection || undefined,
+            forbidden_nodes: [],
+            target_value: req.target_value || 0,
+            target_metric: req.target_metric || ''
+          }));
+
+          dispatch(setSystemRequirements(systemReqs));
+          console.log('✅ System requirements dispatched to Redux:', systemReqs.length);
           
           // Load initial requirements when stage data is available (fallback for legacy components)
           if (stageData.id) {
@@ -1207,9 +1200,23 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         
         // Set initial requirements for fallback missions
         if (mission.requirements) {
+          const slugSystemReqs = mission.requirements.map(req => ({
+            id: req.id,
+            type: req.type || '',
+            priority: req.priority || '',
+            description: req.description,
+            validation_type: req.validation_type || '',
+            required_nodes: req.required_nodes || [],
+            min_nodes_of_type: req.min_nodes_of_type || {},
+            required_connection: req.required_connection || undefined,
+            forbidden_nodes: [],
+            target_value: req.target_value || 0,
+            target_metric: req.target_metric || ''
+          }));
+          dispatch(setSystemRequirements(slugSystemReqs));
           setRequirements(mission.requirements.map(req => ({
             ...req,
-            completed: false // Reset completion state
+            completed: false
           })));
         }
       } else {

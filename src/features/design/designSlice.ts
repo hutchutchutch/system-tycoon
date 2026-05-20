@@ -353,57 +353,97 @@ const designSlice = createSlice({
         let completed = false;
         let validationDetails: any = {};
         
+        const nodeMatchesCategory = (node: Node, category: string) =>
+          (node.data as any).category === category ||
+          node.type === category;
+
         switch (requirement.validation_type) {
-          case 'node_count':
+          case 'node_count': {
             if (requirement.min_nodes_of_type) {
               const results = Object.entries(requirement.min_nodes_of_type).map(([category, minCount]) => {
-                const nodeCount = state.nodes.filter(node => 
-                  node.data.category === category || 
-                  node.type === category ||
-                  (category === 'compute' && ['web_server', 'app_server', 'server'].includes(node.type || ''))
-                ).length;
+                const nodeCount = state.nodes.filter(node => nodeMatchesCategory(node, category)).length;
                 return { category, required: minCount, actual: nodeCount, met: nodeCount >= minCount };
               });
               completed = results.every(r => r.met);
               validationDetails = { nodeCountResults: results };
             }
             break;
-            
+          }
+
+          case 'node_categories':
+          case 'component_required': {
+            if (requirement.required_nodes && requirement.required_nodes.length > 0) {
+              completed = requirement.required_nodes.every((category: string) =>
+                state.nodes.some(node => nodeMatchesCategory(node, category))
+              );
+            } else {
+              completed = true;
+            }
+            break;
+          }
+
           case 'edge_connection':
+          case 'connection_required': {
             if (requirement.required_connection) {
               const { from, to } = requirement.required_connection;
               const hasConnection = state.edges.some(edge => {
                 const sourceNode = state.nodes.find(n => n.id === edge.source);
                 const targetNode = state.nodes.find(n => n.id === edge.target);
-                
                 if (!sourceNode || !targetNode) return false;
-                
-                const sourceMatches = sourceNode.data.category === from || 
-                                    sourceNode.type === from ||
-                                    (from === 'compute' && ['web_server', 'app_server', 'server'].includes(sourceNode.type || ''));
-                                    
-                const targetMatches = targetNode.data.category === to || 
-                                     targetNode.type === to ||
-                                     (to === 'database' && ['database', 'mysql', 'postgres'].includes(targetNode.type || ''));
-                
-                return sourceMatches && targetMatches;
+                return (
+                  (nodeMatchesCategory(sourceNode, from) && nodeMatchesCategory(targetNode, to)) ||
+                  (nodeMatchesCategory(sourceNode, to) && nodeMatchesCategory(targetNode, from))
+                );
               });
               completed = hasConnection;
               validationDetails = { connectionRequired: requirement.required_connection, hasConnection };
             }
             break;
-            
-          case 'node_removal':
+          }
+
+          case 'node_and_connection': {
+            const nodesExist = !requirement.required_nodes?.length ||
+              requirement.required_nodes.every((category: string) =>
+                state.nodes.some(node => nodeMatchesCategory(node, category))
+              );
+            const hasConn = !requirement.required_connection ||
+              state.edges.some(edge => {
+                const sourceNode = state.nodes.find(n => n.id === edge.source);
+                const targetNode = state.nodes.find(n => n.id === edge.target);
+                if (!sourceNode || !targetNode) return false;
+                const { from, to } = requirement.required_connection!;
+                return (
+                  (nodeMatchesCategory(sourceNode, from) && nodeMatchesCategory(targetNode, to)) ||
+                  (nodeMatchesCategory(sourceNode, to) && nodeMatchesCategory(targetNode, from))
+                );
+              });
+            completed = nodesExist && hasConn;
+            break;
+          }
+
+          case 'node_removal': {
             if (requirement.required_nodes) {
-              // For node_removal type, required_nodes contains forbidden node IDs
-              const forbiddenNodesPresent = requirement.required_nodes.filter((forbiddenId: string) => 
+              const forbiddenNodesPresent = requirement.required_nodes.filter((forbiddenId: string) =>
                 state.nodes.some(node => node.id === forbiddenId)
               );
               completed = forbiddenNodesPresent.length === 0;
               validationDetails = { forbiddenNodes: requirement.required_nodes, forbiddenNodesPresent };
             }
             break;
-            
+          }
+
+          case 'cost_constraint': {
+            const totalCost = state.nodes.reduce((sum, node) => sum + ((node.data as any).cost || 0), 0);
+            completed = requirement.target_value ? totalCost <= requirement.target_value : true;
+            validationDetails = { totalCost, maxAllowed: requirement.target_value };
+            break;
+          }
+
+          case 'metric': {
+            completed = false;
+            break;
+          }
+
           default:
             completed = false;
         }
