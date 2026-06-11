@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import type { Env, AuthUser, Npc, Conversation, ConversationMessage } from '../types';
 import { generateId, now, query, queryOne, execute, parseJson, toBool, toJson } from '../lib/db';
-import { generateNpcResponse } from '../lib/openai';
+import { generateNpcResponse, alertOpenAiFailure, NPC_FALLBACK_REPLY } from '../lib/openai';
 
 export const conversationRoutes = new Hono<{ Bindings: Env }>();
 
@@ -228,23 +228,39 @@ conversationRoutes.post('/:id/messages', async (c) => {
     [conv.id]
   );
 
-  const reply = await generateNpcResponse(
-    c.env.OPENAI_API_KEY,
-    {
-      name: npc.name, handle: npc.handle, company: npc.company, role: npc.role, bio: npc.bio,
-      personality: parseJson(npc.personality, {}),
-    },
-    mission
-      ? {
-          title: mission.title, tagline: mission.tagline, description: mission.description,
-          crisis_description: mission.crisis_description, emotional_hook: mission.emotional_hook,
-          difficulty: mission.difficulty, tech_tags: parseJson<string[]>(mission.tech_tags, []),
-        }
-      : null,
-    history,
-    playerMessage,
-    messageCount
-  );
+  let reply: string;
+  try {
+    reply = await generateNpcResponse(
+      c.env.OPENAI_API_KEY,
+      {
+        name: npc.name, handle: npc.handle, company: npc.company, role: npc.role, bio: npc.bio,
+        personality: parseJson(npc.personality, {}),
+      },
+      mission
+        ? {
+            title: mission.title, tagline: mission.tagline, description: mission.description,
+            crisis_description: mission.crisis_description, emotional_hook: mission.emotional_hook,
+            difficulty: mission.difficulty, tech_tags: parseJson<string[]>(mission.tech_tags, []),
+          }
+        : null,
+      history,
+      playerMessage,
+      messageCount
+    );
+  } catch (err) {
+    // OpenAI unavailable (e.g. quota exceeded). Alert the operator (rate-limited)
+    // and serve a graceful fallback WITHOUT consuming the player's message budget,
+    // so they can simply retry once service is restored. Nothing is persisted here.
+    await alertOpenAiFailure(c.env, err instanceof Error ? err.message : String(err));
+    return c.json({
+      message: NPC_FALLBACK_REPLY,
+      message_type: 'text',
+      is_project_offer: false,
+      can_continue: true,
+      npc_message_id: null,
+      degraded: true,
+    });
+  }
 
   await insertMessage(c.env, conv.id, 'player', playerMessage, 'text');
 

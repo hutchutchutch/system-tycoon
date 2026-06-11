@@ -1,8 +1,8 @@
 import type { Env } from '../types';
 
 /**
- * Send a transactional email via SendGrid.
- * Used for email verification and password reset flows.
+ * Send a transactional email via Resend.
+ * Used for email verification, password reset, and operational alerts.
  */
 export async function sendEmail(env: Env, opts: {
   to: string;
@@ -10,29 +10,29 @@ export async function sendEmail(env: Env, opts: {
   html: string;
   text: string;
 }): Promise<void> {
-  const payload = {
-    personalizations: [{ to: [{ email: opts.to }] }],
-    from: { email: env.EMAIL_FROM, name: env.EMAIL_FROM_NAME || 'Service as a Software' },
-    subject: opts.subject,
-    content: [
-      { type: 'text/plain', value: opts.text },
-      { type: 'text/html', value: opts.html },
-    ],
-  };
+  const from = env.EMAIL_FROM_NAME
+    ? `${env.EMAIL_FROM_NAME} <${env.EMAIL_FROM}>`
+    : env.EMAIL_FROM;
 
-  const res = await fetch('https://api.sendgrid.com/v3/mail/send', {
+  const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${env.SENDGRID_API_KEY}`,
+      'Authorization': `Bearer ${env.RESEND_API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      from,
+      to: opts.to,
+      subject: opts.subject,
+      html: opts.html,
+      text: opts.text,
+    }),
   });
 
   if (!res.ok) {
     const body = await res.text();
-    console.error('SendGrid error:', res.status, body);
-    throw new Error(`SendGrid failed: ${res.status}`);
+    console.error('Resend error:', res.status, body);
+    throw new Error(`Resend failed: ${res.status}`);
   }
 }
 
