@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Profile, MissionEmail } from '../types';
+import type { AppEnv, Env, AuthUser, Profile, MissionEmail } from '../types';
 import { generateId, now, queryOne, query, execute, parseJson, toJson } from '../lib/db';
 
-export const emailRoutes = new Hono<{ Bindings: Env }>();
+export const emailRoutes = new Hono<AppEnv>();
 
 // Transform DB row to frontend EmailData shape
 function toEmailData(e: MissionEmail & { inbox_status?: string; read_at?: string | null; delivered_at?: string | null }) {
@@ -27,22 +27,8 @@ emailRoutes.get('/', async (c) => {
   const user = c.get('user') as AuthUser;
   const db = c.env.DB;
 
-  // Find the user's active mission progress
-  const progress = await queryOne<{ mission_id: string; stage_id: string; current_stage_id: string | null }>(
-    db,
-    `SELECT mission_id, stage_id, current_stage_id FROM user_mission_progress
-     WHERE user_id = ? AND status = 'in_progress'
-     ORDER BY updated_at DESC LIMIT 1`,
-    [user.id]
-  );
-
-  if (!progress) {
-    return c.json([]);
-  }
-
-  const stageId = progress.current_stage_id || progress.stage_id;
-
-  // Get emails from user_email_inbox joined with mission_emails
+  // The inbox is user-scoped — it must survive mission completion
+  // (the mission_complete congratulation lives here too).
   const inboxEmails = await query<MissionEmail & { inbox_status: string; read_at: string | null; delivered_at: string | null }>(
     db,
     `SELECT me.*, uei.status AS inbox_status, uei.read_at, uei.delivered_at
@@ -57,7 +43,22 @@ emailRoutes.get('/', async (c) => {
     return c.json(inboxEmails.map(toEmailData));
   }
 
-  // No inbox entries — return undelivered mission_start emails for the current stage
+  // Empty inbox — fall back to undelivered mission_start emails for the
+  // user's active stage, if they have a mission in progress.
+  const progress = await queryOne<{ mission_id: string; stage_id: string; current_stage_id: string | null }>(
+    db,
+    `SELECT mission_id, stage_id, current_stage_id FROM user_mission_progress
+     WHERE user_id = ? AND status = 'in_progress'
+     ORDER BY updated_at DESC LIMIT 1`,
+    [user.id]
+  );
+
+  if (!progress) {
+    return c.json([]);
+  }
+
+  const stageId = progress.current_stage_id || progress.stage_id;
+
   const defaultEmails = await query<MissionEmail>(
     db,
     `SELECT * FROM mission_emails
@@ -66,9 +67,7 @@ emailRoutes.get('/', async (c) => {
     [stageId]
   );
 
-  const parsed = defaultEmails.map(toEmailData);
-
-  return c.json(parsed);
+  return c.json(defaultEmails.map(toEmailData));
 });
 
 /**

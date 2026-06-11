@@ -40,7 +40,8 @@ export const canvasApi = createApi({
     // Save Canvas State
     saveCanvasState: builder.mutation<void, SaveCanvasStateRequest>({
       query: ({ missionId, stageId, canvasState }) => ({
-        url: '/',
+        // NOTE: '' not '/' — Hono's strict routing 404s on /api/canvas/
+        url: '',
         method: 'PUT',
         body: { missionId, stageId, canvasState },
       }),

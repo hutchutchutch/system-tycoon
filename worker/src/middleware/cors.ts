@@ -24,7 +24,7 @@ export async function corsMiddleware(c: Context, next: Next) {
   }
 
   if (c.req.method === 'OPTIONS') {
-    return c.text('', 204);
+    return c.body(null, 204);
   }
 
   return next();

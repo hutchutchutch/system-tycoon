@@ -1,5 +1,5 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/redux';
 
 interface ProtectedRouteProps {
@@ -24,12 +24,19 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requireOnboarded = true,
 }) => {
-  const { isAuthenticated, isLoading, profile } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, initialized, profile } = useAppSelector(
+    (state) => state.auth,
+  );
+  const location = useLocation();
 
-  if (isLoading) return <LoadingSpinner />;
+  // Wait for the first checkAuth round-trip before deciding — otherwise a
+  // fresh browser deep-linking to a protected URL bounces to /auth (and
+  // loses the destination) before the session cookie is even checked.
+  // Once authenticated, background re-checks must NOT unmount the page.
+  if (!isAuthenticated && (isLoading || !initialized)) return <LoadingSpinner />;
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/auth" replace state={{ from: location }} />;
   }
 
   if (requireOnboarded && profile && !profile.onboarding_completed) {
@@ -44,9 +51,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
  * Requires auth, but redirects to /game if the user has already finished onboarding.
  */
 export const OnboardingRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { isAuthenticated, isLoading, profile } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, initialized, profile } = useAppSelector(
+    (state) => state.auth,
+  );
 
-  if (isLoading) return <LoadingSpinner />;
+  if (!isAuthenticated && (isLoading || !initialized)) return <LoadingSpinner />;
 
   if (!isAuthenticated) {
     return <Navigate to="/auth" replace />;

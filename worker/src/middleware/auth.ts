@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import type { Env, AuthUser, Profile } from '../types';
+import type { AppEnv, Env, AuthUser, Profile } from '../types';
 import { createAuth } from '../lib/auth';
 import { queryOne } from '../lib/db';
 
@@ -7,7 +7,7 @@ import { queryOne } from '../lib/db';
  * Validates the Better Auth session cookie.
  * Attaches `user` and `profile` to the request context.
  */
-export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) {
+export async function authMiddleware(c: Context<AppEnv>, next: Next) {
   const auth = createAuth(c.env);
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
@@ -40,7 +40,7 @@ export async function authMiddleware(c: Context<{ Bindings: Env }>, next: Next) 
 /**
  * Optional auth — doesn't block unauthenticated requests.
  */
-export async function optionalAuth(c: Context<{ Bindings: Env }>, next: Next) {
+export async function optionalAuth(c: Context<AppEnv>, next: Next) {
   const auth = createAuth(c.env);
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 

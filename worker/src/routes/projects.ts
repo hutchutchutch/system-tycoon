@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Npc, Project, ProjectMetrics } from '../types';
+import type { AppEnv, Env, AuthUser, Npc, Project, ProjectMetrics } from '../types';
 import { generateId, now, query, queryOne, execute, parseJson, toBool, toJson } from '../lib/db';
 
-export const projectRoutes = new Hono<{ Bindings: Env }>();
+export const projectRoutes = new Hono<AppEnv>();
 
 async function getOwnedProject(env: Env, id: string, userId: string): Promise<Project | null> {
   const row = await queryOne<Project>(env.DB, 'SELECT * FROM projects WHERE id = ?', [id]);

@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Npc, SocialFeedPost } from '../types';
+import type { AppEnv, Env, AuthUser, Npc, SocialFeedPost } from '../types';
 import { generateId, now, query, queryOne, execute, parseJson, toBool, fromBool } from '../lib/db';
 
-export const socialRoutes = new Hono<{ Bindings: Env }>();
+export const socialRoutes = new Hono<AppEnv>();
 
 // ------------------------------------------------------------
 // Hydration helpers — parse JSON columns / 0-1 booleans for the client

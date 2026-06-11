@@ -210,14 +210,16 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
       }
     } catch (error) {
       console.error('Authentication error:', error);
-      // Log more detailed error info
-      if (error instanceof Error) {
-        console.error('Error message:', error.message);
-        console.error('Error stack:', error.stack);
-      } else {
-        console.error('Raw error object:', JSON.stringify(error, null, 2));
+
+      // Sign-in blocked because the email is unverified — send the user to
+      // the verify-email screen instead of leaving them on a silent failure.
+      const message = error instanceof Error ? error.message : String((error as any)?.message ?? '');
+      if (!isSignUp && /not verified/i.test(message)) {
+        navigate('/auth/verify-email', { state: { email: email.trim() } });
+        return;
       }
-      // Error is handled by Redux slice
+
+      // Otherwise the error is surfaced by the Redux slice
     }
   };
 

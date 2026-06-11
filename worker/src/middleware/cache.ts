@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import type { Env } from '../types';
+import type { AppEnv, Env } from '../types';
 
 /**
  * Phase 6: KV Cache middleware for read-heavy GET endpoints.
@@ -20,7 +20,7 @@ interface CacheOptions {
 export function kvCache(options: CacheOptions) {
   const { ttlSeconds, prefix = 'cache', perUser = false } = options;
 
-  return async (c: Context<{ Bindings: Env }>, next: Next) => {
+  return async (c: Context<AppEnv>, next: Next) => {
     // Only cache GET requests
     if (c.req.method !== 'GET') {
       return next();

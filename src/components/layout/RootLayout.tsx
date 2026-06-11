@@ -37,10 +37,9 @@ export const RootLayout: React.FC = () => {
   }, [dispatch]);
 
   // Determine if we should show MentorChat
-  // Don't show on landing, auth, onboarding, or mentor selection pages
+  // Don't show on landing, auth, or onboarding pages
   const excludedPaths = ['/', '/auth', '/onboarding'];
-  const isExcludedPath = excludedPaths.includes(location.pathname) || 
-                         location.pathname.startsWith('/mentor/');
+  const isExcludedPath = excludedPaths.includes(location.pathname);
   
   const showMentorChat = isAuthenticated && !isExcludedPath;
 

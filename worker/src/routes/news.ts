@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, NewsArticle } from '../types';
+import type { AppEnv, Env, NewsArticle } from '../types';
 import { query, execute, parseJson } from '../lib/db';
 
-export const newsRoutes = new Hono<{ Bindings: Env }>();
+export const newsRoutes = new Hono<AppEnv>();
 
 /**
  * GET /news

@@ -31,11 +31,9 @@ export const useRequirementValidation = ({
       setIsValidating(true);
       setValidationError(null);
 
-      // Get current user
-      const userId = await missionService.getCurrentUserId();
-      if (!userId) {
-        throw new Error('User not authenticated');
-      }
+      // The validate endpoint authenticates via the session cookie; the
+      // userId in the body is informational only, so don't block on it.
+      const userId = (await missionService.getCurrentUserId()) ?? '';
 
       // Call the validation service
       const result = await missionService.validateRequirementsWithAPI(

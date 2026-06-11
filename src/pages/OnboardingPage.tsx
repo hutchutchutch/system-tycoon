@@ -61,16 +61,15 @@ export const OnboardingPage: React.FC = () => {
 
   const handleMentorSelected = async (mentor: MentorForUI) => {
     setSelectedMentor(mentor);
-    
+
     try {
       // Save the mentor ID to the user's profile
       await dispatch(updatePreferredMentor(mentor.id));
-      
-      // Mark onboarding as completed in the database
-      await dispatch(updateOnboardingStatus(true));
-      
-      // Navigate to the game since user is already authenticated
-      navigate('/game');
+
+      // Show the mentor's wisdom before entering the game.
+      // Note: onboarding_completed is only set in handleComplete — setting it
+      // here would make OnboardingRoute redirect to /game and skip this step.
+      setCurrentStep('mentor-wisdom');
     } catch (error) {
       console.error('Error saving mentor selection:', error);
       // Still navigate even if there's an error saving mentor preference

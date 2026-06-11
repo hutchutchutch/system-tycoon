@@ -1,0 +1,256 @@
+/* Mission Results Page - Design System CSS Module */
+
+.page {
+  height: 100%;
+  overflow-y: auto;
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  padding: var(--space-8) var(--space-4);
+  font-family: var(--font-sans);
+}
+
+.card {
+  max-width: 720px;
+  margin: 0 auto;
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(71, 85, 105, 0.5);
+  border-radius: var(--radius-lg);
+  padding: var(--space-8);
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+}
+
+.header {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.headerTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-green-400, #4ade80);
+}
+
+.headerTitle h1 {
+  font-size: var(--text-3xl, 2rem);
+  font-weight: var(--font-bold, 700);
+  color: var(--color-white);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--color-obsidian-200, #94a3b8);
+  margin-top: var(--space-2);
+}
+
+.impact {
+  text-align: center;
+  margin-bottom: var(--space-8);
+}
+
+.impactPoints {
+  font-size: 4rem;
+  line-height: 1.1;
+  font-weight: var(--font-bold, 700);
+  color: #facc15;
+  margin: 0;
+}
+
+.impactLabel {
+  color: var(--color-obsidian-200, #94a3b8);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: var(--space-1);
+}
+
+.impactTotal {
+  color: var(--color-obsidian-100, #e2e8f0);
+  margin-top: var(--space-2);
+}
+
+.impactTotal strong {
+  color: var(--color-white);
+}
+
+.impactRepeat {
+  color: var(--color-neutral-500, #64748b);
+  font-size: var(--text-sm);
+  margin-top: var(--space-2);
+}
+
+.requirementsBox {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(71, 85, 105, 0.4);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.requirementsTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-white);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.requirementsCount {
+  color: var(--color-obsidian-200, #94a3b8);
+  font-weight: var(--font-medium);
+  margin-left: var(--space-2);
+}
+
+.reqList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.reqItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.reqIconDone {
+  color: var(--color-green-400, #4ade80);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reqIconPending {
+  color: var(--color-neutral-500, #64748b);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.reqText {
+  color: var(--color-obsidian-100, #e2e8f0);
+  margin: 0;
+}
+
+.reqPoints {
+  color: var(--color-neutral-500, #94a3b8);
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.emailCard {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: rgba(30, 64, 175, 0.25);
+  border: 1px solid rgba(29, 78, 216, 0.6);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-8);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.emailCard:hover {
+  background: rgba(30, 64, 175, 0.4);
+}
+
+.emailCardInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.emailIcon {
+  color: #60a5fa;
+  flex-shrink: 0;
+}
+
+.emailFrom {
+  color: #93c5fd;
+  font-size: var(--text-sm);
+  margin: 0;
+}
+
+.emailSubject {
+  color: var(--color-white);
+  font-weight: var(--font-medium);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-md);
+  border: none;
+  font-size: var(--text-base, 1rem);
+  font-weight: var(--font-medium);
+  font-family: var(--font-sans);
+  color: var(--color-white);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.btnPrimary {
+  composes: btn;
+  background: #2563eb;
+}
+
+.btnPrimary:hover {
+  background: #1d4ed8;
+}
+
+.btnSuccess {
+  composes: btn;
+  background: #16a34a;
+}
+
+.btnSuccess:hover {
+  background: #15803d;
+}
+
+.btnSecondary {
+  composes: btn;
+  background: #334155;
+}
+
+.btnSecondary:hover {
+  background: #475569;
+}
+
+.fallbackCard {
+  composes: card;
+  max-width: 560px;
+  text-align: center;
+}
+
+.fallbackTitle {
+  font-size: var(--text-3xl, 2rem);
+  font-weight: var(--font-bold, 700);
+  color: var(--color-white);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.fallbackContext {
+  color: var(--color-obsidian-200, #94a3b8);
+  margin-bottom: var(--space-4);
+}
+
+.fallbackText {
+  color: var(--color-obsidian-100, #e2e8f0);
+  margin-bottom: var(--space-8);
+  line-height: var(--leading-relaxed, 1.6);
+}

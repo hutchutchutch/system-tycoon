@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env } from '../types';
+import type { AppEnv, Env } from '../types';
 import { generateId, now, query, queryOne, execute, parseJson, toJson } from '../lib/db';
 
-export const gameRoutes = new Hono<{ Bindings: Env }>();
+export const gameRoutes = new Hono<AppEnv>();
 
 // GET /game/scenarios - List all scenarios
 gameRoutes.get('/scenarios', async (c) => {

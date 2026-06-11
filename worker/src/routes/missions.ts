@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Mission, MissionStage } from '../types';
+import type { AppEnv, Env, AuthUser, Mission, MissionStage } from '../types';
 import { generateId, now, queryOne, query, execute, parseJson, toJson } from '../lib/db';
 
-export const missionRoutes = new Hono<{ Bindings: Env }>();
+export const missionRoutes = new Hono<AppEnv>();
 
 // ----------------------------------------------------------------
 // GET /:slug
@@ -309,7 +309,207 @@ missionRoutes.post('/validate', async (c) => {
 
   const { stageId, nodes, edges } = body;
 
-  // Load requirements for this stage
+  const { results, summary } = await evaluateStageRequirements(db, stageId, nodes, edges);
+
+  return c.json({
+    success: true,
+    summary,
+    requirements: results,
+  });
+});
+
+// ----------------------------------------------------------------
+// POST /complete-stage
+// Complete a stage: re-validate server-side, advance the user's
+// mission progress, award Impact (reputation_score), and deliver
+// the next stage's brief emails (or mission_complete emails).
+// Body: { stageId, nodes, edges }
+// ----------------------------------------------------------------
+missionRoutes.post('/complete-stage', async (c) => {
+  const user = c.get('user') as AuthUser;
+  const db = c.env.DB;
+
+  const body = await c.req.json<{
+    stageId: string;
+    nodes: any[];
+    edges: any[];
+  }>();
+  const { stageId, nodes, edges } = body;
+
+  // 1. Load the stage being completed
+  const stage = await queryOne<MissionStage>(
+    db,
+    'SELECT * FROM mission_stages WHERE id = ?',
+    [stageId],
+  );
+  if (!stage) {
+    return c.json({ error: 'Stage not found' }, 404);
+  }
+
+  // 2. Re-validate server-side — never trust a client-side "allCompleted"
+  const { results, summary } = await evaluateStageRequirements(db, stageId, nodes, edges);
+  if (!summary.allCompleted) {
+    return c.json(
+      {
+        success: false,
+        error: 'Requirements not met',
+        summary,
+        requirements: results,
+      },
+      409,
+    );
+  }
+
+  // 3. Load (or create) the user's progress row for this mission
+  let progress = await queryOne<any>(
+    db,
+    'SELECT * FROM user_mission_progress WHERE user_id = ? AND mission_id = ?',
+    [user.id, stage.mission_id],
+  );
+
+  const timestamp = now();
+
+  if (!progress) {
+    // Defensive: user reached the whiteboard without POST /missions/start
+    const id = generateId();
+    await execute(
+      db,
+      `INSERT INTO user_mission_progress (id, user_id, mission_id, stage_id, status, current_stage_id, started_at, updated_at)
+       VALUES (?, ?, ?, ?, 'in_progress', ?, ?, ?)`,
+      [id, user.id, stage.mission_id, stageId, stageId, timestamp, timestamp],
+    );
+    progress = { id, status: 'in_progress', current_stage_id: stageId };
+  }
+
+  // First completion = the mission isn't finished and the user hasn't
+  // already progressed past this stage. Re-completions are idempotent:
+  // no advancement, no Impact, no duplicate emails.
+  let firstCompletion = false;
+  if (progress.status !== 'completed') {
+    const currentStage = progress.current_stage_id
+      ? await queryOne<{ stage_number: number }>(
+          db,
+          'SELECT stage_number FROM mission_stages WHERE id = ?',
+          [progress.current_stage_id],
+        )
+      : null;
+    firstCompletion = !currentStage || currentStage.stage_number <= stage.stage_number;
+  }
+
+  // 4. Find the next stage (if any)
+  const nextStage = await queryOne<MissionStage>(
+    db,
+    'SELECT * FROM mission_stages WHERE mission_id = ? AND stage_number = ?',
+    [stage.mission_id, stage.stage_number + 1],
+  );
+  const missionCompleted = !nextStage;
+
+  const deliveredEmails: any[] = [];
+  const pointsEarned = firstCompletion ? summary.pointsEarned : 0;
+
+  if (firstCompletion) {
+    // 5. Advance progress
+    if (nextStage) {
+      await execute(
+        db,
+        `UPDATE user_mission_progress
+         SET current_stage_id = ?, stage_id = ?, status = 'in_progress', updated_at = ?
+         WHERE id = ?`,
+        [nextStage.id, nextStage.id, timestamp, progress.id],
+      );
+    } else {
+      await execute(
+        db,
+        `UPDATE user_mission_progress
+         SET status = 'completed', completed_at = ?, updated_at = ?
+         WHERE id = ?`,
+        [timestamp, timestamp, progress.id],
+      );
+    }
+
+    // 6. Award Impact
+    if (pointsEarned > 0) {
+      await execute(
+        db,
+        'UPDATE user SET reputation_score = reputation_score + ? WHERE id = ?',
+        [pointsEarned, user.id],
+      );
+    }
+
+    // 7. Deliver follow-up emails: the next stage's brief, or the
+    // mission_complete congratulations on the final stage.
+    // (stage_complete emails are keyed to the stage they BRIEF — see
+    // migration 0014.)
+    const triggerEmails = nextStage
+      ? await query<any>(
+          db,
+          `SELECT id, subject, preview, sender_name, sender_email, priority, trigger_type
+           FROM mission_emails
+           WHERE mission_id = ? AND stage_id = ? AND trigger_type = 'stage_complete'
+             AND id NOT IN (SELECT mission_email_id FROM user_email_inbox WHERE user_id = ?)`,
+          [stage.mission_id, nextStage.id, user.id],
+        )
+      : await query<any>(
+          db,
+          `SELECT id, subject, preview, sender_name, sender_email, priority, trigger_type
+           FROM mission_emails
+           WHERE mission_id = ? AND trigger_type = 'mission_complete'
+             AND id NOT IN (SELECT mission_email_id FROM user_email_inbox WHERE user_id = ?)`,
+          [stage.mission_id, user.id],
+        );
+
+    for (const email of triggerEmails) {
+      await execute(
+        db,
+        `INSERT INTO user_email_inbox (id, user_id, mission_email_id, status, delivered_at)
+         VALUES (?, ?, ?, 'unread', ?)`,
+        [generateId(), user.id, email.id, timestamp],
+      );
+      deliveredEmails.push(email);
+    }
+
+    // 8. On mission completion, close the loop on the news article
+    if (missionCompleted) {
+      await execute(
+        db,
+        `UPDATE news_articles
+         SET completion_count = completion_count + 1, article_status = 'success'
+         WHERE mission_id = ?`,
+        [stage.mission_id],
+      );
+    }
+  }
+
+  // 9. Return the user's updated Impact total
+  const updatedUser = await queryOne<{ reputation_score: number }>(
+    db,
+    'SELECT reputation_score FROM user WHERE id = ?',
+    [user.id],
+  );
+
+  return c.json({
+    success: true,
+    stageCompleted: true,
+    firstCompletion,
+    missionCompleted,
+    nextStageId: nextStage?.id ?? null,
+    nextStageNumber: nextStage?.stage_number ?? null,
+    pointsEarned,
+    impactTotal: updatedUser?.reputation_score ?? null,
+    deliveredEmails,
+    validation: { summary, requirements: results },
+  });
+});
+
+// ----------------------------------------------------------------
+// Shared requirement evaluation for /validate and /complete-stage
+// ----------------------------------------------------------------
+async function evaluateStageRequirements(
+  db: D1Database,
+  stageId: string,
+  nodes: any[],
+  edges: any[],
+) {
   const dbRequirements = await query<any>(
     db,
     'SELECT * FROM mission_stage_requirements WHERE stage_id = ? ORDER BY unlock_order',
@@ -338,8 +538,8 @@ missionRoutes.post('/validate', async (c) => {
     .filter((r) => r.completed)
     .reduce((sum, r) => sum + (r.points || 0), 0);
 
-  return c.json({
-    success: true,
+  return {
+    results,
     summary: {
       totalRequirements: results.length,
       completedRequirements: completedCount,
@@ -349,9 +549,8 @@ missionRoutes.post('/validate', async (c) => {
         ? Math.round((completedCount / results.length) * 100)
         : 0,
     },
-    requirements: results,
-  });
-});
+  };
+}
 
 // ----------------------------------------------------------------
 // Validation helpers

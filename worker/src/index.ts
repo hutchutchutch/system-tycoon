@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Env } from './types';
+import type { AppEnv, Env } from './types';
 import { createAuth } from './lib/auth';
 import { corsMiddleware } from './middleware/cors';
 import { authMiddleware, optionalAuth } from './middleware/auth';
@@ -18,7 +18,7 @@ import { projectRoutes } from './routes/projects';
 
 export { DesignSessionDO } from './durable-objects/DesignSessionDO';
 
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono<AppEnv>();
 
 // Global middleware
 app.use('*', corsMiddleware);

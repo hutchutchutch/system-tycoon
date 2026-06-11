@@ -20,11 +20,7 @@ import { ErrorPage } from './pages/ErrorPage';
 import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
 import { MissionWhiteboard } from './pages/InitialExperience/CrisisSystemDesignCanvas';
 import { BlankSystemDesignPage } from './pages/BlankSystemDesignPage';
-// import { MeetingRoomPage } from './pages/game/MeetingRoomPage'; // Removed
-import { MentorSelectionPage } from './pages/game/MentorSelectionPage';
-import { SystemDesignPage } from './pages/game/SystemDesignPage';
-import { SimulationPage } from './pages/game/SimulationPage';
-import { ResultsPage } from './pages/game/ResultsPage';
+import { MissionResultsPage } from './pages/game/MissionResultsPage';
 
 export const router = createBrowserRouter([
   {
@@ -117,7 +113,9 @@ export const router = createBrowserRouter([
         ],
       },
       {
-        path: 'meeting/:scenarioId',
+        // Mission-flow results: whiteboard hands off here after
+        // POST /missions/complete-stage with the payload in router state.
+        path: 'results/stage/:stageId',
         element: (
           <ProtectedRoute>
             <GameLayout />
@@ -126,63 +124,7 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <div>Meeting Room - Coming Soon</div>, // MeetingRoomPage removed
-          },
-        ],
-      },
-      {
-        path: 'mentor/:scenarioId',
-        element: (
-          <ProtectedRoute>
-            <GameLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <MentorSelectionPage />,
-          },
-        ],
-      },
-      {
-        path: 'design/:scenarioId',
-        element: (
-          <ProtectedRoute>
-            <GameLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <SystemDesignPage />,
-          },
-        ],
-      },
-      {
-        path: 'simulation/:scenarioId',
-        element: (
-          <ProtectedRoute>
-            <GameLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <SimulationPage />,
-          },
-        ],
-      },
-      {
-        path: 'results/:attemptId',
-        element: (
-          <ProtectedRoute>
-            <GameLayout />
-          </ProtectedRoute>
-        ),
-        children: [
-          {
-            index: true,
-            element: <ResultsPage />,
+            element: <MissionResultsPage />,
           },
         ],
       },

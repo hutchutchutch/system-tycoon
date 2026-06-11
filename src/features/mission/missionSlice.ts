@@ -202,15 +202,6 @@ export const setDatabaseMission = setCurrentMission;
 export const completeDatabaseStage = completeStage;
 export const clearDatabaseMission = clearCurrentMission;
 
-// No-op startMission kept as alias for backwards compatibility.
-// Code that dispatches startMission('health_crisis') will silently do nothing;
-// missions should now be loaded from the API via setCurrentMission.
-export const startMission = (() => {
-  // Return a thunk-like plain action that the reducer ignores.
-  // This prevents runtime errors in existing call sites.
-  return ((_payload: string) => ({ type: 'mission/startMission_deprecated' })) as unknown as (payload: string) => { type: string; payload: string };
-})();
-
 // Selectors
 export const selectCurrentMission = (state: { mission: MissionState }) => state.mission.currentMission;
 export const selectCompletedMissions = (state: { mission: MissionState }) => state.mission.completedMissions;

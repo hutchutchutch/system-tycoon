@@ -27,6 +27,12 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  /**
+   * True once checkAuth has resolved at least once (either way).
+   * Route guards wait on this instead of bouncing unauthenticated
+   * deep links to /auth before the session check has even run.
+   */
+  initialized: boolean;
 }
 
 const initialState: AuthState = {
@@ -35,6 +41,7 @@ const initialState: AuthState = {
   isLoading: false,
   error: null,
   isAuthenticated: false,
+  initialized: false,
 };
 
 function parseUser(data: AuthUserProfile): { user: AuthUser; profile: Profile } {
@@ -115,18 +122,6 @@ export const checkAuth = createAsyncThunk('auth/checkAuth', async () => {
 });
 
 export const fetchCurrentUser = checkAuth;
-
-/** Demo sign-in: creates an anonymous demo account via Better Auth email/password */
-export const demoSignIn = createAsyncThunk(
-  'auth/demoSignIn',
-  async (_profileId: string) => {
-    const demoEmail = `demo-${Date.now()}@example.com`;
-    const demoPassword = crypto.randomUUID();
-    await apiSignUp(demoEmail, demoPassword, 'demo_user');
-    const profile = await getCurrentUser();
-    return parseUser(profile);
-  }
-);
 
 export const updateOnboardingStatus = createAsyncThunk(
   'auth/updateOnboardingStatus',
@@ -212,6 +207,7 @@ const authSlice = createSlice({
       .addCase(checkAuth.pending, (state) => { state.isLoading = true; })
       .addCase(checkAuth.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.initialized = true;
         if (action.payload) {
           state.user = action.payload.user;
           state.profile = action.payload.profile;
@@ -225,22 +221,10 @@ const authSlice = createSlice({
       })
       .addCase(checkAuth.rejected, (state) => {
         state.isLoading = false;
+        state.initialized = true;
         state.user = null;
         state.profile = null;
         state.isAuthenticated = false;
-      });
-
-    builder
-      .addCase(demoSignIn.pending, (state) => { state.isLoading = true; state.error = null; })
-      .addCase(demoSignIn.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.profile = action.payload.profile;
-        state.isAuthenticated = true;
-      })
-      .addCase(demoSignIn.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Demo sign in failed';
       });
 
     builder

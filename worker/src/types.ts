@@ -14,6 +14,16 @@ export interface Env {
   OPENAI_API_KEY: string; // NPC chat generation (set via `wrangler secret put`)
 }
 
+// Hono app environment: bindings + per-request context variables
+// (set by authMiddleware / optionalAuth in middleware/auth.ts)
+export type AppEnv = {
+  Bindings: Env;
+  Variables: {
+    user: AuthUser;
+    profile: Profile;
+  };
+};
+
 // Auth types — shape matches Better Auth session user
 export interface AuthUser {
   id: string;

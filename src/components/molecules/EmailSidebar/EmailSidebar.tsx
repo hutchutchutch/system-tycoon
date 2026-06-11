@@ -15,7 +15,8 @@ interface EmailSidebarProps {
   folders: EmailFolder[];
   selectedFolder: string;
   onFolderSelect: (folderId: string) => void;
-  onEmailCompose: () => void;
+  /** Optional — the Compose button is hidden when not provided. */
+  onEmailCompose?: () => void;
 }
 
 export const EmailSidebar: React.FC<EmailSidebarProps> = ({
@@ -26,14 +27,16 @@ export const EmailSidebar: React.FC<EmailSidebarProps> = ({
 }) => {
   return (
     <div className={styles.sidebar}>
-      <div className={styles.compose}>
-        <Button 
-          variant="primary" 
-          onClick={onEmailCompose}
-        >
-          Compose
-        </Button>
-      </div>
+      {onEmailCompose && (
+        <div className={styles.compose}>
+          <Button
+            variant="primary"
+            onClick={onEmailCompose}
+          >
+            Compose
+          </Button>
+        </div>
+      )}
 
       <nav className={styles.folders}>
         {folders.map(folder => (

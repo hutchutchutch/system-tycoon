@@ -84,6 +84,32 @@ export interface ValidationResponse {
   requirements: ValidationResult[];
 }
 
+export interface DeliveredEmailPreview {
+  id: string;
+  subject: string;
+  preview: string | null;
+  sender_name: string;
+  sender_email: string;
+  priority: string;
+  trigger_type: string;
+}
+
+export interface CompleteStageResponse {
+  success: boolean;
+  stageCompleted: boolean;
+  firstCompletion: boolean;
+  missionCompleted: boolean;
+  nextStageId: string | null;
+  nextStageNumber: number | null;
+  pointsEarned: number;
+  impactTotal: number | null;
+  deliveredEmails: DeliveredEmailPreview[];
+  validation: {
+    summary: ValidationResponse['summary'];
+    requirements: ValidationResult[];
+  };
+}
+
 export class MissionService {
   private static instance: MissionService;
   private activeMission: MissionData | null = null;
@@ -519,11 +545,30 @@ export class MissionService {
   }
 
   /**
-   * Get the current user ID from the API
+   * Complete a stage on the server. Re-validates server-side, advances
+   * the user's mission progress, awards Impact, and delivers the next
+   * stage's brief email (or the mission_complete email on the final stage).
+   * Throws ApiError with status 409 if requirements aren't actually met.
+   */
+  async completeStage(
+    stageId: string,
+    nodes: any[],
+    edges: any[]
+  ): Promise<CompleteStageResponse> {
+    return await api.post<CompleteStageResponse>('/missions/complete-stage', {
+      stageId,
+      nodes,
+      edges,
+    });
+  }
+
+  /**
+   * Get the current user ID from the API.
+   * (Better Auth profile endpoint — there is no /auth/me on the worker.)
    */
   async getCurrentUserId(): Promise<string | null> {
     try {
-      const user = await api.get<{ id: string }>('/auth/me');
+      const user = await api.get<{ id: string }>('/profile/me');
       return user?.id || null;
     } catch (error) {
       console.error('Error getting current user:', error);

@@ -5,6 +5,12 @@ export default {
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
   darkMode: 'class',
+  // Preflight off: the app predates working Tailwind and styles itself via
+  // CSS Modules + design-system globals. Enabling the base reset now would
+  // visually shift every page; we only want the utility classes.
+  corePlugins: {
+    preflight: false,
+  },
   theme: {
     extend: {
       colors: {

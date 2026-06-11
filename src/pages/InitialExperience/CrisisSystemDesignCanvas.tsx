@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ReactFlow,
   ReactFlowProvider,
@@ -27,7 +27,8 @@ import { computeInitialViewport } from '../../utils/canvasViewport';
 import { ResourceDetailModal, type ComponentDetail } from '../../components/molecules/ComponentDetailModal/ComponentDetailModal';
 import { missionService, type MissionData, type Requirement } from '../../services/missionService';
 import { useRequirementValidation } from '../../hooks/useRequirementValidation';
-import type { ValidationResponse } from '../../services/missionService';
+import type { ValidationResponse, CompleteStageResponse } from '../../services/missionService';
+import { SimulationOverlay } from './SimulationOverlay';
 import { useTheme } from '../../contexts/ThemeContext';
 import { api } from '../../services/cloudflareApi';
 // Redux imports following the established patterns
@@ -261,6 +262,12 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
   missionSlug = 'health-tracker-crisis'
 }) => {
   const { emailId } = useParams<{ emailId: string }>();
+  const navigate = useNavigate();
+
+  // Set when complete-stage succeeds: the Simulation overlay runs over the
+  // user's design, then we hand the payload off to the Results screen.
+  const [pendingCompletion, setPendingCompletion] = useState<CompleteStageResponse | null>(null);
+  const isSimulating = pendingCompletion !== null;
   const { theme } = useTheme();
   const dispatch = useAppDispatch();
   const mission = useAppSelector(state => state.mission);
@@ -1050,8 +1057,20 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
         return getDefaultComponents();
       }
 
-      const requiredComponentIds = stageData.required_components || [];
-      const optionalComponentIds = stageData.optional_components || [];
+      // required_components is seeded as [{id, name, category}, ...] on every
+      // stage (see migrations 0002/0007/0008). Normalize both that shape and
+      // bare ID strings down to component IDs — comparing the raw objects
+      // against components.id used to silently match nothing and dump the
+      // user onto the 3-component default palette.
+      const toComponentId = (entry: unknown): string | null =>
+        typeof entry === 'string' ? entry : ((entry as { id?: string } | null)?.id ?? null);
+
+      const requiredComponentIds = (stageData.required_components || [])
+        .map(toComponentId)
+        .filter((id: string | null): id is string => Boolean(id));
+      const optionalComponentIds = (stageData.optional_components || [])
+        .map(toComponentId)
+        .filter((id: string | null): id is string => Boolean(id));
       const allComponentIds = [...new Set([...requiredComponentIds, ...optionalComponentIds])];
 
       if (allComponentIds.length === 0) {
@@ -1366,19 +1385,48 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
 
   // Removed automatic validation - now using on-demand API validation
 
+  // Hand the completion payload off to the Results screen (called when the
+  // Simulation overlay finishes or is skipped).
+  const goToResults = useCallback(() => {
+    if (!pendingCompletion || !missionStageData?.id) return;
+    navigate(`/results/stage/${missionStageData.id}`, {
+      state: {
+        completion: pendingCompletion,
+        context: {
+          emailId: emailId ?? null,
+          stageTitle: missionStageData.title,
+          missionTitle: missionStageData.mission?.title ?? null,
+        },
+      },
+    });
+  }, [pendingCompletion, missionStageData, emailId, navigate]);
+
   // Handle starting the design process - manual validation via "Test System" button
   const handleRunTest = useCallback(async () => {
     if (!missionStageData?.id) {
       console.warn('No stage ID available for validation');
       return;
     }
-    
+    if (pendingCompletion) return; // simulation already running
+
     console.log('🧪 Manual validation triggered via "Test System" button');
-    await validateRequirements(nodes, edges);
-    
+    const result = await validateRequirements(nodes, edges);
+
     // Reset interaction flag since we just validated
     setHasUserInteracted(false);
-  }, [validateRequirements, nodes, edges, missionStageData?.id]);
+
+    if (!result?.summary.allCompleted) return;
+
+    // All requirements met — complete the stage on the server (advances
+    // mission progress, awards Impact, delivers the next stage's brief
+    // email), then run the Simulation overlay before showing Results.
+    try {
+      const completion = await missionService.completeStage(missionStageData.id, nodes, edges);
+      setPendingCompletion(completion);
+    } catch (error) {
+      console.error('Failed to complete stage:', error);
+    }
+  }, [validateRequirements, nodes, edges, missionStageData, emailId, pendingCompletion]);
 
   // Track user interactions to only validate when user has actually modified the canvas
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
@@ -1879,10 +1927,13 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           </div>
         )}
 
-            <div className={styles.reactFlowWrapper} ref={canvasRef}>
+            <div
+              className={`${styles.reactFlowWrapper}${isSimulating ? ` ${styles.simulating}` : ''}`}
+              ref={canvasRef}
+            >
               <ReactFlow
             nodes={nodes}
-            edges={edges}
+            edges={isSimulating ? edges.map((e) => ({ ...e, animated: true })) : edges}
             onNodesChange={(changes) => {
               // Track user interactions for node changes (move, select, delete, etc.)
               const userActionChanges = changes.filter(change => 
@@ -1929,7 +1980,9 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
             zoomOnDoubleClick={false}
             preventScrolling={false}
             nodeOrigin={[0.5, 0.5]}
-            elementsSelectable={true}
+            nodesDraggable={!isSimulating}
+            nodesConnectable={!isSimulating}
+            elementsSelectable={!isSimulating}
             selectNodesOnDrag={false}
           >
             <Background
@@ -1945,6 +1998,19 @@ const MissionWhiteboardInner: React.FC<MissionWhiteboardProps> = ({
           </ReactFlow>
           
         </div>
+
+        {/* Simulation — runs over the user's design after the stage passes */}
+        {isSimulating && missionStageData && (
+          <SimulationOverlay
+            missionTitle={missionStageData.mission?.title ?? missionStageData.title}
+            userScale={
+              ((missionStageData as any)?.stage_number || 1) <= 2 ? 200 :
+              ((missionStageData as any)?.stage_number || 1) === 3 ? 2000 :
+              ((missionStageData as any)?.stage_number || 1) === 4 ? 10000 : 50000
+            }
+            onComplete={goToResults}
+          />
+        )}
 
         {/* Requirements — left sidebar */}
         {missionStageData && showRequirements && (

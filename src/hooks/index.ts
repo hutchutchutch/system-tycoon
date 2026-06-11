@@ -4,7 +4,6 @@ export { useAppDispatch, useAppSelector } from './redux';
 // Feature hooks
 export { useWhiteboardState } from './useCanvasState';
 export { useConversationSession } from './useConversationSession';
-export { useEmailProgression } from './useEmailProgression';
 export { useRequirementValidation } from './useRequirementValidation';
 
 // Project hooks

@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import type { Env, Profile } from '../types';
+import type { AppEnv, Env, Profile } from '../types';
 import { now, queryOne, execute, toBool, fromBool } from '../lib/db';
 
 /**
@@ -7,7 +7,7 @@ import { now, queryOne, execute, toBool, fromBool } from '../lib/db';
  * Signup/signin/OAuth are handled by Better Auth at /api/auth/sign-up,
  * /api/auth/sign-in, /api/auth/sign-in/social, etc. (mounted in index.ts).
  */
-export const authRoutes = new Hono<{ Bindings: Env }>();
+export const authRoutes = new Hono<AppEnv>();
 
 function formatProfile(profile: Profile) {
   return {

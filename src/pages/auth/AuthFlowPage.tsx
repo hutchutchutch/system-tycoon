@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { checkAuth } from '../../features/auth/authSlice';
 import { AuthFlowDiagram } from './components/AuthFlowDiagram';
@@ -7,6 +7,7 @@ import './AuthFlowPage.css';
 
 export const AuthFlowPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useAppDispatch();
   const { profile, isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
 
@@ -23,7 +24,10 @@ export const AuthFlowPage: React.FC = () => {
 
   const handleAuthSuccess = () => {
     if (profile?.onboarding_completed) {
-      navigate('/game');
+      // Honor the deep link the user originally requested, if a route
+      // guard sent them here (ProtectedRoute passes it via state.from).
+      const from = (location.state as { from?: { pathname?: string } } | null)?.from;
+      navigate(from?.pathname ?? '/game');
     } else {
       navigate('/onboarding');
     }

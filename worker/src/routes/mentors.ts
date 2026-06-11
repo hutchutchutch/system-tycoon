@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Mentor, MentorChatMessage } from '../types';
+import type { AppEnv, Env, AuthUser, Mentor, MentorChatMessage } from '../types';
 import { generateId, now, query, execute, parseJson } from '../lib/db';
 
-export const mentorRoutes = new Hono<{ Bindings: Env }>();
+export const mentorRoutes = new Hono<AppEnv>();
 
 /**
  * GET /

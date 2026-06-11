@@ -1,9 +1,9 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Npc, Conversation, ConversationMessage } from '../types';
+import type { AppEnv, Env, AuthUser, Npc, Conversation, ConversationMessage } from '../types';
 import { generateId, now, query, queryOne, execute, parseJson, toBool, toJson } from '../lib/db';
 import { generateNpcResponse, alertOpenAiFailure, NPC_FALLBACK_REPLY } from '../lib/openai';
 
-export const conversationRoutes = new Hono<{ Bindings: Env }>();
+export const conversationRoutes = new Hono<AppEnv>();
 
 const MAX_PLAYER_MESSAGES = 3;
 

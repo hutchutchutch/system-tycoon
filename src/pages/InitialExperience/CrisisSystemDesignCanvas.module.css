@@ -1318,3 +1318,16 @@
     animation: none !important;
   }
 }
+/* Simulation mode: pulse the user's resources while traffic animates */
+.simulating :global(.react-flow__node) {
+  animation: simNodePulse 1.6s ease-in-out infinite;
+}
+
+@keyframes simNodePulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 0 rgba(74, 222, 128, 0));
+  }
+  50% {
+    filter: drop-shadow(0 0 10px rgba(74, 222, 128, 0.55));
+  }
+}

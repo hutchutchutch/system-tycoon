@@ -26,7 +26,6 @@ import emailReducer from './slices/emailSlice';
 import canvasReducer from './slices/canvasSlice';
 import mentorReducer from './slices/mentorSlice';
 // Import RTK Query APIs
-import { emailApi } from './api/emailApi';
 import { canvasApi } from './api/canvasApi';
 import { mentorApi } from './api/mentorApi';
 
@@ -48,7 +47,6 @@ const persistConfig = {
     'mentor', // Don't persist real-time chat state
     'social', // Don't persist real-time social feed state
     'project', // Don't persist project simulation state
-    'emailApi',
     'canvasApi',
     'mentorApi'
   ],
@@ -71,7 +69,6 @@ const rootReducer = combineReducers({
   mentor: mentorReducer,
 
   // RTK Query APIs for server state
-  [emailApi.reducerPath]: emailApi.reducer,
   [canvasApi.reducerPath]: canvasApi.reducer,
   [mentorApi.reducerPath]: mentorApi.reducer,
 });
@@ -113,7 +110,6 @@ export const store = configureStore({
         ],
       },
     })
-    .concat(emailApi.middleware)
     .concat(canvasApi.middleware)
     .concat(mentorApi.middleware)
     .concat(canvasMiddleware),

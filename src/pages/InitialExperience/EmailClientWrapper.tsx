@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Reply } from 'lucide-react';
 import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
 import { EmailCard } from '../../components/molecules/EmailCard';
 import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
@@ -170,13 +169,9 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
     setSearchQuery(query);
   };
 
-  const handleEmailCompose = () => {
-    console.log('Compose new email');
-  };
-
-  const handleEmailReply = (emailId: string) => {
-    console.log('Reply to email:', emailId);
-  };
+  // Compose/reply aren't part of the game loop yet — outgoing mail happens
+  // through the News contact flow (EmailComposer). The sidebar hides its
+  // Compose button when no handler is passed.
 
   const handleTabSelect = (tabId: string) => {
     setSelectedTab(tabId);
@@ -250,7 +245,6 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
         folders={folders}
         selectedFolder={selectedFolder}
         onFolderSelect={handleFolderSelect}
-        onEmailCompose={handleEmailCompose}
       />
 
       <div className={styles.main}>

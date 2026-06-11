@@ -40,4 +40,5 @@ EMAIL_FROM_NAME = "Service as a Software"
 #   JWT_SECRET           — Better Auth session signing secret
 #   GOOGLE_CLIENT_ID
 #   GOOGLE_CLIENT_SECRET
-#   SENDGRID_API_KEY
+#   RESEND_API_KEY       — transactional email (verification, reset, alerts)
+#   OPENAI_API_KEY       — NPC chat responses

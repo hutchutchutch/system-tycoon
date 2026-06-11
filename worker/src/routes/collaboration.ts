@@ -1,8 +1,8 @@
 import { Hono } from 'hono';
-import type { Env, AuthUser, Profile, CollaborationInvitation } from '../types';
+import type { AppEnv, Env, AuthUser, Profile, CollaborationInvitation } from '../types';
 import { generateId, now, queryOne, query, execute, parseJson, toJson } from '../lib/db';
 
-export const collaborationRoutes = new Hono<{ Bindings: Env }>();
+export const collaborationRoutes = new Hono<AppEnv>();
 
 /**
  * GET /sessions/:scenarioId

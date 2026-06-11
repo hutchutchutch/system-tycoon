@@ -55,11 +55,7 @@ export const ROUTES = {
   SIGN_IN: '/auth',
   SIGN_UP: '/auth',
   GAME: '/game',
-  MEETING: '/meeting/:scenarioId',
-  MENTOR_SELECT: '/mentor/:scenarioId',
-  DESIGN: '/design/:scenarioId',
-  SIMULATION: '/simulation/:scenarioId',
-  RESULTS: '/results/:attemptId',
+  RESULTS: '/results/stage/:stageId',
   PROFILE: '/profile',
   SETTINGS: '/settings',
 } as const;
