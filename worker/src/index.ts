@@ -12,6 +12,9 @@ import { mentorRoutes } from './routes/mentors';
 import { newsRoutes } from './routes/news';
 import { collaborationRoutes } from './routes/collaboration';
 import { gameRoutes } from './routes/game';
+import { socialRoutes } from './routes/social';
+import { conversationRoutes } from './routes/conversations';
+import { projectRoutes } from './routes/projects';
 
 export { DesignSessionDO } from './durable-objects/DesignSessionDO';
 
@@ -67,6 +70,9 @@ app.route('/api/canvas', canvasRoutes);
 app.route('/api/mentors', mentorRoutes);
 app.route('/api/collaboration', collaborationRoutes);
 app.route('/api/game', gameRoutes);
+app.route('/api/social', socialRoutes);
+app.route('/api/conversations', conversationRoutes);
+app.route('/api/projects', projectRoutes);
 
 // -------------------------------------------------------
 // WebSocket endpoint for realtime collaboration

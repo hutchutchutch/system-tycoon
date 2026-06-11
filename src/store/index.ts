@@ -18,6 +18,8 @@ import gameReducer from '../features/game/gameSlice';
 import userReducer from '../features/user/userSlice';
 import missionReducer from '../features/mission/missionSlice';
 import designReducer from '../features/design/designSlice';
+import socialReducer from '../features/social/socialSlice';
+import projectReducer from '../features/project/projectSlice';
 
 // Import store-based slices (cross-cutting concerns)
 import emailReducer from './slices/emailSlice';
@@ -44,6 +46,8 @@ const persistConfig = {
     'email',
     'canvas',
     'mentor', // Don't persist real-time chat state
+    'social', // Don't persist real-time social feed state
+    'project', // Don't persist project simulation state
     'emailApi',
     'canvasApi',
     'mentorApi'
@@ -58,6 +62,8 @@ const rootReducer = combineReducers({
   user: userReducer,
   mission: missionReducer,
   design: designReducer, // Ephemeral React Flow canvas state (non-serializable nodes/edges)
+  social: socialReducer, // Social feed & NPC conversations
+  project: projectReducer, // Active projects & simulation
 
   // Cross-cutting concerns (shared across features)
   email: emailReducer,
@@ -89,6 +95,12 @@ export const store = configureStore({
           'design/setDraggedComponent',
           // Ignore mentor chat real-time data
           'mentor/addMessage',
+          // Ignore social feed & project real-time data
+          'social/addMessage',
+          'social/addPost',
+          'project/updateMetrics',
+          'project/addEvent',
+          'project/setDesignState',
           // Ignore canvas middleware dispatches containing non-serializable node data
           'canvas/updateCanvasState',
           'canvas/updateCanvasNodes',

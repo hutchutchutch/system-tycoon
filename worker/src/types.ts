@@ -11,6 +11,7 @@ export interface Env {
   EMAIL_FROM: string;
   EMAIL_FROM_NAME: string;
   DESIGN_SESSION: DurableObjectNamespace;
+  OPENAI_API_KEY: string; // NPC chat generation (set via `wrangler secret put`)
 }
 
 // Auth types — shape matches Better Auth session user
@@ -166,6 +167,135 @@ export interface MentorChatMessage {
   message_content: string;
   sender_type: string;
   mission_stage_id: string | null;
+  created_at: string;
+}
+
+// ============================================================
+// Social feed / NPC conversations / projects
+// (JSON columns are stored as TEXT strings; parse with parseJson)
+// ============================================================
+export interface Npc {
+  id: string;
+  name: string;
+  handle: string;
+  avatar_url: string | null;
+  company: string | null;
+  role: string;
+  bio: string | null;
+  follower_count: number;
+  verified: number;
+  personality: string; // JSON
+  difficulty_modifier: number;
+  unlock_level: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SocialFeedPost {
+  id: string;
+  npc_id: string | null;
+  content: string;
+  post_type: string;
+  mission_id: string | null;
+  media_url: string | null;
+  likes: number;
+  reposts: number;
+  replies_count: number;
+  is_visible: number;
+  is_pinned: number;
+  difficulty_hint: string | null;
+  tech_tags: string; // JSON array
+  budget_range: string | null;
+  urgency: string | null;
+  scheduled_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlayerNpcInteraction {
+  id: string;
+  player_id: string;
+  npc_id: string;
+  relationship_level: number;
+  interaction_count: number;
+  projects_completed: number;
+  projects_failed: number;
+  total_revenue_earned: number;
+  is_following: number;
+  is_muted: number;
+  first_interaction_at: string | null;
+  last_interaction_at: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  player_id: string;
+  npc_id: string;
+  status: string;
+  initiated_from_post_id: string | null;
+  mission_id: string | null;
+  context: string; // JSON
+  unread_count: number;
+  last_message_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationMessage {
+  id: string;
+  conversation_id: string;
+  sender_type: string;
+  content: string;
+  message_type: string;
+  metadata: string; // JSON
+  is_read: number;
+  created_at: string;
+}
+
+export interface Project {
+  id: string;
+  player_id: string;
+  mission_id: string;
+  npc_id: string | null;
+  conversation_id: string | null;
+  status: string;
+  current_stage: number;
+  design_state: string | null; // JSON { nodes, edges }
+  requirements_met: string; // JSON array
+  score: number;
+  revenue_earned: number;
+  started_at: string;
+  deadline: string | null;
+  deployed_at: string | null;
+  completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectMetrics {
+  id: string;
+  project_id: string;
+  current_rps: number;
+  error_rate: number;
+  latency_p99: number;
+  uptime_percentage: number;
+  revenue_earned: number;
+  revenue_delta: number;
+  updated_at: string;
+}
+
+export interface ProjectEvent {
+  id: string;
+  project_id: string;
+  event_type: string;
+  message: string;
+  severity: string;
+  metadata: string; // JSON
+  acknowledged: number;
   created_at: string;
 }
 

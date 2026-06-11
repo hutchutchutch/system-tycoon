@@ -47,6 +47,19 @@ export type { SystemDesignCanvasProps } from './SystemDesignCanvas';
 export { BentoGrid } from '../molecules/BentoGrid';
 export type { BentoGridProps } from '../molecules/BentoGrid';
 
+// Social Feed (Twitter-style mission discovery)
+export {
+  SocialFeed,
+  FeedPost,
+  FeedFilters,
+  FeedSkeleton,
+  DMList,
+  DMConversation,
+} from './SocialFeed';
+
+// NPC Conversation View (AI-powered chat with 3-message limit)
+export { ConversationView } from './ConversationView';
+
 // Game-specific organisms
 export { default as CrisisAlert } from './CrisisAlert/CrisisAlert';
 // export { default as MissionShowcase } from './MissionShowcase/MissionShowcase'; // Removed
