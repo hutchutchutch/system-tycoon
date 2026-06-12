@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { X, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { MentorNotificationProps, HighlightOverlayProps } from './MentorNotification.types';
@@ -105,6 +105,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
 }) => {
   const [isVisible, setIsVisible] = useState(true);
   const [highlightBounds, setHighlightBounds] = useState<DOMRect | null>(null);
+  const [positionStyles, setPositionStyles] = useState<React.CSSProperties>({});
   const notificationRef = useRef<HTMLDivElement>(null);
   const hasBeenSavedRef = useRef(false);
 
@@ -148,20 +149,24 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   }, [autoHideDuration]);
 
   useEffect(() => {
-    if (targetElement) {
-      const element = document.querySelector(targetElement);
-      if (element) {
-        const rect = element.getBoundingClientRect();
-        setHighlightBounds(rect);
+    if (!targetElement) return;
 
-        // Add highlight class to the element
-        element.classList.add(styles.highlightedElement);
+    const element = document.querySelector(targetElement);
+    if (!element) return;
 
-        return () => {
-          element.classList.remove(styles.highlightedElement);
-        };
-      }
-    }
+    const updateBounds = () => setHighlightBounds(element.getBoundingClientRect());
+
+    updateBounds();
+    window.addEventListener('resize', updateBounds);
+    window.addEventListener('scroll', updateBounds, true);
+
+    element.classList.add(styles.highlightedElement);
+
+    return () => {
+      window.removeEventListener('resize', updateBounds);
+      window.removeEventListener('scroll', updateBounds, true);
+      element.classList.remove(styles.highlightedElement);
+    };
   }, [targetElement]);
 
   const handleClose = () => {
@@ -193,18 +198,22 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
     onAction?.();
   };
 
-  const getPositionStyles = (): React.CSSProperties => {
+  // Recalculate the notification card position whenever bounds, position, or the
+  // rendered card height changes.  useLayoutEffect fires after DOM paint so
+  // notificationRef.current.offsetHeight reflects the real height.
+  useLayoutEffect(() => {
     if (!highlightBounds || !targetElement) {
-      return {};
+      setPositionStyles({});
+      return;
     }
 
     const notificationWidth = 320;
-    const notificationHeight = 160;
+    const notificationHeight = notificationRef.current?.offsetHeight || 220;
     const offset = 16;
-    const margin = 16; // keep notification this far from viewport edges
+    const margin = 16;
 
-    let top: number | undefined;
-    let left: number | undefined;
+    let top: number;
+    let left: number;
 
     switch (position) {
       case 'top':
@@ -220,19 +229,20 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
         left = highlightBounds.left - notificationWidth - offset;
         break;
       case 'right':
+      default:
         top = highlightBounds.top + highlightBounds.height / 2 - notificationHeight / 2;
         left = highlightBounds.right + offset;
         break;
     }
 
-    // Clamp to viewport so the card is always visible
+    // Clamp so the card stays fully within the viewport
     const maxLeft = window.innerWidth - notificationWidth - margin;
     const maxTop = window.innerHeight - notificationHeight - margin;
-    if (top !== undefined) top = Math.max(margin, Math.min(top, maxTop));
-    if (left !== undefined) left = Math.max(margin, Math.min(left, maxLeft));
+    top = Math.max(margin, Math.min(top, maxTop));
+    left = Math.max(margin, Math.min(left, maxLeft));
 
-    return { top, left };
-  };
+    setPositionStyles({ top, left });
+  }, [highlightBounds, targetElement, position]);
 
   return (
     <>
@@ -245,7 +255,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
       <div
         ref={notificationRef}
         className={`${styles.notification} ${styles[`notification--${position}`]} ${isVisible ? styles.visible : styles.hidden} ${className}`}
-        style={targetElement && highlightBounds ? getPositionStyles() : undefined}
+        style={Object.keys(positionStyles).length > 0 ? positionStyles : undefined}
       >
         {showArrow && targetElement && (
           <div className={`${styles.arrow} ${styles[`arrow--${position}`]}`} />
