@@ -20,6 +20,11 @@ migrations_dir = "worker/migrations"
 binding = "CACHE"
 id = "dc21cd5257c94225905be9612b25bc36"
 
+# Preserve the already-applied DO migration history. No namespace is deleted.
+[[migrations]]
+tag = "v1"
+new_classes = ["DesignSessionDO"]
+
 # Top-level = production defaults (used by `wrangler deploy`).
 # Local dev overrides these via .dev.vars.
 [vars]
@@ -42,3 +47,7 @@ head_sampling_rate = 0.05
 #   GOOGLE_CLIENT_SECRET
 #   RESEND_API_KEY       — transactional email (verification, reset, alerts)
 #   OPENAI_API_KEY       — NPC chat responses
+
+# Names only: keep generated types identical in CI and local development.
+[secrets]
+required = ["JWT_SECRET", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "RESEND_API_KEY", "OPENAI_API_KEY"]

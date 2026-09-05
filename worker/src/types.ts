@@ -1,9 +1,5 @@
-// Bindings and configured variables come from `npm run worker:types`. OAuth
-// secrets are dashboard-managed and therefore cannot be inferred by Wrangler.
-export type Env = Cloudflare.Env & {
-  GOOGLE_CLIENT_ID: string;
-  GOOGLE_CLIENT_SECRET: string;
-};
+// Bindings, variables, and required secret names come from Wrangler config.
+export type Env = Cloudflare.Env;
 
 // Hono app environment: bindings + per-request context variables
 // (set by authMiddleware / optionalAuth in middleware/auth.ts)

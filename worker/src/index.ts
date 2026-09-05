@@ -13,6 +13,10 @@ import { mentorRoutes } from './routes/mentors';
 import { newsRoutes } from './routes/news';
 import { gameRoutes } from './routes/game';
 
+// Existing production DO namespaces must retain their class export. The MVP
+// intentionally has no public collaboration route or binding to this class.
+export { DesignSessionDO } from './durable-objects/DesignSessionDO';
+
 export const app = new Hono<AppEnv>();
 
 function withSecurityHeaders(response: Response, environment: string): Response {

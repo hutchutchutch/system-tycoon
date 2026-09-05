@@ -23,7 +23,7 @@ See [gameplay implementation and release notes](docs/gameplay-improvements.md) f
 
 ## Local development
 
-Requirements: Node.js 20+ and npm 10+.
+Requirements: Node.js 22.22.2+ and npm 10+.
 
 ```bash
 npm ci

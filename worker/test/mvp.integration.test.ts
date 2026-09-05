@@ -12,7 +12,7 @@ import { canvasRoutes } from '../src/routes/canvas';
 import { authRoutes } from '../src/routes/auth';
 import { mentorRoutes } from '../src/routes/mentors';
 import { missionRoutes } from '../src/routes/missions';
-import { app as workerApp } from '../src/index';
+import { app as workerApp, DesignSessionDO } from '../src/index';
 import type { AppEnv, AuthUser, Env, Profile } from '../src/types';
 
 const users = {
@@ -225,6 +225,12 @@ afterAll(async () => {
 });
 
 describe('MVP HTTP seams', () => {
+  it('retains the production Durable Object export and non-destructive migration history', async () => {
+    expect(DesignSessionDO).toBeTypeOf('function');
+    const config = await readFile(fileURLToPath(new URL('../../wrangler.toml', import.meta.url)), 'utf8');
+    expect(config).toContain('new_classes = ["DesignSessionDO"]');
+    expect(config).not.toContain('deleted_classes');
+  });
   it('rejects later-stage regressions, isolated components, and a load balancer with only one replica', async () => {
     const stage = await db.prepare("SELECT ms.id FROM mission_stages ms JOIN missions m ON m.id=ms.mission_id WHERE m.slug='health-tracker-crisis' AND ms.stage_number=3").first<{ id: string }>();
     const { canvasState } = await designThatSatisfies(stage!.id);
