@@ -9,6 +9,9 @@ compatibility_flags = ["nodejs_compat"]
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+# Apply Worker security headers to HTML/assets and keep API navigations out of
+# the SPA fallback. All requests intentionally pass through the entry point.
+run_worker_first = true
 
 [[d1_databases]]
 binding = "DB"

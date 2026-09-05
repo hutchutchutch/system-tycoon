@@ -12,7 +12,7 @@ import { canvasRoutes } from '../src/routes/canvas';
 import { authRoutes } from '../src/routes/auth';
 import { mentorRoutes } from '../src/routes/mentors';
 import { missionRoutes } from '../src/routes/missions';
-import { app as workerApp, DesignSessionDO } from '../src/index';
+import worker, { app as workerApp, DesignSessionDO } from '../src/index';
 import type { AppEnv, AuthUser, Env, Profile } from '../src/types';
 
 const users = {
@@ -225,6 +225,32 @@ afterAll(async () => {
 });
 
 describe('MVP HTTP seams', () => {
+  it('runs the Worker before assets and applies security headers to SPA responses', async () => {
+    const config = await readFile(fileURLToPath(new URL('../../wrangler.toml', import.meta.url)), 'utf8');
+    const assetsConfig = config.split('[assets]')[1]?.split('\n[')[0];
+    expect(assetsConfig).toContain('run_worker_first = true');
+    const assetFetch = vi.fn(async () => new Response('<html>Game</html>', {
+      headers: { 'content-type': 'text/html' },
+    }));
+    const env = { ENVIRONMENT: 'production', ASSETS: { fetch: assetFetch } } as unknown as Env;
+    const ctx = {} as ExecutionContext;
+    for (const path of ['/', '/game', '/whiteboard']) {
+      const response = await worker.fetch(new Request(`https://saas.game${path}`), env, ctx);
+      expect(response.status).toBe(200);
+      expect(response.headers.get('content-security-policy')).toContain("frame-ancestors 'none'");
+      expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+      expect(response.headers.get('x-frame-options')).toBe('DENY');
+      expect(response.headers.get('strict-transport-security')).toContain('max-age=31536000');
+      expect(await response.text()).toBe('<html>Game</html>');
+    }
+    const health = await worker.fetch(new Request('https://saas.game/api/health', {
+      headers: { 'sec-fetch-mode': 'navigate' },
+    }), env, ctx);
+    expect(health.headers.get('content-type')).toContain('application/json');
+    expect((await health.json() as { status: string }).status).toBe('ok');
+    expect(assetFetch).toHaveBeenCalledTimes(3);
+  });
+
   it('retains the production Durable Object export and non-destructive migration history', async () => {
     expect(DesignSessionDO).toBeTypeOf('function');
     const config = await readFile(fileURLToPath(new URL('../../wrangler.toml', import.meta.url)), 'utf8');

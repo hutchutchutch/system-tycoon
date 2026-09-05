@@ -6,6 +6,8 @@ Release preparation: production D1 was backed up, and pending migrations `0015`,
 
 Production compatibility: the existing `DesignSessionDO` export and original `v1` migration history remain in the Worker because live namespaces depend on that class. There is no MVP binding or public collaboration route. The legacy fetch/WebSocket handlers remain compatible; no delete-class migration, storage deletion, or namespace recreation is performed.
 
+Asset routing explicitly runs the Worker first so SPA responses receive the existing security headers and API navigations cannot bypass the router through the SPA fallback. This intentionally invokes the Worker for static requests too.
+
 - [x] Shared graph schema, unique instances, stable stakeholder roles and directed rules.
 - [x] Specific component requirements and realistic fixtures for all 25 stages.
 - [x] Versioned drafts, accepted snapshots, atomic stage inheritance and conflict handling.
@@ -39,7 +41,7 @@ Components unlock cumulatively within each story. Player level is `1 + floor(Imp
 
 ## Verification
 
-- `npm run check`: zero lint warnings; 33 tests pass; frontend production build, Worker TypeScript, and generated binding checks pass. CI uses Node 22, and required secret names are declared in Wrangler so generated types do not depend on private local files.
+- `npm run check`: zero lint warnings; 34 tests pass; frontend production build, Worker TypeScript, and generated binding checks pass. CI uses Node 22, and required secret names are declared in Wrangler so generated types do not depend on private local files.
 - The 25-stage HTTP journey loads the actual inherited graph, edits it through the production Redux actions using the unlocked palette, compares local/server evaluations, saves, completes, reviews the accepted snapshot, and verifies the next-stage graph and final Impact.
 - Negative cases cover wrong direction, broken starting designs, disconnected components, missing replicas, regression of earlier requirements, forged identities/costs, malformed graphs, stale saves/completions, owner isolation, and locked/completed stages.
 - React DOM lifecycle tests cover Strict Mode, route changes with delayed responses, empty saves, unsaved recovery with viewport restoration, offline retry, conflict preservation, completion before autosave, and completion during an in-flight save.
