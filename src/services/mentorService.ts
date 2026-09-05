@@ -36,6 +36,23 @@ export interface MentorForUI {
   toastMessage: string;
 }
 
+interface MentorApiResponse {
+  id: string;
+  name: string;
+  title: string;
+  company?: string;
+  contribution?: string;
+  expertise?: string[];
+  message?: string;
+  toastMessage?: string;
+  tagline?: string;
+  quote?: string;
+  lore?: string;
+  tags?: string[];
+  signature?: { knownFor?: string; legacy?: string };
+  specialty?: { domains?: string[] };
+}
+
 // Map mentor names to appropriate emojis
 const getAvatarForMentor = (name: string): string => {
   const avatarMap: Record<string, string> = {
@@ -68,7 +85,7 @@ const getAvatarForMentor = (name: string): string => {
 export const fetchMentors = async (): Promise<MentorForUI[]> => {
   try {
     // The Worker returns objects with: id, name, title, company, contribution, expertise, message, toastMessage
-    const data = await api.get<any[]>('/mentors');
+    const data = await api.get<MentorApiResponse[]>('/mentors');
 
     if (!data) {
       return [];

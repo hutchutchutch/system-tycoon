@@ -7,6 +7,7 @@ import { formatRelativeTime } from '../../../utils/dateUtils';
 import { mapEmailStatus, getPriorityIconInfo, getMissionTagText } from '../../../utils/emailUtils';
 import styles from './EmailCard.module.css';
 import type { EmailCardProps } from './EmailCard.types';
+import type { IconName } from '../../atoms/Icon';
 
 export const EmailCard: React.FC<EmailCardProps> = ({
   email,
@@ -96,7 +97,7 @@ export const EmailCard: React.FC<EmailCardProps> = ({
           <div className={styles.meta}>
             {priorityInfo && (
               <Icon
-                name={priorityInfo.iconName as any}
+                name={priorityInfo.iconName as IconName}
                 size="xs"
                 className={clsx(styles.priority, styles[`priority--${priorityInfo.severity}`])}
               />

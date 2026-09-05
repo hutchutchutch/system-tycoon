@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { AppEnv, Env, AuthUser, Profile, MissionEmail } from '../types';
-import { generateId, now, queryOne, query, execute, parseJson, toJson } from '../lib/db';
+import type { AppEnv, AuthUser, Profile, MissionEmail } from '../types';
+import { generateId, now, queryOne, query, execute, parseJson } from '../lib/db';
 
 export const emailRoutes = new Hono<AppEnv>();
 
@@ -75,13 +75,17 @@ emailRoutes.get('/', async (c) => {
  * Get a single email by ID.
  */
 emailRoutes.get('/:id', async (c) => {
+  const user = c.get('user') as AuthUser;
   const db = c.env.DB;
   const emailId = c.req.param('id');
 
-  const email = await queryOne<MissionEmail>(
+  const email = await queryOne<MissionEmail & { inbox_status: string; read_at: string | null; delivered_at: string | null }>(
     db,
-    'SELECT * FROM mission_emails WHERE id = ?',
-    [emailId]
+    `SELECT me.*, uei.status AS inbox_status, uei.read_at, uei.delivered_at
+     FROM user_email_inbox uei
+     JOIN mission_emails me ON me.id = uei.mission_email_id
+     WHERE uei.user_id = ? AND me.id = ?`,
+    [user.id, emailId]
   );
 
   if (!email) {
@@ -94,55 +98,62 @@ emailRoutes.get('/:id', async (c) => {
 /**
  * POST /emails
  * Compose and save a new email.
- * Body: { to, subject, body, status ('draft'|'sent'), missionId?, stageId? }
+ * Body: { to, subject, body, status ('draft'|'sent') }
  */
 emailRoutes.post('/', async (c) => {
   const user = c.get('user') as AuthUser;
   const profile = c.get('profile') as Profile;
   const db = c.env.DB;
 
-  const { to, subject, body, status, missionId, stageId } = await c.req.json<{
+  const payload = await c.req.json<{
     to: string;
     subject: string;
     body: string;
     status: 'draft' | 'sent';
-    missionId?: string;
-    stageId?: string;
-  }>();
+  }>().catch(() => null);
+  const recipient = payload?.to?.trim();
+  const subject = payload?.subject?.trim();
+  const message = payload?.body?.trim();
+  const status = payload?.status;
+  if (
+    !recipient || recipient.length > 320
+    || !subject || subject.length > 200
+    || !message || message.length > 10_000
+    || (status !== 'draft' && status !== 'sent')
+  ) {
+    return c.json({ error: 'Invalid email' }, 400);
+  }
 
   const id = generateId();
   const timestamp = now();
 
-  await execute(
-    db,
+  const statements: D1PreparedStatement[] = [db.prepare(
     `INSERT INTO mission_emails
        (id, mission_id, stage_id, sender_name, sender_email, recipient_email, subject, body, status, priority, has_attachments, tags, category, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'normal', 0, '[]', ?, ?, ?)`,
-    [
+  ).bind(
       id,
-      missionId || null,
-      stageId || null,
-      profile.display_name || profile.username,
+      null,
+      null,
+      profile.display_name || profile.username || profile.name || profile.email,
       profile.email,
-      to,
+      recipient,
       subject,
-      body,
+      message,
       status,
       status === 'sent' ? 'sent' : 'drafts',
       timestamp,
       timestamp,
-    ]
-  );
+    )];
 
   // If sent, also insert into user_email_inbox
   if (status === 'sent') {
-    await execute(
-      db,
+    statements.push(db.prepare(
       `INSERT INTO user_email_inbox (id, user_id, mission_email_id, status, delivered_at)
        VALUES (?, ?, ?, 'unread', ?)`,
-      [generateId(), user.id, id, timestamp]
-    );
+    ).bind(generateId(), user.id, id, timestamp));
   }
+  await db.batch(statements);
 
   const created = await queryOne<MissionEmail>(db, 'SELECT * FROM mission_emails WHERE id = ?', [id]);
 
@@ -172,72 +183,4 @@ emailRoutes.patch('/:id/read', async (c) => {
   }
 
   return c.json({ success: true });
-});
-
-/**
- * PATCH /emails/:id/status
- * Update an email's status.
- * Body: { status }
- */
-emailRoutes.patch('/:id/status', async (c) => {
-  const db = c.env.DB;
-  const emailId = c.req.param('id');
-  const { status } = await c.req.json<{ status: string }>();
-  const timestamp = now();
-
-  const result = await execute(
-    db,
-    `UPDATE mission_emails SET status = ?, updated_at = ? WHERE id = ?`,
-    [status, timestamp, emailId]
-  );
-
-  if (result.meta.changes === 0) {
-    return c.json({ error: 'Email not found' }, 404);
-  }
-
-  return c.json({ success: true });
-});
-
-/**
- * POST /emails/deliver
- * Deliver mission emails to the user's inbox.
- * Replaces the `deliver_mission_emails` RPC.
- * Body: { missionId, stageId }
- */
-emailRoutes.post('/deliver', async (c) => {
-  const user = c.get('user') as AuthUser;
-  const db = c.env.DB;
-  const { missionId, stageId } = await c.req.json<{ missionId: string; stageId: string }>();
-  const timestamp = now();
-
-  // Find mission emails for this stage that are NOT yet in the user's inbox
-  const undelivered = await query<{ id: string }>(
-    db,
-    `SELECT me.id FROM mission_emails me
-     WHERE me.mission_id = ? AND me.stage_id = ?
-       AND me.id NOT IN (
-         SELECT mission_email_id FROM user_email_inbox WHERE user_id = ?
-       )`,
-    [missionId, stageId, user.id]
-  );
-
-  if (undelivered.length === 0) {
-    return c.json({ delivered: 0 });
-  }
-
-  // Insert each undelivered email into the user's inbox
-  const statements = undelivered.map((email) => ({
-    sql: `INSERT INTO user_email_inbox (id, user_id, mission_email_id, status, delivered_at)
-          VALUES (?, ?, ?, 'unread', ?)`,
-    params: [generateId(), user.id, email.id, timestamp] as unknown[],
-  }));
-
-  // Use batch for efficiency
-  const prepared = statements.map(({ sql, params }) => {
-    const stmt = db.prepare(sql);
-    return params && params.length > 0 ? stmt.bind(...params) : stmt;
-  });
-  await db.batch(prepared);
-
-  return c.json({ delivered: undelivered.length });
 });

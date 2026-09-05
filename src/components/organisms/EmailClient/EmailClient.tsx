@@ -17,7 +17,6 @@ export const EmailClient: React.FC<EmailClientProps> = ({
   onFolderSelect,
   onSearchChange,
   onEmailCompose,
-  onEmailReply,
   className,
   showEmailDetail = false,
   selectedEmailDetail,
@@ -287,23 +286,22 @@ export const EmailClient: React.FC<EmailClientProps> = ({
               <div className={styles.emailDetailMeta}>
                 <strong>From:</strong> {selectedEmailDetail.sender.name} &lt;{selectedEmailDetail.sender.email}&gt;<br />
                 <strong>To:</strong> Me<br />
-                <strong>Date:</strong> {selectedEmailDetail.timestamp.toLocaleString()}
+                <strong>Date:</strong> {new Date(selectedEmailDetail.sentAt).toLocaleString()}
               </div>
               
               <div className={styles.emailDetailContent}>
-                {selectedEmailDetail.content}
+                {selectedEmailDetail.body}
                 
                 {selectedEmailDetail.body && selectedEmailDetail.body.includes('Open System Builder') && (
-                  <div
-                    className={styles.emailHtmlContent}
-                    dangerouslySetInnerHTML={{ __html: selectedEmailDetail.body }}
-                  />
+                  <div className={styles.emailHtmlContent} style={{ whiteSpace: 'pre-wrap' }}>
+                    {selectedEmailDetail.body}
+                  </div>
                 )}
                 
                 {/* Show system design button for mission emails or crisis emails */}
                 {((selectedEmailDetail.missionId && selectedEmailDetail.stageId && 
                    selectedEmailDetail.triggerType === 'mission_start') ||
-                  selectedEmailDetail.content?.includes('/?crisis=true')) && (
+                  selectedEmailDetail.body?.includes('/?crisis=true')) && (
                   <div className={styles.systemDesignPrompt}>
                     <p>This email contains a critical mission that requires your system design expertise.</p>
                     <button 
@@ -341,4 +339,4 @@ export const EmailClient: React.FC<EmailClientProps> = ({
       </div>
     </div>
   );
-}; 
+};

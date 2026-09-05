@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface LogoProps {
   src?: string;
   alt?: string;
@@ -7,4 +5,4 @@ export interface LogoProps {
   variant?: 'circle' | 'square' | 'rounded';
   className?: string;
   onClick?: () => void;
-} 
+}

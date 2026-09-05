@@ -1,6 +1,6 @@
 name = "system-tycoon"
 main = "worker/src/index.ts"
-compatibility_date = "2024-12-01"
+compatibility_date = "2026-09-03"
 compatibility_flags = ["nodejs_compat"]
 
 # Serve the React SPA directly from the Worker.
@@ -20,14 +20,6 @@ migrations_dir = "worker/migrations"
 binding = "CACHE"
 id = "dc21cd5257c94225905be9612b25bc36"
 
-[[durable_objects.bindings]]
-name = "DESIGN_SESSION"
-class_name = "DesignSessionDO"
-
-[[migrations]]
-tag = "v1"
-new_classes = ["DesignSessionDO"]
-
 # Top-level = production defaults (used by `wrangler deploy`).
 # Local dev overrides these via .dev.vars.
 [vars]
@@ -35,6 +27,14 @@ ENVIRONMENT = "production"
 BETTER_AUTH_URL = "https://saas.game"
 EMAIL_FROM = "hutch@yakyak.solutions"
 EMAIL_FROM_NAME = "Service as a Software"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[observability.traces]
+enabled = true
+head_sampling_rate = 0.05
 
 # Secrets (via `wrangler secret put` or .dev.vars):
 #   JWT_SECRET           — Better Auth session signing secret

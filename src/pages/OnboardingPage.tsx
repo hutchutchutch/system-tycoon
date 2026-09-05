@@ -3,12 +3,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch } from '../hooks/redux';
 import { updateOnboardingStatus, updatePreferredMentor } from '../features/auth/authSlice';
-import { useTheme } from '../contexts/ThemeContext';
-import { 
-  OpeningImpactScreen, 
-  TransformationStoryScreen, 
-  EnhancedMentorSelectionScreen, 
-  MentorWisdomScreen 
+import { useTheme } from '../hooks/useTheme';
+import {
+  OpeningImpactScreen,
+  TransformationStoryScreen,
+  EnhancedMentorSelectionScreen,
+  MentorWisdomScreen
 } from '../components/organisms/OnboardingScreens';
 import type { MentorForUI } from '../services/mentorService';
 
@@ -81,7 +81,7 @@ export const OnboardingPage: React.FC = () => {
   const handleComplete = async () => {
     // Mark onboarding as completed in the database
     await dispatch(updateOnboardingStatus(true));
-    
+
     // Navigate to the game since user is already authenticated
     navigate('/game');
   };
@@ -94,7 +94,7 @@ export const OnboardingPage: React.FC = () => {
             onContinue={handleContinue}
           />
         );
-      
+
       case 'transformation':
         return (
           <TransformationStoryScreen
@@ -102,14 +102,14 @@ export const OnboardingPage: React.FC = () => {
             onComplete={handleStoryComplete}
           />
         );
-      
+
       case 'mentor-selection':
         return (
           <EnhancedMentorSelectionScreen
             onMentorSelected={handleMentorSelected}
           />
         );
-      
+
       case 'mentor-wisdom':
         return (
           <MentorWisdomScreen
@@ -117,7 +117,7 @@ export const OnboardingPage: React.FC = () => {
             onComplete={handleComplete}
           />
         );
-      
+
       default:
         return null;
     }
@@ -148,7 +148,7 @@ export const OnboardingPage: React.FC = () => {
         backgroundPosition: 'center center',
         pointerEvents: 'none'
       }} />
-      
+
       <AnimatePresence mode="wait">
         <motion.div
           key={currentStep}
@@ -171,4 +171,4 @@ export const OnboardingPage: React.FC = () => {
       </AnimatePresence>
     </div>
   );
-}; 
+};

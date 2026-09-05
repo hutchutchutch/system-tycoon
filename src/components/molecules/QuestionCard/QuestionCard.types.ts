@@ -16,7 +16,7 @@ export interface RequirementImpact {
   description: string;
   icon: string;
   value?: number;
-  requirement?: any;
+  requirement?: unknown;
   requirementId?: string;
   key?: string;
 }

@@ -35,9 +35,7 @@ export interface BentoCardProps extends BentoCardBaseProps {
 }
 
 // New specific card types
-export interface BentoCardSmallProps extends BentoCardBaseProps {
-  // Small cards only show headline
-}
+export type BentoCardSmallProps = BentoCardBaseProps;
 
 export interface BentoCardMediumProps extends BentoCardBaseProps {
   subheadline?: string;
@@ -48,4 +46,4 @@ export interface BentoCardLargeProps extends BentoCardBaseProps {
   subheadline?: string;
   previewText?: string;
   // Large cards show headline + subheadline + preview_text
-} 
+}

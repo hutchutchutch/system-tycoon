@@ -32,7 +32,7 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
         // Using IDs that match the MENTORS constant in src/constants/mentors.ts
         const mockMentors: MentorForUI[] = [
           {
-            id: 'linda-wu',
+            id: 'dr-linda-wu',
             name: 'Dr. Linda Wu',
             title: 'Senior Systems Architect',
             company: 'Tech Solutions Inc',
@@ -76,7 +76,7 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
       // Fallback to mock data if there's an error
       const mockMentors: MentorForUI[] = [
         {
-          id: 'linda-wu',
+          id: 'dr-linda-wu',
           name: 'Dr. Linda Wu',
           title: 'Senior Systems Architect',
           company: 'Tech Solutions Inc',
@@ -451,4 +451,4 @@ export const EnhancedMentorSelectionScreen: React.FC<EnhancedMentorSelectionScre
       `}</style>
     </div>
   );
-}; 
+};

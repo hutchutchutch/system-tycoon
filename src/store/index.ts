@@ -1,143 +1,53 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { setupListeners } from '@reduxjs/toolkit/query';
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
 
 // Import existing slices from features directory (following feature-based organization)
 import authReducer from '../features/auth/authSlice';
-import gameReducer from '../features/game/gameSlice';
-import userReducer from '../features/user/userSlice';
 import missionReducer from '../features/mission/missionSlice';
 import designReducer from '../features/design/designSlice';
-import socialReducer from '../features/social/socialSlice';
-import projectReducer from '../features/project/projectSlice';
 
 // Import store-based slices (cross-cutting concerns)
 import emailReducer from './slices/emailSlice';
-import canvasReducer from './slices/canvasSlice';
 import mentorReducer from './slices/mentorSlice';
-// Import RTK Query APIs
-import { canvasApi } from './api/canvasApi';
-import { mentorApi } from './api/mentorApi';
-
-// Import middleware
-import { canvasMiddleware } from './middleware/canvasMiddleware';
-
-// Persist configuration following Redux patterns
-const persistConfig = {
-  key: 'system-design-tycoon',
-  version: 1,
-  storage,
-  whitelist: ['auth', 'user'], // Only persist user data and auth
-  blacklist: [
-    'game',
-    'mission',
-    'design',
-    'email',
-    'canvas',
-    'mentor', // Don't persist real-time chat state
-    'social', // Don't persist real-time social feed state
-    'project', // Don't persist project simulation state
-    'canvasApi',
-    'mentorApi'
-  ],
-};
 
 // Root reducer following Redux best practices
 const rootReducer = combineReducers({
   // Feature-based state (domain-specific)
   auth: authReducer,
-  game: gameReducer,
-  user: userReducer,
   mission: missionReducer,
-  design: designReducer, // Ephemeral React Flow canvas state (non-serializable nodes/edges)
-  social: socialReducer, // Social feed & NPC conversations
-  project: projectReducer, // Active projects & simulation
+  design: designReducer, // One graph editor; useMissionCanvas owns durable saves.
 
   // Cross-cutting concerns (shared across features)
   email: emailReducer,
-  canvas: canvasReducer, // Serializable canvas persistence state (synced from design, saved to D1)
   mentor: mentorReducer,
 
-  // RTK Query APIs for server state
-  [canvasApi.reducerPath]: canvasApi.reducer,
-  [mentorApi.reducerPath]: mentorApi.reducer,
 });
-
-const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 // Configure store with all middleware
 export const store = configureStore({
-  reducer: persistedReducer,
+  // Better Auth's HTTP-only cookie and the Worker database are the durable
+  // sources of truth. Redux holds only session-scoped UI state.
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [
-          FLUSH,
-          REHYDRATE,
-          PAUSE,
-          PERSIST,
-          PURGE,
-          REGISTER,
           // Ignore React Flow non-serializable data
           'design/setDraggedComponent',
           // Ignore mentor chat real-time data
           'mentor/addMessage',
-          // Ignore social feed & project real-time data
-          'social/addMessage',
-          'social/addPost',
-          'project/updateMetrics',
-          'project/addEvent',
-          'project/setDesignState',
-          // Ignore canvas middleware dispatches containing non-serializable node data
-          'canvas/updateCanvasState',
-          'canvas/updateCanvasNodes',
-          'canvas/updateCanvasEdges',
         ],
         ignoredPaths: [
           'design.draggedComponent',
           'mentor.messages.*.timestamp', // Date objects in messages
-          'canvas.canvasStates',
         ],
       },
-    })
-    .concat(canvasApi.middleware)
-    .concat(mentorApi.middleware)
-    .concat(canvasMiddleware),
+    }),
   devTools: process.env.NODE_ENV !== 'production' && {
     name: 'System Design Tycoon',
     trace: true,
     traceLimit: 25,
-    // Action sanitizers for better debugging
-    actionSanitizer: (action: any) => {
-      // Sanitize large payloads
-      if (action.type === 'mentor/setMessages' && action.payload?.messages?.length > 10) {
-        return {
-          ...action,
-          payload: {
-            ...action.payload,
-            messages: `<<${action.payload.messages.length} MESSAGES>>`,
-          },
-        };
-      }
-      return action;
-    },
   },
 });
-
-export const persistor = persistStore(store);
-
-// Setup RTK Query listeners for caching and refetching
-setupListeners(store.dispatch);
 
 // Type definitions following Redux Toolkit patterns
 export type RootState = ReturnType<typeof store.getState>;

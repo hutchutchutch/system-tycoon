@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AvatarGroupProps {
   avatars: Array<{
     src: string;
@@ -9,4 +7,4 @@ export interface AvatarGroupProps {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   maxVisible?: number;
   className?: string;
-} 
+}

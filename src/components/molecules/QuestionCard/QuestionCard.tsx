@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
-import { Badge } from '../../atoms/Badge';
 import type { QuestionCardProps } from './index';
+import type { IconName } from '../../atoms/Icon';
 import styles from './QuestionCard.module.css';
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -27,16 +27,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       handleClick();
     }
   }, [handleClick]);
-
-  const getCategoryColor = () => {
-    const colors = {
-      product: 'primary',
-      business: 'success',
-      marketing: 'warning',
-      technical: 'info',
-    };
-    return colors[question.category] || 'default';
-  };
 
   return (
     <div
@@ -75,7 +65,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             className={styles.impactIcon}
             title={impact.description}
           >
-            <Icon name={impact.icon as any} size="xs" />
+            <Icon name={impact.icon as IconName} size="xs" />
           </div>
         ))}
       </div>

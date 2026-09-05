@@ -8,13 +8,8 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
   tabs,
   className,
   children,
-  bookmarks,
-  onTabChange,
-  onTabClose,
-  onNewTab,
-  onEmailClick,
 }) => {
-  const activeTabData = useMemo(() => 
+  const activeTabData = useMemo(() =>
     tabs.find(tab => tab.id === activeTab),
     [tabs, activeTab]
   );
@@ -24,9 +19,9 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
   // Filter out tab-specific properties and pass through component props
   const componentProps = useMemo(() => {
     if (!activeTabData) return {};
-    
+
     return Object.fromEntries(
-      Object.entries(activeTabData).filter(([key]) => 
+      Object.entries(activeTabData).filter(([key]) =>
         !['id', 'title', 'url', 'component', 'hasNotification', 'closable'].includes(key)
       )
     );
@@ -39,11 +34,11 @@ export const BrowserWindow: React.FC<BrowserWindowProps> = ({
         activeTabData?.component?.name === 'EmailClientWrapper' && styles['content--emailClient']
       )}>
         {ActiveComponent ? (
-          <ActiveComponent 
+          <ActiveComponent
             {...componentProps}
           />
         ) : children}
       </div>
     </div>
   );
-}; 
+};

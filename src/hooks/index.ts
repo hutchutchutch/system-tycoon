@@ -2,25 +2,6 @@
 export { useAppDispatch, useAppSelector } from './redux';
 
 // Feature hooks
-export { useWhiteboardState } from './useCanvasState';
+export { useMissionCanvas } from './useMissionCanvas';
 export { useConversationSession } from './useConversationSession';
 export { useRequirementValidation } from './useRequirementValidation';
-
-// Project hooks
-export {
-  useProject,
-  useProjectRealtime,
-  useActiveProjectRealtime,
-  useProjectMetrics,
-  useProjectEvents,
-  useProjectDiscovery,
-  useSimulation,
-  useProjectStats,
-} from './useProject';
-
-// NPC Conversation hooks
-export {
-  useNPCConversation,
-  useStartConversation,
-  useConversationList,
-} from './useNPCConversation';

@@ -184,7 +184,18 @@ export interface NewsArticle {
   author_avatar_url?: string;
   publication_name: string;
   urgency_level: 'critical' | 'high' | 'medium' | 'low';
-  impact_stats: Record<string, any>;
+  impact_stats: {
+    people?: number;
+    metric?: string;
+    families_affected?: number;
+    students_benefited?: number;
+    children_sick?: number;
+    households_affected?: number;
+    businesses_participating?: number;
+    budget_available?: string;
+    days_until_vote?: number;
+    [key: string]: unknown;
+  };
   location?: string;
   category_slug: string;
   tags: string[];
@@ -193,7 +204,7 @@ export interface NewsArticle {
   article_status: 'draft' | 'active' | 'in_progress' | 'success' | 'partial_success' | 'expired';
   success_headline?: string;
   success_text?: string;
-  success_stats?: Record<string, any>;
+  success_stats?: Record<string, unknown>;
   success_published_at?: string;
   view_count: number;
   contact_count: number;

@@ -4,19 +4,20 @@ import { Icon } from '../../atoms/Icon';
 import { Badge } from '../../atoms/Badge';
 import styles from './ComponentCard.module.css';
 import type { ComponentCardProps } from './ComponentCard.types';
+import type { IconName } from '../../atoms/Icon';
 
 /**
  * ComponentCard
- * 
+ *
  * Purpose: Displays system architecture components in drawer and on canvas
  * Now supports both the old ComponentData format and new DrawerComponent format
- * 
+ *
  * State Management:
  * - Local state for hover effects and UI interactions only
  * - Component data passed via props from parent
  * - Dragging state managed by HTML Drag and Drop API
  * - Selection state controlled by parent
- * 
+ *
  * Redux Integration:
  * - Parent reads components from design.availableComponents
  * - Parent dispatches addNode when dropped on canvas
@@ -40,9 +41,7 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
 
   // Use either the new drawerComponent or fall back to old data format
   const component = drawerComponent || data;
-  if (!component) return null;
-
-  const isDrawerComponent = 'shortDescription' in component;
+  const isDrawerComponent = Boolean(component && 'shortDescription' in component);
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
@@ -53,6 +52,10 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
   }, []);
 
   const handleDragStart = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    if (!component) {
+      event.preventDefault();
+      return;
+    }
     if (isDrawerComponent && drawerComponent) {
       // For drawer components from database, set up drag data
       event.dataTransfer.setData('application/reactflow', drawerComponent.category);
@@ -62,15 +65,15 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
         type: drawerComponent.category,
         category: drawerComponent.category,
         cost: 50, // Default cost
-        capacity: 1000, // Default capacity  
+        capacity: 1000, // Default capacity
         description: drawerComponent.shortDescription,
         icon: drawerComponent.icon,
         color: drawerComponent.color
       }));
       event.dataTransfer.effectAllowed = 'move';
-      
+
       console.log('Dragging drawer component:', drawerComponent.name);
-      
+
       // Call parent handler
       onDragStart?.(event, drawerComponent);
       return;
@@ -85,7 +88,7 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
     event.dataTransfer.setData('application/reactflow', data?.type || '');
     event.dataTransfer.setData('application/component', JSON.stringify(component));
     event.dataTransfer.effectAllowed = 'move';
-    
+
     // Call parent handler
     onDragStart?.(event, component);
   }, [component, data, isDrawerComponent, drawerComponent, onDragStart]);
@@ -94,18 +97,20 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
     onDragEnd?.();
   }, [onDragEnd]);
 
+  if (!component) return null;
+
   const renderDrawerView = () => {
     if (isDrawerComponent && drawerComponent) {
       return (
         <>
           <div className={styles.header}>
-            <div 
+            <div
               className={styles.iconWrapper}
               style={{ backgroundColor: drawerComponent.color }}
             >
-              <Icon 
-                name={drawerComponent.icon as any || 'server'} 
-                size="md" 
+              <Icon
+                name={(drawerComponent.icon || 'server') as IconName}
+                size="md"
                 className={styles.icon}
               />
             </div>
@@ -113,9 +118,9 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
               <h3 className={styles.name}>{drawerComponent.name}</h3>
               <p className={styles.shortDescription}>{drawerComponent.shortDescription}</p>
             </div>
-            <Icon 
-              name={isExpanded ? 'chevron-up' : 'chevron-down'} 
-              size="sm" 
+            <Icon
+              name={isExpanded ? 'chevron-up' : 'chevron-down'}
+              size="sm"
               className={styles.expandIcon}
             />
           </div>
@@ -127,22 +132,22 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
     return (
       <>
         <div className={styles.header}>
-          <Icon 
-            name={data?.icon as any || 'server'} 
-            size="md" 
+          <Icon
+            name={(data?.icon || 'server') as IconName}
+            size="md"
             className={styles.icon}
           />
           <h3 className={styles.name}>{data?.name}</h3>
           {data?.locked && (
-            <Icon 
-              name="lock" 
-              size="sm" 
+            <Icon
+              name="lock"
+              size="sm"
               className={styles.lockIcon}
               aria-label="Component locked"
             />
           )}
         </div>
-        
+
         <div className={styles.footer}>
           <span className={styles.cost}>${data?.cost}/mo</span>
           <Badge variant="default" size="sm">
@@ -157,14 +162,14 @@ export const ResourceCard: React.FC<ComponentCardProps> = ({
     return (
       <>
         <div className={styles.header}>
-          <Icon 
-            name={data?.icon as any || 'server'} 
-            size="md" 
+          <Icon
+            name={(data?.icon || 'server') as IconName}
+            size="md"
             className={styles.icon}
           />
           <h3 className={styles.name}>{data?.name}</h3>
         </div>
-        
+
         <div className={styles.metrics}>
           <div className={styles.metric}>
             <span className={styles.metricLabel}>Load</span>

@@ -1,43 +1,49 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { RootLayout } from './components/layout/RootLayout';
-import { AuthLayout } from './components/layout/AuthLayout';
-import { GameLayout } from './components/layout/GameLayout';
 import { ProtectedRoute, OnboardingRoute } from './components/common/ProtectedRoute';
 
-// Pages
-import { SimpleLanding } from './pages/SimpleLanding';
-import { OnboardingPage } from './pages/OnboardingPage';
-import { AuthFlowPage } from './pages/auth/AuthFlowPage';
-import { OAuthCallback } from './pages/auth/OAuthCallback';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
-import { VerifyEmailSentPage } from './pages/auth/VerifyEmailSentPage';
-import { InitialExperience } from './pages/InitialExperience';
-import { ChooseMissionWrapper } from './pages/InitialExperience/ChooseMissionWrapper';
 import { ErrorPage } from './pages/ErrorPage';
 
-import { EmailClientWrapper } from './pages/InitialExperience/EmailClientWrapper';
-import { MissionWhiteboard } from './pages/InitialExperience/CrisisSystemDesignCanvas';
-import { BlankSystemDesignPage } from './pages/BlankSystemDesignPage';
-import { MissionResultsPage } from './pages/game/MissionResultsPage';
+const SimpleLanding = lazy(() => import('./pages/SimpleLanding').then((module) => ({ default: module.SimpleLanding })));
+const RootLayout = lazy(() => import('./components/layout/RootLayout').then((module) => ({ default: module.RootLayout })));
+const GameLayout = lazy(() => import('./components/layout/GameLayout').then((module) => ({ default: module.GameLayout })));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage').then((module) => ({ default: module.OnboardingPage })));
+const AuthFlowPage = lazy(() => import('./pages/auth/AuthFlowPage').then((module) => ({ default: module.AuthFlowPage })));
+const OAuthCallback = lazy(() => import('./pages/auth/OAuthCallback').then((module) => ({ default: module.OAuthCallback })));
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage').then((module) => ({ default: module.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage').then((module) => ({ default: module.ResetPasswordPage })));
+const VerifyEmailSentPage = lazy(() => import('./pages/auth/VerifyEmailSentPage').then((module) => ({ default: module.VerifyEmailSentPage })));
+const InitialExperience = lazy(() => import('./pages/InitialExperience').then((module) => ({ default: module.InitialExperience })));
+const ChooseMissionWrapper = lazy(() => import('./pages/InitialExperience/ChooseMissionWrapper').then((module) => ({ default: module.ChooseMissionWrapper })));
+const EmailClientWrapper = lazy(() => import('./pages/InitialExperience/EmailClientWrapper').then((module) => ({ default: module.EmailClientWrapper })));
+const MissionWhiteboard = lazy(() => import('./pages/InitialExperience/CrisisSystemDesignCanvas').then((module) => ({ default: module.MissionWhiteboard })));
+const BlankSystemDesignPage = lazy(() => import('./pages/BlankSystemDesignPage').then((module) => ({ default: module.BlankSystemDesignPage })));
+const MissionResultsPage = lazy(() => import('./pages/game/MissionResultsPage').then((module) => ({ default: module.MissionResultsPage })));
+
+const routeFallback = (
+  <div role="status" aria-live="polite" style={{ padding: '2rem', textAlign: 'center' }}>
+    Loading…
+  </div>
+);
+
+const load = (element: React.ReactNode) => <Suspense fallback={routeFallback}>{element}</Suspense>;
 
 export const router = createBrowserRouter([
   {
     path: '/',
     index: true,
-    element: <SimpleLanding />,
+    element: load(<SimpleLanding />),
   },
   {
     path: '/',
-    element: <RootLayout />,
+    element: load(<RootLayout />),
     errorElement: <ErrorPage />,
     children: [
       {
         path: 'onboarding',
         element: (
           <OnboardingRoute>
-            <OnboardingPage />
+            {load(<OnboardingPage />)}
           </OnboardingRoute>
         ),
       },
@@ -45,13 +51,13 @@ export const router = createBrowserRouter([
         path: 'game',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <InitialExperience />,
+            element: load(<InitialExperience />),
           },
         ],
       },
@@ -60,13 +66,13 @@ export const router = createBrowserRouter([
         path: 'browser/news',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <ChooseMissionWrapper />,
+            element: load(<ChooseMissionWrapper />),
           },
         ],
       },
@@ -74,27 +80,32 @@ export const router = createBrowserRouter([
         path: 'email',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <EmailClientWrapper />,
+            element: load(<EmailClientWrapper />),
           },
         ],
+      },
+      {
+        path: 'whiteboard/stage/:stageId',
+        element: <ProtectedRoute>{load(<GameLayout />)}</ProtectedRoute>,
+        children: [{ index: true, element: load(<MissionWhiteboard />) }],
       },
       {
         path: 'whiteboard/:emailId',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <MissionWhiteboard />,
+            element: load(<MissionWhiteboard />),
           },
         ],
       },
@@ -102,13 +113,13 @@ export const router = createBrowserRouter([
         path: 'whiteboard',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <BlankSystemDesignPage />,
+            element: load(<BlankSystemDesignPage />),
           },
         ],
       },
@@ -118,13 +129,13 @@ export const router = createBrowserRouter([
         path: 'results/stage/:stageId',
         element: (
           <ProtectedRoute>
-            <GameLayout />
+            {load(<GameLayout />)}
           </ProtectedRoute>
         ),
         children: [
           {
             index: true,
-            element: <MissionResultsPage />,
+            element: load(<MissionResultsPage />),
           },
         ],
       },
@@ -137,7 +148,7 @@ export const router = createBrowserRouter([
   // Standalone auth routes (no layout wrapper)
   {
     path: 'auth',
-    element: <AuthFlowPage />,
+    element: load(<AuthFlowPage />),
   },
   {
     path: 'auth/signin',
@@ -149,19 +160,19 @@ export const router = createBrowserRouter([
   },
   {
     path: 'auth/callback',
-    element: <OAuthCallback />,
+    element: load(<OAuthCallback />),
   },
   {
     path: 'auth/forgot-password',
-    element: <ForgotPasswordPage />,
+    element: load(<ForgotPasswordPage />),
   },
   {
     path: 'auth/reset-password',
-    element: <ResetPasswordPage />,
+    element: load(<ResetPasswordPage />),
   },
   {
     path: 'auth/verify-email',
-    element: <VerifyEmailSentPage />,
+    element: load(<VerifyEmailSentPage />),
   },
   // Legacy auth redirects
   {

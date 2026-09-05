@@ -74,11 +74,9 @@ export const API_ENDPOINTS = {
     ACHIEVEMENTS: '/api/user/achievements',
   },
   GAME: {
-    SCENARIOS: '/api/game/scenarios',
     COMPONENTS: '/api/game/components',
     MENTORS: '/api/game/mentors',
     ATTEMPT: '/api/game/attempt',
-    PROGRESS: '/api/game/progress',
   },
 } as const;
 

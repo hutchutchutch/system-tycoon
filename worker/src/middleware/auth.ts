@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import type { AppEnv, Env, AuthUser, Profile } from '../types';
+import type { AppEnv, AuthUser, Profile } from '../types';
 import { createAuth } from '../lib/auth';
 import { queryOne } from '../lib/db';
 

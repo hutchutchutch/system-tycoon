@@ -13,7 +13,7 @@ const iconSizes = {
 };
 
 // Map icon names to Lucide components
-const iconMap: Record<string, React.ComponentType<any>> = {
+const iconMap: Record<string, LucideIcons.LucideIcon> = {
   'server': LucideIcons.Server,
   'database': LucideIcons.Database,
   'globe': LucideIcons.Globe,

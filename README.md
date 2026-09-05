@@ -1,115 +1,84 @@
 # Service as a Software
 
-**Learn system design by helping real people.**
+Learn system design by helping people through short, story-driven architecture missions.
 
-A gamified platform where you solve real-world system architecture challenges — a doctor whose patient tracker is crashing, a teacher whose school database can't handle enrollment, an activist who needs to prove environmental contamination. Each mission teaches system design concepts by making them matter.
+The MVP loop is deliberately narrow: browse a mission, contact the client, work through ordered design stages, validate and persist the whiteboard, receive mentor guidance, earn Impact, and continue from the campaign or results. Five stories have five stages each. The standalone whiteboard is device-saved practice, not a custom mission generator. Social feeds, NPC direct messages, collaborative sessions, and performance simulations are outside the MVP.
 
-**Live at [saas.game](https://saas.game)**
+## Architecture
 
-## How it works
+| Layer | Technology | Responsibility |
+|---|---|---|
+| Web | React 19, TypeScript, Vite, React Router | Route-split SPA and mission UI |
+| Client state | Redux Toolkit | One graph editor and revisioned canvas persistence |
+| API | Cloudflare Worker, Hono | Authenticated commands and read models |
+| Data | Cloudflare D1 | Users, mission content, progress, completions, inbox, chat |
+| Cache | Cloudflare KV | Public/read-heavy response caching |
+| Auth | Better Auth | Email/password, Google OAuth, HTTP-only sessions |
+| Email | Resend | Verification and password reset messages |
+| Mentor | OpenAI Responses API | Short contextual coaching with a deterministic fallback |
 
-1. **Browse missions** — news-style cards tell stories of people who need tech help
-2. **Contact the hero** — send them a message offering to help
-3. **Design the system** — drag components onto a canvas, connect them, validate against requirements
-4. **Get mentored** — an AI mentor guides you through architecture decisions
-5. **See the impact** — your design keeps 200 families' health data safe, keeps a school running, proves contamination is real
+The server is authoritative for mission order, component identity/category/cost, validation, Impact awards, and email delivery. Per-user progress, inbox state, chat history, and canvas state are always scoped by the authenticated user. Stage completion uses an idempotency key and a D1 batch to prevent duplicate awards, store the accepted graph, and seed the next stage. Draft writes use revision comparisons; the browser retains unsaved recovery data. Shared rules live in `shared/game.ts`, and previous-stage checks remain active without awarding their points again. Costs are game credits, not provider quotes; completion proves topology rules, not uptime or latency.
 
-## Tech stack
+See [gameplay implementation and release notes](docs/gameplay-improvements.md) for the stage matrix, verification coverage, migration requirements, and remaining limitations.
 
-| Layer | Technology |
-|-------|-----------|
-| **Frontend** | React 19, TypeScript, Vite, React Flow, Tailwind CSS, Framer Motion |
-| **State** | Redux Toolkit, RTK Query, Redux Persist |
-| **Backend** | Cloudflare Workers (Hono), D1 (SQLite), KV, Durable Objects |
-| **Auth** | Better Auth (email/password + Google OAuth, httpOnly sessions) |
-| **Email** | SendGrid (verification, password reset) |
-| **Design system** | Atomic design (atoms/molecules/organisms), CSS modules, Radix UI primitives |
+## Local development
 
-## Development
+Requirements: Node.js 20+ and npm 10+.
 
 ```bash
-# Install dependencies
-npm install
-
-# Start frontend (Vite dev server on :5173)
-npm run dev
-
-# Start backend (Cloudflare Worker on :8787, proxied by Vite)
-npm run dev:worker
-
-# Or both at once
+npm ci
+cp .env.example .dev.vars
+npm run db:migrate:local
 npm run dev:all
 ```
 
-The Vite config proxies `/api/*` requests to the Worker dev server automatically.
+Vite runs on `http://localhost:5173`, proxies `/api/*` to the Worker on `http://localhost:8787`, and `.dev.vars` remains gitignored.
 
-### Environment setup
+Required secrets are `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, and `OPENAI_API_KEY`. Non-secret development values are documented in `.env.example`.
 
-Create `.dev.vars` in the project root (gitignored):
-
-```
-ENVIRONMENT=development
-BETTER_AUTH_URL=http://localhost:8787
-JWT_SECRET=<your-secret>
-GOOGLE_CLIENT_ID=<your-client-id>
-GOOGLE_CLIENT_SECRET=<your-client-secret>
-SENDGRID_API_KEY=<your-key>
-EMAIL_FROM=hello@yourdomain.com
-EMAIL_FROM_NAME=Your App Name
-```
-
-### Database
+## Verification
 
 ```bash
-# Run migrations locally
+npm run check
+npx wrangler deploy --dry-run
+```
+
+`npm run check` runs correctness linting, the D1-backed HTTP integration suite, the production frontend build, Worker typechecking, and generated-binding drift detection. The integration suite applies every migration to a fresh Miniflare D1 database.
+
+## Database and deployment
+
+```bash
 npm run db:migrate:local
-
-# Run migrations on production D1
 npm run db:migrate:remote
+npm run deploy
 ```
 
-## Deployment
+Production secrets are configured with `npx wrangler secret put NAME`. Migrations should be applied before deploying Worker code that depends on them. Cloudflare Workers observability is enabled in `wrangler.toml`; traces are sampled at 5%.
 
-Single deployment — the Worker serves both the API and the React SPA via Cloudflare's Static Assets:
+A separate staging D1 database and KV namespace should be provisioned before the first external beta. Their resource IDs must come from Cloudflare and should not be copied from production.
 
-```bash
-npm run deploy   # builds frontend + deploys Worker
-```
+## MVP operational checks
 
-Production secrets are set via `npx wrangler secret put <NAME>`.
+- Complete signup, email verification, login, and onboarding against the intended domain.
+- Run one full five-stage mission, refresh the whiteboard and results pages, and retry a completion request.
+- Confirm each user sees only their own inbox, canvas, completion, and mentor history.
+- Confirm Resend and OpenAI secrets are present; mentor chat should fall back safely if OpenAI is unavailable.
+- Inspect Worker error logs and traces after each release.
+- Capture Core Web Vitals with Chrome DevTools or Lighthouse. This repository can verify bundle output, but browser field/lab metrics require a running deployment.
 
-## Project structure
+## Project layout
 
-```
-src/
-├── components/
-│   ├── atoms/          # Button, Input, Spinner, Tooltip, etc.
-│   ├── molecules/      # EmailCard, BentoGrid, Requirements, etc.
-│   ├── organisms/      # GameHUD, EmailClient, MentorChat, ProductTour
-│   ├── templates/      # Page-level layouts
-│   ├── layout/         # RootLayout, GameLayout, AuthLayout
-│   └── ui/             # Radix UI wrappers (Dialog, Tabs, Dropdown, Tooltip)
-├── features/           # Redux slices (auth, game, user, mission, design)
-├── store/              # Redux store, RTK Query APIs, middleware
-├── services/           # API client, email/mission/mentor/news services
-├── hooks/              # Custom React hooks
-├── pages/              # Route page components
-├── styles/             # Design system tokens, foundation styles
-├── utils/              # Shared utilities (date, email formatting)
-└── types/              # TypeScript type definitions
-
+```text
+src/                 React application
+  components/        UI and game components
+  features/          active Redux slices
+  pages/             route-level code-split screens
+  services/          typed API clients
 worker/
-├── src/
-│   ├── index.ts        # Hono router + static asset dispatcher
-│   ├── lib/            # Better Auth config, D1 helpers, SendGrid sender
-│   ├── middleware/      # Auth (session validation), CORS, KV cache
-│   ├── routes/         # API routes (auth, emails, missions, canvas, etc.)
-│   └── durable-objects/ # Realtime collaboration (WebSocket)
-└── migrations/         # D1 schema migrations
-
-hype-video/             # Hyperframes video compositions (see hype-video/README.md)
+  src/routes/        MVP HTTP routes
+  src/lib/           auth, D1, email, and mentor integrations
+  migrations/        ordered D1 schema/content migrations
+  test/              Miniflare/D1 HTTP integration tests
 ```
 
-## License
-
-Private.
+Private project.

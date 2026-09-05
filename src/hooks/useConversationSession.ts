@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
 import { mentorChatService } from '../services/mentorChatService';
 
-// Global session state
-let globalSessionId: string | null = null;
+const SESSION_STORAGE_KEY = 'system-tycoon:mentor-session';
+let globalSessionId: string | null = sessionStorage.getItem(SESSION_STORAGE_KEY);
 let listeners: ((sessionId: string) => void)[] = [];
 
 // Function to get or create the global session ID
 const getOrCreateSessionId = (): string => {
   if (!globalSessionId) {
     globalSessionId = mentorChatService.generateSessionId();
-    console.log('🆔 useConversationSession: Created new global session ID:', globalSessionId);
+    sessionStorage.setItem(SESSION_STORAGE_KEY, globalSessionId);
     // Notify all listeners
     listeners.forEach(listener => listener(globalSessionId!));
-  } else {
-    console.log('🆔 useConversationSession: Using existing global session ID:', globalSessionId);
   }
   return globalSessionId;
 };
@@ -45,4 +43,4 @@ export const useConversationSession = () => {
   }, []);
 
   return sessionId;
-}; 
+};

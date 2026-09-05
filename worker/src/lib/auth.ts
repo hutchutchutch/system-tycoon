@@ -16,7 +16,7 @@ export function createAuth(env: Env) {
     );
   }
 
-  const db = new Kysely<any>({
+  const db = new Kysely<unknown>({
     dialect: new D1Dialect({ database: env.DB }),
   });
 

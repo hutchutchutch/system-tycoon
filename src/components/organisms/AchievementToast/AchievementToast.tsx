@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import styles from './AchievementToast.module.css';
 
@@ -21,15 +21,15 @@ export const AchievementToast: React.FC<AchievementToastProps> = ({
 }) => {
   const [isExiting, setIsExiting] = useState(false);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsExiting(true);
     setTimeout(onClose, 300); // Wait for animation to complete
-  };
+  }, [onClose]);
 
   useEffect(() => {
     const timer = setTimeout(handleClose, duration);
     return () => clearTimeout(timer);
-  }, [duration]);
+  }, [duration, handleClose]);
 
   return (
     <div className={clsx(

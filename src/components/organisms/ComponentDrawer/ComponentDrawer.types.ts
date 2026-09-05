@@ -1,5 +1,3 @@
-import type { ComponentData } from '../../molecules/ComponentCard/ComponentCard.types';
-
 // High-level component type shown in drawer
 export interface DrawerComponent {
   id: string;

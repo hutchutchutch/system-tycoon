@@ -4,7 +4,7 @@ import { BrowserTab } from '../../atoms/BrowserTab';
 import { Icon } from '../../atoms/Icon';
 import type { IconName } from '../../atoms/Icon';
 import styles from './BrowserHeader.module.css';
-import type { BrowserHeaderProps } from './BrowserHeader.types';
+import type { Bookmark, BrowserHeaderProps } from './BrowserHeader.types';
 
 export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
   tabs,
@@ -32,7 +32,7 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
     onNewTab?.();
   };
 
-  const handleBookmarkClick = (bookmark: any) => {
+  const handleBookmarkClick = (bookmark: Bookmark) => {
     bookmark.onClick?.();
   };
 
@@ -144,4 +144,4 @@ export const BrowserHeader: React.FC<BrowserHeaderProps> = ({
   );
 };
 
-export default BrowserHeader; 
+export default BrowserHeader;

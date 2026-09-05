@@ -1,5 +1,5 @@
 import { Context, Next } from 'hono';
-import type { AppEnv, Env } from '../types';
+import type { AppEnv, AuthUser } from '../types';
 
 /**
  * Phase 6: KV Cache middleware for read-heavy GET endpoints.
@@ -31,7 +31,7 @@ export function kvCache(options: CacheOptions) {
     let cacheKey = `${prefix}:${url.pathname}${url.search}`;
 
     if (perUser) {
-      const user = c.get('user') as any;
+      const user = c.get('user') as AuthUser;
       if (user?.id) {
         cacheKey += `:u:${user.id}`;
       }

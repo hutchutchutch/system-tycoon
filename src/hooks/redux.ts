@@ -42,7 +42,7 @@ export const useMentorChat = () => {
     });
   }, [dispatch]);
   
-  const addMessage = useCallback((sessionId: string, message: any) => {
+  const addMessage = useCallback((sessionId: string, message: unknown) => {
     dispatch({
       type: 'mentor/addMessage',
       payload: { sessionId, message },

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { missionService } from '../services/missionService';
-import type { ValidationResponse, ValidationResult } from '../services/missionService';
+import type { CanvasEdgeInput, CanvasNodeInput, ValidationResponse } from '../services/missionService';
 
 export interface UseRequirementValidationProps {
   stageId: string;
@@ -11,7 +11,7 @@ export interface UseRequirementValidationReturn {
   isValidating: boolean;
   validationError: string | null;
   lastValidationResult: ValidationResponse | null;
-  validateRequirements: (nodes: any[], edges: any[]) => Promise<ValidationResponse | null>;
+  validateRequirements: (nodes: CanvasNodeInput[], edges: CanvasEdgeInput[]) => Promise<ValidationResponse | null>;
   clearError: () => void;
 }
 
@@ -24,8 +24,8 @@ export const useRequirementValidation = ({
   const [lastValidationResult, setLastValidationResult] = useState<ValidationResponse | null>(null);
 
   const validateRequirements = useCallback(async (
-    nodes: any[], 
-    edges: any[]
+    nodes: CanvasNodeInput[],
+    edges: CanvasEdgeInput[]
   ): Promise<ValidationResponse | null> => {
     try {
       setIsValidating(true);
@@ -72,4 +72,4 @@ export const useRequirementValidation = ({
     validateRequirements,
     clearError
   };
-}; 
+};

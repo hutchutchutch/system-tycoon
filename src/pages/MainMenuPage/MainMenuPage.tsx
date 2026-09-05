@@ -28,11 +28,6 @@ export const MainMenuPage: React.FC = () => {
     navigate('/game');
   };
 
-  const handleContinue = () => {
-    dispatch({ type: 'game/loadSave' });
-    navigate('/game');
-  };
-
   const handleSettings = () => {
     navigate('/settings');
   };
@@ -41,17 +36,6 @@ export const MainMenuPage: React.FC = () => {
     <div className="main-menu-page">
               <Card className="menu-card">
           <div className="menu-options">
-          {/* TODO: Implement save game detection */}
-          {false && (
-            <Button
-              onClick={handleContinue}
-              size="lg"
-              className="menu-button"
-            >
-              Continue Game
-            </Button>
-          )}
-          
           <Button
             onClick={handleNewGame}
             size="lg"

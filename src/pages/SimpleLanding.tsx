@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import '@xyflow/react/dist/style.css';
 
 // Custom node for hero text
-function HeroTextNode({ data }: NodeProps) {
+function HeroTextNode() {
   return (
     <div style={{
       background: 'transparent',
@@ -51,7 +51,7 @@ function HeroTextNode({ data }: NodeProps) {
 }
 
 // Custom node for CTA button
-function CTANode({ data }: NodeProps) {
+function CTANode() {
   const navigate = useNavigate();
 
   const handleStartOnboarding = () => {
@@ -100,7 +100,9 @@ function CTANode({ data }: NodeProps) {
 }
 
 // Custom node with only bottom handle (for "Good People Need Help")
-function SourceNode({ data }: NodeProps) {
+type LandingNode = Node<{ label?: React.ReactNode }>;
+
+function SourceNode({ data }: NodeProps<LandingNode>) {
   return (
     <div style={{
       background: '#1f2937',
@@ -113,7 +115,7 @@ function SourceNode({ data }: NodeProps) {
       width: '160px',
       textAlign: 'center',
     }}>
-      {(data as any).label}
+      {data.label}
       <Handle 
         type="source" 
         position={Position.Bottom} 
@@ -124,7 +126,7 @@ function SourceNode({ data }: NodeProps) {
 }
 
 // Custom node with top and bottom handles (for "You Learn System Design")
-function ProcessNode({ data }: NodeProps) {
+function ProcessNode({ data }: NodeProps<LandingNode>) {
   return (
     <div style={{
       background: '#1f2937',
@@ -142,7 +144,7 @@ function ProcessNode({ data }: NodeProps) {
         position={Position.Top} 
         style={{ background: '#6b7280' }}
       />
-      {(data as any).label}
+      {data.label}
       <Handle 
         type="source" 
         position={Position.Bottom} 
@@ -153,7 +155,7 @@ function ProcessNode({ data }: NodeProps) {
 }
 
 // Custom node with only top handle (for "The World Gets Better")
-function TargetNode({ data }: NodeProps) {
+function TargetNode({ data }: NodeProps<LandingNode>) {
   return (
     <div style={{
       background: 'linear-gradient(135deg, #1f2937, #374151)',
@@ -172,7 +174,7 @@ function TargetNode({ data }: NodeProps) {
         position={Position.Top} 
         style={{ background: '#6b7280' }}
       />
-      {(data as any).label}
+      {data.label}
     </div>
   );
 }
@@ -191,7 +193,6 @@ const getNodePositions = () => {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const centerX = vw / 2;
-  const centerY = vh / 2;
 
   return {
     // Hero text on the left side
@@ -309,7 +310,7 @@ const initialEdges: Edge[] = [
 function SimpleLandingFlow() {
   const reactFlowInstance = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState(createInitialNodes());
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [edges, , onEdgesChange] = useEdgesState(initialEdges);
 
   React.useEffect(() => {
     // Set viewport to show all content nicely

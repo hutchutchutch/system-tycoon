@@ -1,5 +1,4 @@
 import React from 'react';
-import { MetricCard } from '../../../molecules/MetricCard';
 import { Card } from '../../../atoms/Card';
 
 export const GlobalImpact: React.FC = () => {

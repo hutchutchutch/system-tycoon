@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AuthPageTemplateProps {
   title?: string;
   logoSrc?: string;
@@ -19,4 +17,4 @@ export interface AuthPageTemplateProps {
     name?: string;
   }>;
   className?: string;
-} 
+}

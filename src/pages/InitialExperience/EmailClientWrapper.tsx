@@ -1,18 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { EmailSidebar, EmailToolbar, MessageRecommendations } from '../../components/molecules';
+import { EmailSidebar, EmailToolbar } from '../../components/molecules';
 import { EmailCard } from '../../components/molecules/EmailCard';
 import type { EmailFolder, EmailTab } from '../../components/organisms/EmailClient/EmailClient.types';
-import { fetchEmails, updateEmailStatus, type EmailData } from '../../services/emailService';
-import type { GroupChatMessage, MentorInfo } from '../../components/organisms/EmailClient/EmailClient.types';
+import { fetchEmails, markEmailAsRead, type EmailData } from '../../services/emailService';
+import type { Email } from '../../types/email.types';
 import styles from './EmailClientWrapper.module.css';
 
-interface EmailClientWrapperProps {
-  // No longer need onOpenSystemDesign prop - we'll use navigation
-}
+type EmailCardData = Email & { content: string };
 
 // Convert service EmailData to component EmailCardData
-const convertToEmailCardData = (email: EmailData) => {
+const convertToEmailCardData = (email: EmailData): EmailCardData => {
+  const validTriggerTypes: Email['triggerType'][] = [
+    'mission_start',
+    'stage_complete',
+    'performance_based',
+    'manual',
+  ];
+  const triggerType = validTriggerTypes.find((type) => type === email.trigger_type) ?? 'manual';
+
   return {
     id: email.id,
     sender: {
@@ -29,7 +35,7 @@ const convertToEmailCardData = (email: EmailData) => {
     status: email.status,
     priority: email.priority,
     sentAt: email.timestamp, // Keep as string for Email interface
-    triggerType: email.trigger_type || 'manual', // Use actual trigger type from DB
+    triggerType,
     isAccessible: true,
     hasAttachments: email.has_attachments,
     attachments: email.has_attachments ? [] : undefined,
@@ -45,10 +51,10 @@ const convertToEmailCardData = (email: EmailData) => {
   };
 };
 
-export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
+export const EmailClientWrapper: React.FC = () => {
   const [loading, setLoading] = useState(true);
-  const [emails, setEmails] = useState<any[]>([]);
-  const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+  const [emails, setEmails] = useState<EmailCardData[]>([]);
+  const selectedEmails: string[] = [];
   const [selectedFolder, setSelectedFolder] = useState('inbox');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
@@ -62,7 +68,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
     try {
       setLoading(true);
       
-      // Fetch emails from Supabase (with fallback to hardcoded data)
+      // Fetch the authenticated user's Worker-backed inbox.
       const emailData = await fetchEmails();
       console.log('Raw email data from service:', emailData);
       const convertedEmails = emailData.map(convertToEmailCardData);
@@ -80,9 +86,9 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
 
   // Expose refresh function globally for other components to trigger
   useEffect(() => {
-    (window as any).refreshEmailInbox = loadEmails;
+    window.refreshEmailInbox = loadEmails;
     return () => {
-      delete (window as any).refreshEmailInbox;
+      delete window.refreshEmailInbox;
     };
   }, []);
 
@@ -136,7 +142,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
     }
     
     // Mark as read in database and local state
-    const success = await updateEmailStatus(emailId, 'read');
+    const success = await markEmailAsRead(emailId);
     if (success) {
       setEmails(emails => emails.map(email => 
         email.id === emailId ? { ...email, status: 'read' } : email
@@ -149,14 +155,6 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
       // This email contains a link to the system design canvas
       console.log('Crisis email selected - system design link available');
     }
-  };
-
-  const handleEmailToggleSelect = (emailId: string) => {
-    setSelectedEmails(prev => 
-      prev.includes(emailId) 
-        ? prev.filter(id => id !== emailId)
-        : [...prev, emailId]
-    );
   };
 
   const handleFolderSelect = (folderId: string) => {
@@ -279,16 +277,7 @@ export const EmailClientWrapper: React.FC<EmailClientWrapperProps> = () => {
               </div>
               
               <div className={styles.emailDetailContent}>
-                {/* Render email content with markdown formatting */}
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: (selectedEmail.body || '')
-                      .replace(/\n/g, '<br />')
-                      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                      .replace(/---/g, '<hr class="' + styles.emailDivider + '" />')
-                  }}
-                />
+                <div style={{ whiteSpace: 'pre-wrap' }}>{selectedEmail.body || ''}</div>
                 
                 {/* Check if this is a mission email and show the system design button */}
                 {(selectedEmail.missionId || 

@@ -96,7 +96,7 @@ const missionSlice = createSlice({
         slug,
         stages: stages.map(stage => ({
           ...stage,
-          completed: false // Initialize as not completed
+          completed: stage.completed ?? stage.stage_number < currentStageIndex + 1
         })),
         currentStageIndex,
         completed: false,

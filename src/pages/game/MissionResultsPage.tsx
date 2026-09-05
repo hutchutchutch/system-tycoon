@@ -19,18 +19,20 @@ interface ResultsLocationState {
 /**
  * Results screen for the email-driven mission flow.
  * Rendered after POST /missions/complete-stage succeeds; the whiteboard
- * passes the full completion payload via router state. On a refresh or
- * deep link the payload is gone, so we fall back to a minimal screen
- * that points the user back at their inbox.
+ * passes the full completion payload via router state. On refresh or a
+ * deep link, the persisted completion is rehydrated from the Worker.
  */
 export const MissionResultsPage: React.FC = () => {
   const { stageId } = useParams<{ stageId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const state = (location.state ?? null) as ResultsLocationState | null;
+  const navigationState = (location.state ?? null) as ResultsLocationState | null;
+  const [persistedState, setPersistedState] = useState<ResultsLocationState | null>(null);
+  const state = navigationState ?? persistedState;
 
   const [fallbackTitle, setFallbackTitle] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(!navigationState);
 
   // The server just awarded Impact — refresh the profile so the GameHUD
   // total matches the number on this screen.
@@ -38,15 +40,29 @@ export const MissionResultsPage: React.FC = () => {
     dispatch(checkAuth());
   }, [dispatch]);
 
-  // No completion payload (refresh / deep link) — fetch the stage title
-  // for context, but detailed results only exist right after completion.
+  // No navigation payload (refresh / deep link) — load the durable result.
   useEffect(() => {
-    if (state || !stageId) return;
+    if (navigationState || !stageId) {
+      setIsLoading(false);
+      return;
+    }
     api
-      .get<{ title: string; mission: { title: string } }>(`/missions/stage/${stageId}`)
-      .then((stage) => setFallbackTitle(stage?.mission?.title ?? stage?.title ?? null))
-      .catch(() => setFallbackTitle(null));
-  }, [state, stageId]);
+      .get<ResultsLocationState>(`/missions/completion/${stageId}`)
+      .then(setPersistedState)
+      .catch(async () => {
+        try {
+          const stage = await api.get<{ title: string; mission: { title: string } }>(`/missions/stage/${stageId}`);
+          setFallbackTitle(stage?.mission?.title ?? stage?.title ?? null);
+        } catch {
+          setFallbackTitle(null);
+        }
+      })
+      .finally(() => setIsLoading(false));
+  }, [navigationState, stageId]);
+
+  if (isLoading) {
+    return <div className={styles.page} aria-busy="true" aria-label="Loading mission results" />;
+  }
 
   if (!state) {
     return (
@@ -55,12 +71,11 @@ export const MissionResultsPage: React.FC = () => {
           <h1 className={styles.fallbackTitle}>Results</h1>
           {fallbackTitle && <p className={styles.fallbackContext}>{fallbackTitle}</p>}
           <p className={styles.fallbackText}>
-            Detailed results are shown right after you complete a stage.
-            Check your email for the next brief from your client.
+            No completed result was found for this stage. Check your email for your current brief.
           </p>
           <div className={styles.actions}>
             <button onClick={() => navigate('/email')} className={styles.btnPrimary}>
-              <Mail size={18} /> Check Your Email
+              Check your email
             </button>
             <button onClick={() => navigate('/browser/news')} className={styles.btnSecondary}>
               <Newspaper size={18} /> Find Missions
@@ -112,6 +127,7 @@ export const MissionResultsPage: React.FC = () => {
 
         {/* Requirements checklist */}
         <div className={styles.requirementsBox}>
+          <p>Your design passed the stage’s topology and budget rules. Latency, capacity, and availability are not simulated.</p>
           <h2 className={styles.requirementsTitle}>
             Requirements
             <span className={styles.requirementsCount}>
@@ -160,16 +176,16 @@ export const MissionResultsPage: React.FC = () => {
               </button>
             </>
           ) : (
-            <button onClick={() => navigate('/email')} className={styles.btnPrimary}>
-              <Mail size={18} /> Check Your Email
+            <button onClick={() => navigate(`/whiteboard/stage/${completion.nextStageId}`)} className={styles.btnPrimary}>
+              Continue to stage {completion.nextStageNumber}
             </button>
           )}
-          {context.emailId && (
+          {stageId && (
             <button
-              onClick={() => navigate(`/whiteboard/${context.emailId}`)}
+              onClick={() => navigate(`/whiteboard/stage/${stageId}`)}
               className={styles.btnSecondary}
             >
-              <ArrowLeft size={18} /> Back to Whiteboard
+              <ArrowLeft size={18} /> Review accepted design
             </button>
           )}
         </div>

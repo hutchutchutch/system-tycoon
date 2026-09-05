@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { Icon } from '../../atoms/Icon';
 import { Button } from '../../atoms/Button';
 import styles from './EmailSidebar.module.css';
+import type { IconName } from '../../atoms/Icon';
 
 export interface EmailFolder {
   id: string;
@@ -48,7 +49,7 @@ export const EmailSidebar: React.FC<EmailSidebarProps> = ({
             data-folder-id={folder.id}
             onClick={() => onFolderSelect(folder.id)}
           >
-            <Icon name={folder.icon as any} size="sm" />
+            <Icon name={folder.icon as IconName} size="sm" />
             <span className={styles.folderName}>{folder.name}</span>
             {folder.count > 0 && (
               <span className={styles.folderCount}>{folder.count}</span>
@@ -58,4 +59,4 @@ export const EmailSidebar: React.FC<EmailSidebarProps> = ({
       </nav>
     </div>
   );
-}; 
+};

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useCallback, useRef } from 'react';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -12,10 +12,6 @@ import {
   type Node,
   type Edge,
   type Connection,
-  type NodeChange,
-  type EdgeChange,
-  type OnNodesChange,
-  type OnEdgesChange,
   type OnConnect,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
@@ -30,7 +26,7 @@ import styles from './SystemDesignCanvas.module.css';
 
 // Component styling based on type
 const getNodeStyle = (type: string) => {
-  const styles: Record<string, any> = {
+  const styles: Record<string, unknown> = {
     'web-server': { backgroundColor: '#e3f2fd', borderColor: '#1976d2' },
     'database': { backgroundColor: '#f3e5f5', borderColor: '#7b1fa2' },
     'cache': { backgroundColor: '#fff3e0', borderColor: '#f57c00' },
@@ -41,12 +37,7 @@ const getNodeStyle = (type: string) => {
   return styles[type] || { backgroundColor: '#f5f5f5', borderColor: '#9e9e9e' };
 };
 
-export const Whiteboard: React.FC<SystemDesignCanvasProps> = ({
-  projectId,
-  requirements,
-  budget,
-  onValidate,
-}) => {
+export const Whiteboard: React.FC<SystemDesignCanvasProps> = ({ onValidate }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
@@ -81,7 +72,7 @@ export const Whiteboard: React.FC<SystemDesignCanvasProps> = ({
 
       setNodes((nds) => nds.concat(newNode));
     },
-    []
+    [setNodes]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {

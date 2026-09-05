@@ -21,7 +21,7 @@
   flex: 1;
   height: calc(100vh - 64px);
   padding-top: 0;
-  overflow: hidden;
+  overflow: auto;
   position: relative;
 }
 
@@ -37,4 +37,4 @@
   .mainWithHUD {
     height: calc(100vh - 56px);
   }
-} 
+}

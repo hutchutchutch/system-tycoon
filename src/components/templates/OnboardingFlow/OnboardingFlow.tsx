@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { MentorSelectionModal } from '../../organisms/MentorSelectionModal';
 import { Toast } from '../../atoms/Toast';
 import type { Mentor } from '../../../types/mentor.types';

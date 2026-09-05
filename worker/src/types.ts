@@ -1,18 +1,9 @@
-export interface Env {
-  DB: D1Database;
-  CACHE: KVNamespace;
-  ASSETS: Fetcher; // static asset binding — serves ./dist for non-API paths
-  ENVIRONMENT: string;
-  JWT_SECRET: string; // used by Better Auth as its signing secret
+// Bindings and configured variables come from `npm run worker:types`. OAuth
+// secrets are dashboard-managed and therefore cannot be inferred by Wrangler.
+export type Env = Cloudflare.Env & {
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
-  BETTER_AUTH_URL: string;
-  RESEND_API_KEY: string; // transactional email (verification, reset, alerts)
-  EMAIL_FROM: string;
-  EMAIL_FROM_NAME: string;
-  DESIGN_SESSION: DurableObjectNamespace;
-  OPENAI_API_KEY: string; // NPC chat generation (set via `wrangler secret put`)
-}
+};
 
 // Hono app environment: bindings + per-request context variables
 // (set by authMiddleware / optionalAuth in middleware/auth.ts)

@@ -40,11 +40,4 @@ export const newsService = {
     return data || [];
   },
 
-  async incrementViewCount(articleId: string): Promise<void> {
-    await api.post('/news/' + articleId + '/view');
-  },
-
-  async incrementContactCount(articleId: string): Promise<void> {
-    await api.post('/news/' + articleId + '/contact');
-  }
 };

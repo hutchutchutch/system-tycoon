@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AuthCardProps {
   title?: string;
   logoSrc?: string;
@@ -12,4 +10,4 @@ export interface AuthCardProps {
   onGoogleSignIn?: () => void;
   submitLabel?: string;
   className?: string;
-} 
+}

@@ -11,10 +11,7 @@ import {
   type TagListProps as AriaTagListProps,
   type TagProps as AriaTagProps,
   composeRenderProps,
-  Text,
 } from "react-aria-components"
-
-import { Label } from '../Field'
 
 const TagGroup = AriaTagGroup
 
@@ -36,8 +33,8 @@ function TagList<T extends object>({
 }
 
 function Tag({ children, style, ...props }: AriaTagProps) {
-  let textValue = typeof children === "string" ? children : undefined
-  
+  const textValue = typeof children === "string" ? children : undefined
+
   const baseStyles = {
     display: 'inline-flex',
     alignItems: 'center',
@@ -62,21 +59,21 @@ function Tag({ children, style, ...props }: AriaTagProps) {
       className="tag"
       style={(renderProps) => ({
         ...baseStyles,
-        backgroundColor: renderProps.isSelected 
-          ? 'var(--color-accent-primary)' 
+        backgroundColor: renderProps.isSelected
+          ? 'var(--color-accent-primary)'
           : 'var(--color-surface-secondary)',
-        color: renderProps.isSelected 
-          ? 'var(--color-accent-primary-foreground)' 
+        color: renderProps.isSelected
+          ? 'var(--color-accent-primary-foreground)'
           : 'var(--color-text-primary)',
-        borderColor: renderProps.isSelected 
-          ? 'var(--color-accent-primary)' 
+        borderColor: renderProps.isSelected
+          ? 'var(--color-accent-primary)'
           : 'var(--color-border-primary)',
         opacity: renderProps.isDisabled ? '0.5' : '1',
         transform: renderProps.isHovered ? 'translateY(-1px)' : 'none',
-        boxShadow: renderProps.isFocused 
-          ? '0 0 0 2px var(--color-accent-primary)' 
-          : renderProps.isHovered 
-            ? 'var(--shadow-card)' 
+        boxShadow: renderProps.isFocused
+          ? '0 0 0 2px var(--color-accent-primary)'
+          : renderProps.isHovered
+            ? 'var(--shadow-card)'
             : 'none',
         ...style
       })}
@@ -86,7 +83,7 @@ function Tag({ children, style, ...props }: AriaTagProps) {
         <>
           {children}
           {renderProps.allowsRemoving && (
-            <AriaButton 
+            <AriaButton
               slot="remove"
               style={{
                 background: 'none',
@@ -115,4 +112,4 @@ function Tag({ children, style, ...props }: AriaTagProps) {
 }
 
 export { TagGroup, TagList, Tag }
-export type { AriaTagGroupProps as TagGroupProps, AriaTagListProps as TagListProps, AriaTagProps as TagProps } 
+export type { AriaTagGroupProps as TagGroupProps, AriaTagListProps as TagListProps, AriaTagProps as TagProps }

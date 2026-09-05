@@ -1,0 +1,23 @@
+.editor { display: flex; flex-direction: column; min-height: 480px; height: 100%; color: var(--color-text-primary, #e2e8f0); background: var(--color-surface-primary, #111827); }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #64748b55; }
+.editor button, .editor select, .editor input { min-height: 44px; border: 1px solid #64748b88; border-radius: 6px; padding: 8px 12px; background: var(--color-surface-secondary, #1e293b); color: inherit; touch-action: manipulation; }
+.editor button { cursor: pointer; }
+.editor button:disabled { opacity: .45; cursor: default; }
+.editor :focus-visible { outline: 3px solid #38bdf8; outline-offset: 2px; }
+.editor input, .editor select { font-size: 16px; max-width: 100%; }
+.workspace { display: flex; flex: 1; min-height: 340px; }
+.surface { flex: 1; min-width: 0; min-height: 340px; }
+.library { width: 220px; max-height: 65vh; overflow-y: auto; padding: 12px; border-right: 1px solid #64748b55; }
+.library button { width: 100%; text-align: left; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
+.library label, .inspector label { display: flex; flex-direction: column; gap: 6px; }
+.library p, .editor small { font-size: 12px; opacity: .8; }
+.library p { margin: 12px 0; }
+.node { width: 185px; padding: 16px; border: 2px solid #64748b; border-radius: 10px; background: var(--color-surface-secondary, #1e293b); display: flex; flex-direction: column; gap: 8px; }
+.selected { border-color: #38bdf8; }
+.broken { border-color: #f87171; }
+.attention { outline: 2px dashed #f59e0b; outline-offset: 5px; border-radius: 10px; }
+.inspector { padding: 10px 16px; border-top: 1px solid #64748b55; max-height: 230px; overflow: auto; }
+.inspector summary { cursor: pointer; min-height: 32px; }
+.inspector form { display: flex; gap: 12px; flex-wrap: wrap; align-items: end; }
+.inspector p { font-size: 13px; margin: 8px 0; }
+@media (max-width: 640px) { .library { width: 155px; } .toolbar { gap: 4px; } .editor { min-height: 560px; } }

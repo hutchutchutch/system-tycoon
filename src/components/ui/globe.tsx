@@ -67,12 +67,13 @@ export function Globe({
   className?: string
   config?: COBEOptions
 }) {
-  let phi = 0
-  let width = 1800 // Default width (tripled)
+  const phiRef = useRef(0)
+  const widthRef = useRef(1800) // Default width (tripled)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const pointerInteracting = useRef(null)
+  const pointerInteracting = useRef<number | null>(null)
   const pointerInteractionMovement = useRef(0)
   const [r, setR] = useState(0)
+  const rRef = useRef(0)
   const [canvasWidth, setCanvasWidth] = useState(1800)
   const [globeConfig, setGlobeConfig] = useState<COBEOptions>(() => {
     if (config) return config;
@@ -87,7 +88,7 @@ export function Globe({
         setGlobeConfig(config);
         return;
       }
-      
+
       const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
       const newConfig = createGlobeConfig(isDark);
       setGlobeConfig(newConfig);
@@ -107,7 +108,7 @@ export function Globe({
       attributes: true,
       attributeFilter: ['data-theme']
     });
-    
+
     // Initial update
     updateConfig();
 
@@ -116,14 +117,18 @@ export function Globe({
     }
   }, [config])
 
-  const updatePointerInteraction = (value: any) => {
+  useEffect(() => {
+    rRef.current = r
+  }, [r])
+
+  const updatePointerInteraction = (value: number | null) => {
     pointerInteracting.current = value
     if (canvasRef.current) {
       canvasRef.current.style.cursor = value ? "grabbing" : "grab"
     }
   }
 
-  const updateMovement = (clientX: any) => {
+  const updateMovement = (clientX: number) => {
     if (pointerInteracting.current !== null) {
       const delta = clientX - pointerInteracting.current
       pointerInteractionMovement.current = delta
@@ -132,33 +137,33 @@ export function Globe({
   }
 
   const onRender = useCallback(
-    (state: Record<string, any>) => {
-      if (!pointerInteracting.current) phi += 0.005
-      state.phi = phi + r
-      state.width = width * 2
-      state.height = width * 2
+    (state: Parameters<COBEOptions['onRender']>[0]) => {
+      if (!pointerInteracting.current) phiRef.current += 0.005
+      state.phi = phiRef.current + rRef.current
+      state.width = widthRef.current * 2
+      state.height = widthRef.current * 2
     },
-    [r],
+    [],
   )
 
-  const onResize = () => {
+  const onResize = useCallback(() => {
     if (canvasRef.current) {
       const newWidth = canvasRef.current.offsetWidth || 1800
-      width = newWidth
+      widthRef.current = newWidth
       setCanvasWidth(newWidth)
 
     }
-  }
+  }, [])
 
   useEffect(() => {
     // Set initial width before creating globe
     if (canvasRef.current) {
       const newWidth = canvasRef.current.offsetWidth || 1800;
-      width = newWidth;
+      widthRef.current = newWidth;
       setCanvasWidth(newWidth);
 
     }
-    
+
     window.addEventListener("resize", onResize)
     onResize()
 
@@ -169,8 +174,8 @@ export function Globe({
     try {
       const globe = createGlobe(canvasRef.current, {
         ...globeConfig,
-        width: width * 2,
-        height: width * 2,
+        width: widthRef.current * 2,
+        height: widthRef.current * 2,
         onRender,
       })
 
@@ -179,7 +184,7 @@ export function Globe({
           canvasRef.current.style.opacity = "1"
         }
       }, 100)
-      
+
       return () => {
         globe.destroy()
       }
@@ -190,7 +195,7 @@ export function Globe({
     return () => {
       window.removeEventListener("resize", onResize)
     }
-  }, [globeConfig])
+  }, [globeConfig, onRender, onResize])
 
     return (
     <div
@@ -198,7 +203,7 @@ export function Globe({
         "absolute inset-0 mx-auto aspect-[1/1] w-full",
         className,
       )}
-      
+
     >
       <canvas
         className={cn(
@@ -222,4 +227,4 @@ export function Globe({
       />
     </div>
   )
-} 
+}

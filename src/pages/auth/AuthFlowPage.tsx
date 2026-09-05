@@ -9,7 +9,7 @@ export const AuthFlowPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useAppDispatch();
-  const { profile, isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const { profile } = useAppSelector((state) => state.auth);
 
   // Verify session with the server on mount.
   // This clears any stale persisted auth state if the session cookie is gone.

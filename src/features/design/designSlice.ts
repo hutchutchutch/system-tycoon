@@ -1,628 +1,223 @@
-import { createSlice, current, createSelector } from '@reduxjs/toolkit';
+import { createSlice, createSelector, current } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { applyNodeChanges, applyEdgeChanges } from '@xyflow/react';
-import type { Node, Edge, Connection, NodeChange, EdgeChange } from '@xyflow/react';
+import { applyNodeChanges, applyEdgeChanges, MarkerType } from '@xyflow/react';
+import type { Node, Edge, NodeChange, EdgeChange, Connection } from '@xyflow/react';
 import type { ComponentData } from '../../components/molecules/ComponentCard/ComponentCard.types';
+import { emptyGraph, evaluateGraph, gameCost } from '../../../shared/game';
+import type { GameRule, GraphData, GraphSnapshot, GraphNode, GraphEdge } from '../../../shared/game';
 
-// Types for requirements validation
-interface ValidationError {
-  type: string;
-  severity: 'error' | 'warning';
-  message: string;
-  nodeIds?: string[];
-}
-
-interface SystemRequirement {
-  id: string;
+export interface DesignNodeData extends GraphData {
+  component_id?: string;
+  service_name?: string;
   type?: string;
-  priority?: string;
-  description: string;
-  validation_type?: string;
-  required_nodes?: string[];
-  min_nodes_of_type?: Record<string, number>;
-  required_connection?: {
-    from: string;
-    to: string;
-  };
-  forbidden_nodes?: string[];
-  target_value?: number;
-  target_metric?: string;
+  vendor_category?: string;
+  base_cost?: number;
+  capacity?: number;
+  short_description?: string;
+  icon_name?: string;
 }
-
-interface RequirementValidationResult {
-  id: string;
-  description: string;
-  completed: boolean;
-  validationDetails?: any;
+export type DesignNode = Node<DesignNodeData>;
+type Frame = { nodes: GraphNode[]; edges: GraphEdge[] };
+interface SystemRequirement {
+  id: string; description: string; type?: string; validation_type?: string;
+  required_nodes?: string[]; min_nodes_of_type?: Record<string, number>;
+  required_connection?: { from: string; to: string }; target_value?: number;
 }
-
 interface DesignState {
-  // React Flow state
-  nodes: Node[];
+  nodes: DesignNode[];
   edges: Edge[];
+  rules: GameRule[];
+  systemRequirements: SystemRequirement[];
+  past: Frame[]; future: Frame[]; dragStart: Frame | null;
+  revision: number;
   selectedNodeId: string | null;
-  
-  // Drag and drop state
   draggedComponent: ComponentData | null;
   isDragging: boolean;
-  
-  // Design metrics
-  totalCost: number;
-  isValidDesign: boolean;
-  validationErrors: ValidationError[];
-  
-  // Canvas viewport
-  canvasViewport: {
-    x: number;
-    y: number;
-    zoom: number;
-  };
-
-  // Requirements validation state
-  systemRequirements: SystemRequirement[];
-  requirementValidationResults: RequirementValidationResult[];
+  totalCost: number; isValidDesign: boolean;
+  validationErrors: Array<{ type: string; severity: string; message: string; nodeIds?: string[] }>;
+  requirementValidationResults: Array<{ id: string; description: string; completed: boolean; message?: string; nodeIds?: string[]; validationDetails?: unknown }>;
+  requirementProgress: { completed: number; total: number; percentage: number };
   allRequirementsMet: boolean;
-  requirementProgress: {
-    completed: number;
-    total: number;
-    percentage: number;
-  };
+  canvasViewport: GraphSnapshot['viewport'];
 }
-
 const initialState: DesignState = {
-  nodes: [],
-  edges: [],
-  selectedNodeId: null,
-  
-  draggedComponent: null,
-  isDragging: false,
-  
-  totalCost: 0,
-  isValidDesign: false,
-  validationErrors: [],
-  
-  canvasViewport: { x: 0, y: 0, zoom: 1 },
-
-  // Requirements state
-  systemRequirements: [],
-  requirementValidationResults: [],
-  allRequirementsMet: false,
-  requirementProgress: {
-    completed: 0,
-    total: 0,
-    percentage: 0,
-  },
+  nodes: [], edges: [], rules: [], systemRequirements: [], past: [], future: [], dragStart: null, revision: 0,
+  selectedNodeId: null, draggedComponent: null, isDragging: false, totalCost: 0, isValidDesign: true,
+  validationErrors: [], requirementValidationResults: [], requirementProgress: { completed: 0, total: 0, percentage: 0 },
+  allRequirementsMet: false, canvasViewport: emptyGraph().viewport,
 };
+function snapshot(state: DesignState): Frame {
+  return { nodes: current(state.nodes).map(n => ({ id: n.id, type: n.type, data: n.data, position: n.position })),
+    edges: current(state.edges).map(e => ({ id: e.id, source: e.source, target: e.target, sourceHandle: e.sourceHandle, targetHandle: e.targetHandle })) };
+}
+function checkpoint(state: DesignState) {
+  state.past.push(snapshot(state));
+  if (state.past.length > 50) state.past.shift();
+  state.future = [];
+}
+function refresh(state: DesignState) {
+  const graph: GraphSnapshot = { version: 1, nodes: state.nodes, edges: state.edges, viewport: state.canvasViewport };
+  const result = evaluateGraph(graph, state.rules);
+  state.totalCost = gameCost(graph.nodes);
+  state.requirementValidationResults = result.requirements.map(r => ({ ...r, description: r.title }));
+  state.requirementProgress = { completed: result.summary.completedRequirements, total: result.summary.totalRequirements, percentage: result.summary.completionPercentage };
+  state.allRequirementsMet = result.summary.allCompleted;
+  const ids = new Set(state.nodes.map(n => n.id));
+  state.edges = state.edges.filter(e => ids.has(e.source) && ids.has(e.target));
+  state.isValidDesign = true;
+  state.validationErrors = [];
+}
+const decorateEdge = (edge: Edge): Edge => ({ ...edge, markerEnd: { type: MarkerType.ArrowClosed }, style: { stroke: '#64748b', strokeWidth: 2 } });
 
 const designSlice = createSlice({
-  name: 'design',
-  initialState,
+  name: 'design', initialState,
   reducers: {
-    // Drag and Drop
-    setDraggedComponent: (state, action: PayloadAction<ComponentData | null>) => {
-      state.draggedComponent = action.payload;
-      state.isDragging = action.payload !== null;
+    restoreGraph(state, action: PayloadAction<GraphSnapshot>) {
+      state.nodes = action.payload.nodes;
+      state.edges = action.payload.edges.map(decorateEdge);
+      state.canvasViewport = action.payload.viewport;
+      state.past = []; state.future = []; state.dragStart = null; state.revision = 0;
+      refresh(state);
     },
-    
-    // Node Management
-    addNode: (state, action: PayloadAction<{ 
-      component: any; 
-      position: { x: number; y: number };
-      nodeType?: string;
-      nodeData?: any;
-    }>) => {
-      const { component, position, nodeType, nodeData } = action.payload;
-      
-      // Use component.id if provided, otherwise generate unique node ID
-      const nodeId = component.id || `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Handle different component data structures
-      const normalizedComponent = {
-        id: component.id || component.component_id,
-        name: component.name || component.service_name,
-        type: component.type || component.category,
-        category: component.category || component.vendor_category,
-        cost: component.cost || component.base_cost || 50,
-        capacity: component.capacity || 1000,
-        description: component.description || component.short_description,
-        icon: component.icon || component.icon_name || 'server'
-      };
-      
-      // Determine node type - if nodeType is provided, use it, otherwise default to 'custom'
-      const finalNodeType = nodeType || (normalizedComponent.category === 'stakeholder' ? 'user' : 'custom');
-      
-      const newNode = {
-        id: nodeId,
-        type: finalNodeType,
-        position: { ...position },
-        data: nodeData || {
-          id: normalizedComponent.id,
-          name: normalizedComponent.name,
-          type: normalizedComponent.type,
-          category: normalizedComponent.category,
-          cost: normalizedComponent.cost,
-          capacity: normalizedComponent.capacity,
-          description: normalizedComponent.description,
-          label: normalizedComponent.name,
-          icon: normalizedComponent.icon,
-          // Add userCount for user nodes
-          ...(finalNodeType === 'user' ? { userCount: normalizedComponent.capacity } : {})
-        },
-      };
-      
-      // Push to nodes array (Immer will handle the immutability)
-      (state.nodes as any).push(newNode);
-      state.totalCost += normalizedComponent.cost;
-      
-      // Clear dragged component
-      state.draggedComponent = null;
-      state.isDragging = false;
-      
-      // Validate design and requirements
-      designSlice.caseReducers.validateRequirements(state);
-      designSlice.caseReducers.validateDesign(state);
+    setGameRules(state, action: PayloadAction<GameRule[]>) {
+      state.rules = action.payload;
+      state.systemRequirements = action.payload.map(r => ({ id: r.id, description: r.title }));
+      refresh(state);
     },
-    
-    updateNode: (state, action: PayloadAction<{ id: string; data: Partial<any> }>) => {
-      const { id, data } = action.payload;
-      const nodeIndex = state.nodes.findIndex(n => n.id === id);
-      
-      if (nodeIndex !== -1) {
-        state.nodes[nodeIndex] = {
-          ...state.nodes[nodeIndex],
-          data: { ...state.nodes[nodeIndex].data, ...data },
-        };
-        
-        designSlice.caseReducers.recalculateTotalCost(state);
-        designSlice.caseReducers.validateRequirements(state);
-        designSlice.caseReducers.validateDesign(state);
-      }
+    setDraggedComponent(state, action: PayloadAction<ComponentData | null>) {
+      state.draggedComponent = action.payload; state.isDragging = action.payload !== null;
     },
-    
-    deleteNode: (state, action: PayloadAction<string>) => {
-      const nodeId = action.payload;
-      const nodeIndex = state.nodes.findIndex(n => n.id === nodeId);
-      
-      if (nodeIndex !== -1) {
-        const deletedNode = state.nodes[nodeIndex];
-        const nodeCost = (deletedNode.data as any)?.cost || 0;
-        state.totalCost -= nodeCost;
-        
-        // Remove node
-        state.nodes.splice(nodeIndex, 1);
-        
-        // Remove connected edges
-        state.edges = state.edges.filter(
-          edge => edge.source !== nodeId && edge.target !== nodeId
-        );
-        
-        // Clear selection if deleted node was selected
-        if (state.selectedNodeId === nodeId) {
-          state.selectedNodeId = null;
-        }
-        
-        designSlice.caseReducers.validateRequirements(state);
-        designSlice.caseReducers.validateDesign(state);
-      }
+    addNode: {
+      prepare(payload: { component: DesignNodeData; position: { x: number; y: number }; nodeType?: string; nodeData?: DesignNodeData; instanceId?: string }) {
+        return { payload: { ...payload, instanceId: payload.instanceId ?? crypto.randomUUID() } };
+      },
+      reducer(state, action: PayloadAction<{ component: DesignNodeData; position: { x: number; y: number }; nodeType?: string; nodeData?: DesignNodeData; instanceId: string }>) {
+        if (state.nodes.length >= 250 || state.nodes.some(n => n.id === action.payload.instanceId)) return;
+        checkpoint(state);
+        const { component: c, nodeData, nodeType, position, instanceId } = action.payload;
+        const data = nodeData ?? { ...c, componentId: c.componentId ?? c.id ?? c.component_id,
+          name: c.name ?? c.service_name, label: c.label ?? c.name ?? c.service_name,
+          category: c.category ?? c.vendor_category, cost: c.cost ?? c.base_cost ?? 0,
+          icon: c.icon ?? c.icon_name ?? 'server', description: c.description ?? c.short_description };
+        state.nodes.push({ id: instanceId, type: nodeType ?? (data.role === 'client' ? 'user' : 'custom'), position, data });
+        state.draggedComponent = null; state.isDragging = false; state.revision++; refresh(state);
+      },
     },
-    
-    // React Flow handlers
-    onNodesChange: (state, action: PayloadAction<NodeChange[]>) => {
+    updateNode(state, action: PayloadAction<{ id: string; data: Partial<DesignNodeData> }>) {
+      const node = state.nodes.find(n => n.id === action.payload.id);
+      if (!node) return;
+      checkpoint(state); Object.assign(node.data, action.payload.data); state.revision++; refresh(state);
+    },
+    deleteNode(state, action: PayloadAction<string>) {
+      checkpoint(state); state.nodes = state.nodes.filter(n => n.id !== action.payload);
+      state.edges = state.edges.filter(e => e.source !== action.payload && e.target !== action.payload);
+      state.selectedNodeId = null; state.revision++; refresh(state);
+    },
+    onNodesChange(state, action: PayloadAction<NodeChange[]>) {
+      const structural = action.payload.some(c => c.type === 'remove' || c.type === 'add' || c.type === 'replace');
+      const positions = action.payload.filter(c => c.type === 'position');
+      if (structural) checkpoint(state);
+      if (!structural && positions.some(c => c.dragging === undefined && c.position)) checkpoint(state);
+      if (positions.some(c => c.dragging) && !state.dragStart) state.dragStart = snapshot(state);
       state.nodes = applyNodeChanges(action.payload, current(state.nodes));
+      if (positions.some(c => c.dragging === false) && state.dragStart) {
+        state.past.push(state.dragStart); state.past = state.past.slice(-50); state.future = []; state.dragStart = null;
+      }
+      if (structural || positions.length) { state.revision++; refresh(state); }
     },
-    
-    onEdgesChange: (state, action: PayloadAction<EdgeChange[]>) => {
+    onEdgesChange(state, action: PayloadAction<EdgeChange[]>) {
+      const changed = action.payload.some(c => c.type !== 'select');
+      if (changed) checkpoint(state);
       state.edges = applyEdgeChanges(action.payload, current(state.edges));
+      if (changed) { state.revision++; refresh(state); }
     },
-    
-    // Edge Management
-    addEdge: (state, action: PayloadAction<Connection>) => {
-      const connection = action.payload;
-      
-      console.log('[Redux] Adding edge:', {
-        source: connection.source,
-        target: connection.target,
-        sourceHandle: connection.sourceHandle,
-        targetHandle: connection.targetHandle
-      });
-      
-      // Check if edge already exists
-      const exists = state.edges.some(edge => 
-        (edge.source === connection.source && edge.target === connection.target) ||
-        (edge.source === connection.target && edge.target === connection.source)
-      );
-      
-      if (!exists && connection.source && connection.target) {
-        // Find source and target nodes to check if they're broken
-        const sourceNode = state.nodes.find(node => node.id === connection.source);
-        const targetNode = state.nodes.find(node => node.id === connection.target);
-        
-        // Check if this is a crisis edge (connecting to/from broken system nodes)
-        const sourceIsBroken = sourceNode?.data?.status === 'broken';
-        const targetIsBroken = targetNode?.data?.status === 'broken';
-        const isCrisisEdge = sourceIsBroken || targetIsBroken;
-        
-        const newEdge: Edge = {
-          id: `edge-${connection.source}-${connection.target}-${Date.now()}`,
-          source: connection.source,
-          target: connection.target,
-          sourceHandle: connection.sourceHandle || undefined,
-          targetHandle: connection.targetHandle || undefined,
-          animated: isCrisisEdge,
-          style: isCrisisEdge 
-            ? { stroke: '#ef4444', strokeWidth: 3 } 
-            : { stroke: '#475569', strokeWidth: 2 },
-          className: isCrisisEdge ? 'crisis-edge' : undefined,
-        };
-        
-        state.edges.push(newEdge);
-        designSlice.caseReducers.validateRequirements(state);
-        designSlice.caseReducers.validateDesign(state);
-      }
+    addEdge: {
+      prepare(connection: Connection) { return { payload: { ...connection, id: crypto.randomUUID() } }; },
+      reducer(state, action: PayloadAction<Connection & { id: string }>) {
+      const c = action.payload;
+      if (c.source === c.target || state.edges.length >= 1000 || !state.nodes.some(n => n.id === c.source)
+        || !state.nodes.some(n => n.id === c.target) || state.edges.some(e => e.source === c.source && e.target === c.target)) return;
+      checkpoint(state);
+      state.edges.push(decorateEdge(c));
+      state.revision++; refresh(state);
+      },
     },
-    
-    deleteEdge: (state, action: PayloadAction<string>) => {
-      const edgeId = action.payload;
-      state.edges = state.edges.filter(e => e.id !== edgeId);
-      designSlice.caseReducers.validateRequirements(state);
-      designSlice.caseReducers.validateDesign(state);
+    reconnectEdge(state, action: PayloadAction<{ id: string; connection: Connection }>) {
+      const { id, connection: c } = action.payload;
+      if (c.source === c.target || !state.nodes.some(n => n.id === c.source) || !state.nodes.some(n => n.id === c.target)
+        || !state.edges.some(e => e.id === id) || state.edges.some(e => e.id !== id && e.source === c.source && e.target === c.target)) return;
+      checkpoint(state);
+      state.edges = state.edges.map(e => e.id === id ? decorateEdge({ ...e, ...c }) : e);
+      state.revision++; refresh(state);
     },
-    
-    // Selection Management
-    selectNode: (state, action: PayloadAction<string | null>) => {
-      state.selectedNodeId = action.payload;
+    deleteEdge(state, action: PayloadAction<string>) {
+      checkpoint(state); state.edges = state.edges.filter(e => e.id !== action.payload); state.revision++; refresh(state);
     },
-    
-    // Canvas Management
-    updateViewport: (state, action: PayloadAction<{ x: number; y: number; zoom: number }>) => {
-      state.canvasViewport = action.payload;
+    undo(state) {
+      const previous = state.past.pop(); if (!previous) return;
+      state.future.push(snapshot(state)); state.nodes = previous.nodes; state.edges = previous.edges.map(decorateEdge); state.revision++; refresh(state);
     },
-    
-    // Clear Design
-    clearDesign: (state) => {
-      state.nodes = [];
-      state.edges = [];
-      state.selectedNodeId = null;
-      state.totalCost = 0;
-      state.isValidDesign = false;
-      state.validationErrors = [];
-      
-      // Reset requirements validation
-      state.requirementValidationResults = [];
-      state.allRequirementsMet = false;
-      state.requirementProgress = {
-        completed: 0,
-        total: state.systemRequirements.length,
-        percentage: 0,
-      };
+    redo(state) {
+      const future = state.future.pop(); if (!future) return;
+      state.past.push(snapshot(state)); state.nodes = future.nodes; state.edges = future.edges.map(decorateEdge); state.revision++; refresh(state);
     },
-    
-    // Helper reducers
-    recalculateTotalCost: (state) => {
-      state.totalCost = state.nodes.reduce((sum, node) => {
-        const nodeCost = (node.data as any)?.cost || 0;
-        return sum + nodeCost;
-      }, 0);
+    selectNode(state, action: PayloadAction<string | null>) { state.selectedNodeId = action.payload; },
+    updateViewport(state, action: PayloadAction<GraphSnapshot['viewport']>) {
+      const { x, y, zoom } = action.payload;
+      if (state.canvasViewport.x !== x || state.canvasViewport.y !== y || state.canvasViewport.zoom !== zoom) state.canvasViewport = action.payload;
     },
-    
-    // Clear canvas state - used when switching between mission stages
-    clearCanvas: (state, action: PayloadAction<{ keepRequirements?: boolean }>) => {
-      const { keepRequirements = false } = action.payload || {};
-      
-      // Clear nodes and edges
-      state.nodes = [];
-      state.edges = [];
-      state.selectedNodeId = null;
-      
-      // Clear drag state
-      state.draggedComponent = null;
-      state.isDragging = false;
-      
-      // Clear validation state
-      state.totalCost = 0;
-      state.isValidDesign = false;
-      state.validationErrors = [];
-      
-      // Reset viewport
-      state.canvasViewport = { x: 0, y: 0, zoom: 1 };
-      
-      // Optionally clear requirements
-      if (!keepRequirements) {
-        state.systemRequirements = [];
-        state.requirementValidationResults = [];
-        state.allRequirementsMet = false;
-        state.requirementProgress = {
-          total: 0,
-          completed: 0,
-          percentage: 0
-        };
-      }
+    clearDesign(state) { checkpoint(state); state.nodes = []; state.edges = []; state.revision++; refresh(state); },
+    clearCanvas(state, action: PayloadAction<{ keepRequirements?: boolean }>) {
+      const rules = action.payload?.keepRequirements ? current(state.rules) : [];
+      Object.assign(state, initialState); state.rules = rules; refresh(state);
     },
-    
-    // Set system requirements (called when mission stage data loads)
-    setSystemRequirements: (state, action: PayloadAction<SystemRequirement[]>) => {
+    recalculateTotalCost(state) { refresh(state); },
+    validateDesign(state) { refresh(state); },
+    validateRequirements(state) { refresh(state); },
+    setSystemRequirements(state, action: PayloadAction<SystemRequirement[]>) {
       state.systemRequirements = action.payload;
-      designSlice.caseReducers.validateRequirements(state);
+      state.rules = action.payload.map(r => ({ id: r.id, title: r.description, requirement_type: r.validation_type ?? '',
+        validation_config: { required_components: r.required_nodes,
+          min_instances: r.min_nodes_of_type ? Object.values(r.min_nodes_of_type)[0] : 1,
+          source_types: r.required_connection ? [r.required_connection.from] : undefined,
+          target_types: r.required_connection ? [r.required_connection.to] : undefined, max_monthly_cost: r.target_value } }));
+      refresh(state);
     },
-
-    // Validate all requirements against current canvas state
-    validateRequirements: (state) => {
-      const validationResults: RequirementValidationResult[] = [];
-      
-      state.systemRequirements.forEach(requirement => {
-        let completed = false;
-        let validationDetails: any = {};
-        
-        const nodeMatchesCategory = (node: Node, category: string) =>
-          (node.data as any).category === category ||
-          node.type === category;
-
-        switch (requirement.validation_type) {
-          case 'node_count': {
-            if (requirement.min_nodes_of_type) {
-              const results = Object.entries(requirement.min_nodes_of_type).map(([category, minCount]) => {
-                const nodeCount = state.nodes.filter(node => nodeMatchesCategory(node, category)).length;
-                return { category, required: minCount, actual: nodeCount, met: nodeCount >= minCount };
-              });
-              completed = results.every(r => r.met);
-              validationDetails = { nodeCountResults: results };
-            }
-            break;
-          }
-
-          case 'node_categories':
-          case 'component_required': {
-            if (requirement.required_nodes && requirement.required_nodes.length > 0) {
-              completed = requirement.required_nodes.every((category: string) =>
-                state.nodes.some(node => nodeMatchesCategory(node, category))
-              );
-            } else {
-              completed = true;
-            }
-            break;
-          }
-
-          case 'edge_connection':
-          case 'connection_required': {
-            if (requirement.required_connection) {
-              const { from, to } = requirement.required_connection;
-              const hasConnection = state.edges.some(edge => {
-                const sourceNode = state.nodes.find(n => n.id === edge.source);
-                const targetNode = state.nodes.find(n => n.id === edge.target);
-                if (!sourceNode || !targetNode) return false;
-                return (
-                  (nodeMatchesCategory(sourceNode, from) && nodeMatchesCategory(targetNode, to)) ||
-                  (nodeMatchesCategory(sourceNode, to) && nodeMatchesCategory(targetNode, from))
-                );
-              });
-              completed = hasConnection;
-              validationDetails = { connectionRequired: requirement.required_connection, hasConnection };
-            }
-            break;
-          }
-
-          case 'node_and_connection': {
-            const nodesExist = !requirement.required_nodes?.length ||
-              requirement.required_nodes.every((category: string) =>
-                state.nodes.some(node => nodeMatchesCategory(node, category))
-              );
-            const hasConn = !requirement.required_connection ||
-              state.edges.some(edge => {
-                const sourceNode = state.nodes.find(n => n.id === edge.source);
-                const targetNode = state.nodes.find(n => n.id === edge.target);
-                if (!sourceNode || !targetNode) return false;
-                const { from, to } = requirement.required_connection!;
-                return (
-                  (nodeMatchesCategory(sourceNode, from) && nodeMatchesCategory(targetNode, to)) ||
-                  (nodeMatchesCategory(sourceNode, to) && nodeMatchesCategory(targetNode, from))
-                );
-              });
-            completed = nodesExist && hasConn;
-            break;
-          }
-
-          case 'node_removal': {
-            if (requirement.required_nodes) {
-              const forbiddenNodesPresent = requirement.required_nodes.filter((forbiddenId: string) =>
-                state.nodes.some(node => node.id === forbiddenId)
-              );
-              completed = forbiddenNodesPresent.length === 0;
-              validationDetails = { forbiddenNodes: requirement.required_nodes, forbiddenNodesPresent };
-            }
-            break;
-          }
-
-          case 'cost_constraint': {
-            const totalCost = state.nodes.reduce((sum, node) => sum + ((node.data as any).cost || 0), 0);
-            completed = requirement.target_value ? totalCost <= requirement.target_value : true;
-            validationDetails = { totalCost, maxAllowed: requirement.target_value };
-            break;
-          }
-
-          case 'metric': {
-            completed = false;
-            break;
-          }
-
-          default:
-            completed = false;
-        }
-        
-        validationResults.push({
-          id: requirement.id,
-          description: requirement.description,
-          completed,
-          validationDetails
-        });
-      });
-      
-      state.requirementValidationResults = validationResults;
-      
-      // Update progress metrics
-      const completedCount = validationResults.filter(r => r.completed).length;
-      const totalCount = validationResults.length;
-      
-      state.requirementProgress = {
-        completed: completedCount,
-        total: totalCount,
-        percentage: totalCount > 0 ? (completedCount / totalCount) * 100 : 0
-      };
-      
-      state.allRequirementsMet = completedCount === totalCount && totalCount > 0;
-      
-      // Trigger design validation as well
-      designSlice.caseReducers.validateDesign(state);
-    },
-
-    validateDesign: (state) => {
-      const errors: ValidationError[] = [];
-      
-      // Basic validation - can be expanded
-      if (state.nodes.length === 0) {
-        errors.push({
-          type: 'no_components',
-          severity: 'warning',
-          message: 'No components added'
-        });
-      }
-      
-      // Check for orphan nodes (nodes without connections)
-      if (state.nodes.length > 1) {
-        const connectedNodes = new Set<string>();
-        state.edges.forEach(edge => {
-          connectedNodes.add(edge.source);
-          connectedNodes.add(edge.target);
-        });
-        
-        const orphanNodes = state.nodes.filter(node => !connectedNodes.has(node.id));
-        if (orphanNodes.length > 0) {
-          errors.push({
-            type: 'orphan_nodes',
-            severity: 'warning',
-            message: `${orphanNodes.length} component(s) are not connected`,
-            nodeIds: orphanNodes.map(n => n.id)
-          });
-        }
-      }
-      
-      state.validationErrors = errors;
-      state.isValidDesign = errors.filter(e => e.severity === 'error').length === 0;
-    },
-    
-    // Update requirement validation results from API
-    updateRequirementValidationResults: (state, action: PayloadAction<{
-      requirements: Array<{
-        id: string;
-        description: string;
-        completed: boolean;
-        visible?: boolean;
-      }>;
-      summary: {
-        allCompleted: boolean;
-        completedCount: number;
-        totalCount: number;
-        percentage: number;
-      };
-    }>) => {
-      const { requirements, summary } = action.payload;
-      
-      // Transform API response to match our state structure
-      state.requirementValidationResults = requirements
-        .filter(req => req.visible !== false) // Only include visible requirements
-        .map(req => ({
-          id: req.id,
-          description: req.description,
-          completed: req.completed,
-          validationDetails: {} // API doesn't provide details, but we keep structure consistent
-        }));
-      
-      // Update progress metrics from API summary
-      state.requirementProgress = {
-        completed: summary.completedCount,
-        total: summary.totalCount,
-        percentage: summary.percentage
-      };
-      
-      state.allRequirementsMet = summary.allCompleted;
-      
-      // Also trigger design validation to keep everything in sync
-      designSlice.caseReducers.validateDesign(state);
+    updateRequirementValidationResults(state, action: PayloadAction<{
+      revision?: number;
+      requirements: Array<{ id: string; description: string; title?: string; completed: boolean; visible?: boolean; message?: string; nodeIds?: string[] }>;
+      summary: { allCompleted: boolean; completedCount: number; totalCount: number; percentage: number };
+    }>) {
+      if (action.payload.revision !== undefined && action.payload.revision !== state.revision) return;
+      state.requirementValidationResults = action.payload.requirements.filter(r => r.visible !== false).map(r => ({ ...r, description: r.title ?? r.description }));
+      const s = action.payload.summary;
+      state.requirementProgress = { completed: s.completedCount, total: s.totalCount, percentage: s.percentage };
+      state.allRequirementsMet = s.allCompleted;
     },
   },
 });
-
-export const {
-  setDraggedComponent,
-  addNode,
-  updateNode,
-  deleteNode,
-  onNodesChange,
-  onEdgesChange,
-  addEdge,
-  deleteEdge,
-  selectNode,
-  updateViewport,
-  clearDesign,
-  recalculateTotalCost,
-  validateDesign,
-  setSystemRequirements,
-  validateRequirements,
-  clearCanvas,
-  updateRequirementValidationResults,
-} = designSlice.actions;
-
+export const { restoreGraph, setGameRules, setDraggedComponent, addNode, updateNode, deleteNode, onNodesChange, onEdgesChange,
+  addEdge, reconnectEdge, deleteEdge, undo, redo, selectNode, updateViewport, clearDesign, clearCanvas, recalculateTotalCost,
+  validateDesign, validateRequirements, setSystemRequirements, updateRequirementValidationResults } = designSlice.actions;
 export default designSlice.reducer;
-
-// Basic selectors
-export const selectNodes = (state: { design: DesignState }) => state.design.nodes;
-export const selectEdges = (state: { design: DesignState }) => state.design.edges;
-export const selectTotalCost = (state: { design: DesignState }) => state.design.totalCost;
-export const selectIsValidDesign = (state: { design: DesignState }) => state.design.isValidDesign;
-export const selectValidationErrors = (state: { design: DesignState }) => state.design.validationErrors;
-export const selectDraggedComponent = (state: { design: DesignState }) => state.design.draggedComponent;
-export const selectIsDragging = (state: { design: DesignState }) => state.design.isDragging;
-
-// Requirements selectors
-export const selectSystemRequirements = (state: { design: DesignState }) => state.design.systemRequirements;
-export const selectRequirementValidationResults = (state: { design: DesignState }) => state.design.requirementValidationResults;
-export const selectAllRequirementsMet = (state: { design: DesignState }) => state.design.allRequirementsMet;
-export const selectRequirementProgress = (state: { design: DesignState }) => state.design.requirementProgress;
-
-// Memoized selectors following Redux best practices
-export const selectRequirementsStatus = createSelector(
-  [selectRequirementValidationResults, selectRequirementProgress],
-  (validationResults, progress) => ({
-    requirements: validationResults,
-    progress,
-    allMet: validationResults.length > 0 && validationResults.every(req => req.completed),
-    completedCount: progress.completed,
-    totalCount: progress.total,
-    percentage: progress.percentage
-  })
-);
-
-export const selectCanvasValidation = createSelector(
-  [selectNodes, selectEdges, selectIsValidDesign, selectValidationErrors, selectAllRequirementsMet],
-  (nodes, edges, isValidDesign, validationErrors, allRequirementsMet) => ({
-    isValidDesign,
-    validationErrors,
-    allRequirementsMet,
-    canProceed: isValidDesign && allRequirementsMet,
-    hasComponents: nodes.length > 0,
-    hasConnections: edges.length > 0
-  })
-);
-
-export const selectDesignMetrics = createSelector(
-  [selectNodes, selectEdges, selectTotalCost],
-  (nodes, edges, totalCost) => ({
-    nodeCount: nodes.length,
-    edgeCount: edges.length,
-    totalCost,
-    nodesByCategory: nodes.reduce((acc: Record<string, number>, node) => {
-      const category = (node.data as any)?.category || 'unknown';
-      acc[category] = (acc[category] || 0) + 1;
-      return acc;
-    }, {})
-  })
-); 
+type State = { design: DesignState };
+export const selectNodes = (s: State) => s.design.nodes;
+export const selectEdges = (s: State) => s.design.edges;
+export const selectTotalCost = (s: State) => s.design.totalCost;
+export const selectIsValidDesign = (s: State) => s.design.isValidDesign;
+export const selectValidationErrors = (s: State) => s.design.validationErrors;
+export const selectDraggedComponent = (s: State) => s.design.draggedComponent;
+export const selectIsDragging = (s: State) => s.design.isDragging;
+export const selectSystemRequirements = (s: State) => s.design.systemRequirements;
+export const selectRequirementValidationResults = (s: State) => s.design.requirementValidationResults;
+export const selectAllRequirementsMet = (s: State) => s.design.allRequirementsMet;
+export const selectRequirementProgress = (s: State) => s.design.requirementProgress;
+export const selectRequirementsStatus = createSelector([selectRequirementValidationResults, selectRequirementProgress],
+  (requirements, progress) => ({ requirements, progress, allMet: progress.total > 0 && progress.completed === progress.total,
+    completedCount: progress.completed, totalCount: progress.total, percentage: progress.percentage }));
+export const selectCanvasValidation = createSelector([selectNodes, selectEdges, selectIsValidDesign, selectValidationErrors, selectAllRequirementsMet],
+  (nodes, edges, isValidDesign, validationErrors, allRequirementsMet) => ({ isValidDesign, validationErrors, allRequirementsMet,
+    canProceed: isValidDesign && allRequirementsMet, hasComponents: nodes.length > 0, hasConnections: edges.length > 0 }));
+export const selectDesignMetrics = createSelector([selectNodes, selectEdges, selectTotalCost],
+  (nodes, edges, totalCost) => ({ nodeCount: nodes.length, edgeCount: edges.length, totalCost,
+    nodesByCategory: nodes.reduce((acc: Record<string, number>, n) => { const c = n.data.category ?? 'unknown'; acc[c] = (acc[c] ?? 0) + 1; return acc; }, {}) }));

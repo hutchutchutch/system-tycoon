@@ -1,4 +1,5 @@
 import { api } from './cloudflareApi';
+import type { GraphSnapshot } from '../../shared/game';
 
 export interface ChatMessage {
   id: string;
@@ -11,12 +12,41 @@ export interface ChatMessage {
 export interface PageContextData {
   currentPage: string;
   purpose: string;
-  availableData?: any;
+  availableData?: unknown;
   userGoals?: string[];
-  relevantEntities?: any[];
+  relevantEntities?: unknown[];
+}
+
+interface PageContextInput {
+  newsArticles?: unknown;
+  filteredArticles?: unknown[];
+  emails?: unknown;
+  emailList?: unknown[];
+  missionStage?: unknown;
+  mission?: unknown;
+  requirements?: unknown;
+  components?: unknown;
+  canvasState?: unknown;
+  currentNodes?: unknown[];
+  currentEdges?: unknown[];
+  gameState?: unknown;
+  activeMissions?: unknown[];
+}
+
+interface MentorHistoryDto {
+  id: string;
+  content?: string;
+  message_content?: string;
+  timestamp?: string;
+  created_at?: string;
+  sender?: ChatMessage['sender'];
+  sender_type?: ChatMessage['sender'];
+  mentorId?: string;
+  mentor_id?: string;
 }
 
 export interface MentorChatSession {
+  canvasState?: GraphSnapshot;
   userId: string;
   mentorId: string;
   conversationSessionId: string;
@@ -27,7 +57,7 @@ export interface MentorChatSession {
 }
 
 // Context collection functions for different pages
-export const collectPageContext = (pathname: string, additionalData?: any): PageContextData => {
+export const collectPageContext = (pathname: string, additionalData?: PageContextInput): PageContextData => {
   switch (true) {
     case pathname.includes('/browser/news') || pathname === '/browser/news':
       return {
@@ -130,6 +160,7 @@ class MentorChatService {
         missionTitle: session.missionTitle,
         problemDescription: session.problemDescription,
         contextData: session.contextData,
+        canvasState: session.canvasState,
       });
 
       return data.response;
@@ -141,7 +172,7 @@ class MentorChatService {
 
   async getChatHistory(conversationSessionId: string): Promise<ChatMessage[]> {
     try {
-      const data = await api.get<any[]>('/mentors/chat/' + conversationSessionId);
+      const data = await api.get<MentorHistoryDto[]>('/mentors/chat/' + conversationSessionId);
 
       if (!data) {
         return [];
@@ -149,8 +180,8 @@ class MentorChatService {
 
       return data.map((msg) => ({
         id: msg.id,
-        content: msg.message_content || msg.content,
-        timestamp: new Date(msg.created_at || msg.timestamp),
+        content: msg.message_content || msg.content || '',
+        timestamp: new Date(msg.created_at || msg.timestamp || Date.now()),
         sender: (msg.sender_type || msg.sender) as 'user' | 'mentor' | 'system',
         mentorId: msg.mentor_id || msg.mentorId,
       }));
@@ -161,7 +192,7 @@ class MentorChatService {
   }
 
   generateSessionId(): string {
-    return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    return `session_${crypto.randomUUID()}`;
   }
 }
 

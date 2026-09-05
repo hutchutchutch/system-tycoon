@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import type { AppEnv, Env, NewsArticle } from '../types';
-import { query, execute, parseJson } from '../lib/db';
+import type { AppEnv, NewsArticle } from '../types';
+import { query, parseJson } from '../lib/db';
 
 export const newsRoutes = new Hono<AppEnv>();
 
@@ -10,7 +10,8 @@ export const newsRoutes = new Hono<AppEnv>();
  * Query params: limit, categories (comma-separated), urgencyLevel, gridSize.
  */
 newsRoutes.get('/', async (c) => {
-  const limit = parseInt(c.req.query('limit') || '50', 10);
+  const requestedLimit = Number.parseInt(c.req.query('limit') || '50', 10);
+  const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 50;
   const categories = c.req.query('categories');
   const urgencyLevel = c.req.query('urgencyLevel');
   const gridSize = c.req.query('gridSize');
@@ -19,7 +20,7 @@ newsRoutes.get('/', async (c) => {
   const params: unknown[] = [];
 
   if (categories) {
-    const slugs = categories.split(',').map((s) => s.trim()).filter(Boolean);
+    const slugs = categories.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 20);
     if (slugs.length > 0) {
       conditions.push(`category_slug IN (${slugs.map(() => '?').join(', ')})`);
       params.push(...slugs);
@@ -68,36 +69,4 @@ newsRoutes.get('/categories', async (c) => {
 
   const categories = rows.map((row) => row.category_slug);
   return c.json(categories);
-});
-
-/**
- * POST /news/:id/view
- * Increment view count for an article.
- */
-newsRoutes.post('/:id/view', async (c) => {
-  const id = c.req.param('id');
-
-  await execute(
-    c.env.DB,
-    'UPDATE news_articles SET view_count = view_count + 1 WHERE id = ?',
-    [id]
-  );
-
-  return c.json({ success: true });
-});
-
-/**
- * POST /news/:id/contact
- * Increment contact count for an article.
- */
-newsRoutes.post('/:id/contact', async (c) => {
-  const id = c.req.param('id');
-
-  await execute(
-    c.env.DB,
-    'UPDATE news_articles SET contact_count = contact_count + 1 WHERE id = ?',
-    [id]
-  );
-
-  return c.json({ success: true });
 });

@@ -1,8 +1,8 @@
 import type { Mentor } from '../types';
 
 export const MENTORS: Record<string, Mentor> = {
-  'linda-wu': {
-    id: 'linda-wu',
+  'dr-linda-wu': {
+    id: 'dr-linda-wu',
     name: 'Dr. Linda Wu',
     title: 'Senior Systems Architect',
     specialization: 'Foundational architecture patterns and scalability',

@@ -72,6 +72,11 @@ export const ProductTour: React.FC<ProductTourProps> = ({
   const currentStep = TOUR_STEPS[currentStepIndex];
   const isLastStep = currentStepIndex === TOUR_STEPS.length - 1;
 
+  const handleCompleteTour = useCallback(() => {
+    setIsVisible(false);
+    onComplete();
+  }, [onComplete]);
+
   // Initialize tour
   useEffect(() => {
     if (isActive && isAuthenticated && user) {
@@ -102,8 +107,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({
     }, 800);
 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepIndex, isVisible]);
+  }, [currentStep, handleCompleteTour, isLastStep, isVisible]);
 
   // Handle next step
   const handleNextStep = useCallback(() => {
@@ -112,13 +116,7 @@ export const ProductTour: React.FC<ProductTourProps> = ({
     } else {
       setCurrentStepIndex(prev => prev + 1);
     }
-  }, [isLastStep]);
-
-  // Handle tour completion
-  const handleCompleteTour = useCallback(() => {
-    setIsVisible(false);
-    onComplete();
-  }, [onComplete]);
+  }, [handleCompleteTour, isLastStep]);
 
   // Handle notification close
   const handleNotificationClose = useCallback(() => {

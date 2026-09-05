@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Eye, EyeOff, Mail, Lock, User, AlertCircle } from 'lucide-react';
@@ -106,7 +106,7 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
   const nodeData = data as AuthCardNodeData;
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isLoading, error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isLoading, error: authError } = useAppSelector((state) => state.auth);
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -123,8 +123,7 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 
   // Note: navigation on successful auth is handled by AuthFlowPage, which
   // dispatches checkAuth on mount and only redirects after the server
-  // confirms the session is valid. This prevents premature redirects from
-  // stale redux-persist state.
+  // confirms the HTTP-only session cookie is valid.
 
   // Trigger animation when loading starts
   useEffect(() => {
@@ -213,7 +212,11 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 
       // Sign-in blocked because the email is unverified — send the user to
       // the verify-email screen instead of leaving them on a silent failure.
-      const message = error instanceof Error ? error.message : String((error as any)?.message ?? '');
+      const message = error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String(error.message)
+          : String(error ?? '');
       if (!isSignUp && /not verified/i.test(message)) {
         navigate('/auth/verify-email', { state: { email: email.trim() } });
         return;
@@ -235,9 +238,7 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 
   // Clear validation errors when user types
   useEffect(() => {
-    if (Object.keys(validationErrors).length > 0) {
-      setValidationErrors({});
-    }
+    setValidationErrors((current) => Object.keys(current).length > 0 ? {} : current);
   }, [email, password, name]);
 
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
@@ -542,15 +543,6 @@ export const AuthCardNode: React.FC<NodeProps> = ({ data }) => {
 // Legacy AuthCard component - keeping for backward compatibility
 export const AuthCard: React.FC<AuthCardProps> = ({
   title = 'HextaUI',
-  logoSrc,
-  email,
-  password,
-  error,
-  onEmailChange,
-  onPasswordChange,
-  onSubmit,
-  onGoogleSignIn,
-  submitLabel = 'Sign in',
   className = '',
 }) => {
   return (
@@ -597,4 +589,4 @@ export const AuthCard: React.FC<AuthCardProps> = ({
       </div>
     </div>
   );
-}; 
+};

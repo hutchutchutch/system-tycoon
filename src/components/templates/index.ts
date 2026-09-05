@@ -24,7 +24,4 @@ export type { AuthPageTemplateProps } from './AuthPageTemplate';
 // export { SystemDesignTemplate } from './SystemDesignTemplate';
 // export type { SystemDesignTemplateProps } from './SystemDesignTemplate';
 
-// Keep existing templates temporarily
-export { MapTemplate } from './MapTemplate';
-export { HudTemplate } from './HudTemplate';
 export { DesignPhaseTemplate } from './DesignPhaseTemplate';

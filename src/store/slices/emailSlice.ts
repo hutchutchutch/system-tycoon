@@ -46,7 +46,7 @@ interface MissionStageData {
   stageNumber: number;
   stageTitle: string;
   problemDescription: string;
-  systemRequirements: any[];
+  systemRequirements: unknown[];
 }
 
 const initialState: EmailState = {

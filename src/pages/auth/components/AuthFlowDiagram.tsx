@@ -4,15 +4,13 @@ import {
   Background,
   Handle,
   Position,
-  ReactFlowProvider,
   addEdge,
   useNodesState,
   useEdgesState,
 } from '@xyflow/react';
 import type { Node, Edge, Connection, NodeProps } from '@xyflow/react';
 import { User, Server, Database } from 'lucide-react';
-import { useAppDispatch, useAppSelector } from '../../../hooks/redux';
-import { signInWithEmail, signUpWithEmail, clearError } from '../../../features/auth/authSlice';
+import { useAppSelector } from '../../../hooks/redux';
 import { AuthCardNode } from '../../../components/organisms/AuthCard/AuthCard';
 import '@xyflow/react/dist/style.css';
 import './AuthFlowDiagram.css';
@@ -81,7 +79,7 @@ const initialNodes: Node[] = [
     id: '1',
     type: 'authCardNode',
     position: { x: 400, y: 250 },
-    data: { 
+    data: {
       error: undefined,
       onSignIn: undefined,
       onSignUp: undefined,
@@ -94,7 +92,7 @@ const initialNodes: Node[] = [
     id: '2',
     type: 'authServiceNode',
     position: { x: 750, y: 250 },
-    data: { 
+    data: {
       title: 'Authentication Service',
       subtitle: 'Validates credentials',
       animated: false,
@@ -106,7 +104,7 @@ const initialNodes: Node[] = [
     id: '3',
     type: 'databaseNode',
     position: { x: 750, y: 450 },
-    data: { 
+    data: {
       title: 'Database',
       subtitle: 'User data storage',
       animated: false,
@@ -117,18 +115,18 @@ const initialNodes: Node[] = [
 ];
 
 const initialEdges: Edge[] = [
-  { 
-    id: 'e1-2', 
-    source: '1', 
-    target: '2', 
+  {
+    id: 'e1-2',
+    source: '1',
+    target: '2',
     animated: false,
     style: { stroke: '#64748b', strokeWidth: 2 },
     data: { phase: 'left' }
   },
-  { 
-    id: 'e2-3', 
-    source: '2', 
-    target: '3', 
+  {
+    id: 'e2-3',
+    source: '2',
+    target: '3',
     sourceHandle: 'bottom',
     targetHandle: 'top',
     animated: false,
@@ -137,40 +135,13 @@ const initialEdges: Edge[] = [
   },
 ];
 
-const authRequirements = [
-  { id: '1', description: 'Validate user inputs', completed: false },
-  { id: '2', description: 'Route to auth service', completed: false },
-  { id: '3', description: 'Authenticate', completed: false },
-];
-
-export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({ 
+export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
   onAuthSuccess
 }) => {
-  const dispatch = useAppDispatch();
-  const { isLoading, error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
-  
-  const handleSignIn = useCallback(async (email: string, password: string) => {
-    const result = await dispatch(signInWithEmail({ email, password }));
-    if (signInWithEmail.fulfilled.match(result) && onAuthSuccess) {
-      onAuthSuccess();
-    }
-  }, [dispatch, onAuthSuccess]);
+  const { error: authError, isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const handleSignUp = useCallback(async (email: string, password: string, username: string) => {
-    const result = await dispatch(signUpWithEmail({ email, password, username }));
-    if (signUpWithEmail.fulfilled.match(result) && onAuthSuccess) {
-      onAuthSuccess();
-    }
-  }, [dispatch, onAuthSuccess]);
-
-  const handleClearError = useCallback(() => {
-    dispatch(clearError());
-  }, [dispatch]);
-  
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [requirements, setRequirements] = useState(authRequirements);
-  const [currentStep, setCurrentStep] = useState(0);
   const [animationPhase, setAnimationPhase] = useState<'none' | 'left' | 'right' | 'success' | 'error'>('none');
   const [isAnimating, setIsAnimating] = useState(false);
   const [hasDatabaseError, setHasDatabaseError] = useState(false);
@@ -201,12 +172,6 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
     [setEdges],
   );
 
-  const handleRunTest = () => {
-    // This will be called when Requirements "Run Test" is clicked
-    // For now, we'll just trigger the left animation phase
-    setAnimationPhase('left');
-  };
-
   // Animation effect
   useEffect(() => {
     if (isAnimating && animationPhase === 'none') {
@@ -219,17 +184,9 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
       const animateLeftPhase = () => {
         let step = 0;
         const maxSteps = 2; // Two nodes in left phase
-        
+
         const interval = setInterval(() => {
           if (step <= maxSteps) {
-            setCurrentStep(step);
-            
-            // Update requirements
-            setRequirements(prev => prev.map((req, index) => ({
-              ...req,
-              completed: index < step
-            })));
-            
             // Animate left edges and nodes
             setNodes((nds) =>
               nds.map((node) => ({
@@ -269,14 +226,11 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
 
       animateLeftPhase();
     }
-  }, [animationPhase]);
+  }, [animationPhase, setEdges, setNodes]);
 
   useEffect(() => {
     if (animationPhase === 'right') {
       const animateRightPhase = () => {
-        // Complete the third requirement
-        setRequirements(prev => prev.map(req => ({ ...req, completed: true })));
-
         // Animate right edges
         setEdges((eds) =>
           eds.map((edge) => ({
@@ -298,7 +252,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
 
       animateRightPhase();
     }
-  }, [animationPhase]);
+  }, [animationPhase, setEdges]);
 
   useEffect(() => {
     if (animationPhase === 'success') {
@@ -308,7 +262,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         setAnimationPhase('error');
         return;
       }
-      
+
       // Flash all nodes green
       setNodes((nds) =>
         nds.map((node) => ({
@@ -327,7 +281,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         }
       }, 1500);
     }
-  }, [animationPhase, onAuthSuccess, authError]);
+  }, [animationPhase, onAuthSuccess, authError, setNodes]);
 
   // Handle authentication service error state
   useEffect(() => {
@@ -368,7 +322,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         })
       );
     }
-  }, [animationPhase, hasAuthServiceError]);
+  }, [animationPhase, hasAuthServiceError, setEdges, setNodes]);
 
   // Handle database error state
   useEffect(() => {
@@ -409,7 +363,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         })
       );
     }
-  }, [animationPhase, hasDatabaseError]);
+  }, [animationPhase, hasDatabaseError, setEdges, setNodes]);
 
   // Handle successful authentication
   useEffect(() => {
@@ -451,14 +405,12 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         return node;
       })
     );
-  }, [authError, onAuthSuccess, handleAnimationStart, handleDatabaseError, handleAuthServiceError]);
+  }, [authError, onAuthSuccess, handleAnimationStart, handleDatabaseError, handleAuthServiceError, setNodes]);
 
   // Reset animation when not animating
   useEffect(() => {
     if (!isAnimating && !hasDatabaseError && !hasAuthServiceError) {
       setAnimationPhase('none');
-      setCurrentStep(0);
-      setRequirements(authRequirements);
       setNodes((nds) =>
         nds.map((node) => ({
           ...node,
@@ -482,7 +434,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         }))
       );
     }
-      }, [isAnimating, hasDatabaseError, hasAuthServiceError]);
+  }, [isAnimating, hasDatabaseError, hasAuthServiceError, setEdges, setNodes]);
 
   // Reset error states when authentication error is cleared
   useEffect(() => {
@@ -490,7 +442,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
       setHasDatabaseError(false);
       setHasAuthServiceError(false);
       setAnimationPhase('none');
-      
+
       // Reset all nodes to normal state
       setNodes((nds) =>
         nds.map((node) => ({
@@ -503,7 +455,7 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
           },
         }))
       );
-      
+
       // Reset all edges to normal state
       setEdges((eds) =>
         eds.map((edge) => ({
@@ -517,12 +469,12 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
         }))
       );
     }
-  }, [authError, hasDatabaseError, hasAuthServiceError]);
+  }, [authError, hasDatabaseError, hasAuthServiceError, setEdges, setNodes]);
 
   return (
-    <div className="auth-flow-diagram" style={{ 
-      width: '100vw', 
-      height: '100vh', 
+    <div className="auth-flow-diagram" style={{
+      width: '100vw',
+      height: '100vh',
       position: 'relative',
       display: 'flex'
     }}>
@@ -553,4 +505,4 @@ export const AuthFlowDiagram: React.FC<AuthFlowDiagramProps> = ({
       </div>
     </div>
   );
-}; 
+};

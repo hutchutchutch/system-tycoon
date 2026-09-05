@@ -15,8 +15,8 @@ export interface ValidationResult {
 }
 
 export interface SystemDesign {
-  components: any[];
-  connections: any[];
+  components: unknown[];
+  connections: unknown[];
   totalCost: number;
 }
 

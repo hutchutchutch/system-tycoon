@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Minimize2, X, Bot, ChevronDown } from 'lucide-react';
+import { MessageCircle, Send, Minimize2, Bot, ChevronDown } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { MENTORS } from '../../../constants/mentors';
@@ -12,25 +12,10 @@ import { useConversationSession } from '../../../hooks/useConversationSession';
 import { useAppSelector } from '../../../hooks/redux';
 import {
   selectRequirementsStatus,
-  selectCanvasValidation,
   selectNodes,
   selectEdges
 } from '../../../features/design/designSlice';
 import styles from './MentorChat.module.css';
-
-// Global conversation session ID that other components can access
-let globalConversationSessionId: string | null = null;
-
-// Function to get the current conversation session ID
-export const getCurrentConversationSessionId = (): string | null => {
-  return globalConversationSessionId;
-};
-
-// Utility function to validate if a string is a valid UUID
-const isValidUUID = (str: string): boolean => {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(str);
-};
 
 export const MentorChat: React.FC<MentorChatProps> = ({
   missionStageId,
@@ -56,8 +41,8 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   // Get canvas state and requirements from Redux
   const reduxNodes = useAppSelector(selectNodes);
   const reduxEdges = useAppSelector(selectEdges);
+  const reduxViewport = useAppSelector(s => s.design.canvasViewport);
   const requirementsStatus = useAppSelector(selectRequirementsStatus);
-  const canvasValidation = useAppSelector(selectCanvasValidation);
 
   // Use Redux state if available, fall back to props
   const nodes = reduxNodes.length > 0 ? reduxNodes : canvasNodes;
@@ -65,11 +50,6 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   const currentRequirements = requirementsStatus.requirements.length > 0
     ? requirementsStatus.requirements
     : requirements;
-
-  // Update global session ID when it changes
-  useEffect(() => {
-    globalConversationSessionId = conversationSessionId;
-  }, [conversationSessionId]);
 
   // ProductTour state management
   const [showProductTour, setShowProductTour] = useState(false);
@@ -84,17 +64,17 @@ export const MentorChat: React.FC<MentorChatProps> = ({
   // Get current user and profile from Redux store
   const { user, profile, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  // Use preferred mentor from profile, fallback to 'linda-wu'
+  // Use preferred mentor from profile, fallback to the seeded default mentor.
   const [selectedMentorId, setSelectedMentorId] = useState(() => {
-    return profile?.preferred_mentor_id || 'linda-wu';
+    return profile?.preferred_mentor_id || 'dr-linda-wu';
   });
 
   // Update selected mentor when profile changes
   useEffect(() => {
-    if (profile?.preferred_mentor_id && profile.preferred_mentor_id !== selectedMentorId) {
+    if (profile?.preferred_mentor_id) {
       setSelectedMentorId(profile.preferred_mentor_id);
     }
-  }, [profile?.preferred_mentor_id, selectedMentorId]);
+  }, [profile?.preferred_mentor_id]);
 
   // Scroll to the start of the last message when chat is expanded
   useEffect(() => {
@@ -118,13 +98,6 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       }
     }
   }, [messages]);
-
-  // Load chat history and add welcome message when component mounts or mentor changes
-  useEffect(() => {
-    if (selectedMentorId && user && isAuthenticated) {
-      loadChatHistory();
-    }
-  }, [selectedMentorId, user, isAuthenticated]);
 
   // Set up real-time subscription for new messages
   useEffect(() => {
@@ -203,7 +176,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       };
 
       switch (location.pathname) {
-        case '/browser/news':
+        case '/browser/news': {
           // Today's News page notification
           const hasSeenNewsNotification = localStorage.getItem('saas_hasSeenNewsNotification');
           if (!hasSeenNewsNotification) {
@@ -222,8 +195,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             }, 3000); // Show after 3 seconds
           }
           break;
+        }
 
-        case '/email':
+        case '/email': {
           // Email page notification
           const hasSeenEmailNotification = localStorage.getItem('saas_hasSeenEmailNotification');
           if (!hasSeenEmailNotification) {
@@ -242,8 +216,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             }, 2000);
           }
           break;
+        }
 
-        case '/whiteboard':
+        case '/whiteboard': {
           // Crisis design page notification
           const hasSeenDesignNotification = localStorage.getItem('saas_hasSeenDesignNotification');
           if (!hasSeenDesignNotification) {
@@ -262,8 +237,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             }, 2000);
           }
           break;
+        }
 
-        case '/game':
+        case '/game': {
           // Game/Mission Selection page notification
           const hasSeenGameNotification = localStorage.getItem('saas_hasSeenGameNotification');
           if (!hasSeenGameNotification) {
@@ -282,6 +258,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
             }, 1500);
           }
           break;
+        }
 
         default:
           break;
@@ -291,7 +268,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     showPageNotification();
   }, [location.pathname, isAuthenticated, user, selectedMentorId]);
 
-  const loadChatHistory = async () => {
+  const loadChatHistory = useCallback(async () => {
     try {
       const history = await mentorChatService.getChatHistory(conversationSessionId);
 
@@ -320,7 +297,14 @@ export const MentorChat: React.FC<MentorChatProps> = ({
       };
       setMessages([welcomeMessage]);
     }
-  };
+  }, [conversationSessionId, missionTitle, problemDescription, selectedMentorId]);
+
+  // Load chat history and add welcome message when component mounts or mentor changes.
+  useEffect(() => {
+    if (selectedMentorId && user && isAuthenticated) {
+      void loadChatHistory();
+    }
+  }, [isAuthenticated, loadChatHistory, selectedMentorId, user]);
 
   const selectedMentor = MENTORS[selectedMentorId] || {
     id: selectedMentorId,
@@ -468,8 +452,9 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         userId: user.id,
         mentorId: selectedMentorId,
         conversationSessionId,
-        // Only pass missionStageId if it's a valid UUID
-        missionStageId: missionStageId && isValidUUID(missionStageId) ? missionStageId : undefined,
+        missionStageId: missionStageId || undefined,
+        canvasState: missionStageId ? { version: 1, nodes: reduxNodes.map(n => ({ id: n.id, type: n.type, position: n.position, data: n.data })),
+          edges: reduxEdges.map(e => ({ id: e.id, source: e.source, target: e.target })), viewport: reduxViewport } : undefined,
         missionTitle,
         problemDescription,
         contextData,
@@ -499,7 +484,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
     } finally {
       setIsLoading(false);
     }
-  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription, location.pathname, nodes, edges, currentRequirements, availableComponents, requirementsStatus]);
+  }, [currentInput, isLoading, selectedMentorId, conversationSessionId, user, isAuthenticated, missionStageId, missionTitle, problemDescription, location.pathname, nodes, edges, currentRequirements, availableComponents, requirementsStatus, reduxNodes, reduxEdges, reduxViewport]);
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -676,7 +661,7 @@ export const MentorChat: React.FC<MentorChatProps> = ({
         pointerEvents: 'auto'
       }}
     >
-      <div className={styles.chatWindow}>
+      <div className={`${styles.chatWindow} ${className}`}>
         {/* Chat Header */}
         <div className={styles.chatHeader}>
           <div className={styles.mentorInfo}>

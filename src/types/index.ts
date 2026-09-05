@@ -115,7 +115,7 @@ export interface ResourceProperties {
   latency?: number;
   storage?: number;
   bandwidth?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Legacy alias
@@ -176,7 +176,7 @@ export interface ArchitectureNode {
   data: {
     componentId: string;
     label: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -186,7 +186,7 @@ export interface ArchitectureEdge {
   target: string;
   type?: string;
   animated?: boolean;
-  data?: any;
+  data?: unknown;
 }
 
 export interface PerformanceMetrics {
@@ -277,7 +277,7 @@ export interface Achievement {
   category: AchievementCategory;
   criteria: AchievementCriteria;
   rewardType?: RewardType;
-  rewardValue?: any;
+  rewardValue?: unknown;
   createdAt: string;
 }
 
@@ -328,7 +328,7 @@ export interface InitialNode {
     description: string;
     category: string;
   };
-  style?: Record<string, any>;
+  style?: Record<string, unknown>;
 }
 
 export interface ResourceSelection {

@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { Icon } from '../../atoms/Icon';
-import { Input } from '../../atoms/Input';
 import styles from './BrowserAddressBar.module.css';
 import type { BrowserAddressBarProps } from './BrowserAddressBar.types';
 
 export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
   url,
-  loading = false,
-  secure = false,
+  loading: _loading = false,
+  secure: _secure = false,
   canGoBack = false,
   canGoForward = false,
   onGoBack,
@@ -80,7 +79,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
         >
           <Icon name="arrow-left" size="sm" />
         </button>
-        
+
         <button
           className={styles.navButton}
           onClick={onGoForward}
@@ -89,7 +88,7 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
         >
           <Icon name="arrow-right" size="sm" />
         </button>
-        
+
         <button
           className={styles.navButton}
           onClick={onRefresh}
@@ -171,4 +170,4 @@ export const BrowserAddressBar: React.FC<BrowserAddressBarProps> = ({
   );
 };
 
-export default BrowserAddressBar; 
+export default BrowserAddressBar;

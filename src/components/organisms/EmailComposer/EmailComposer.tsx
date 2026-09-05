@@ -1,14 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
 import { Modal } from '../../atoms/Modal';
-import { Button } from '../../atoms/Button';
-import { Input } from '../../atoms/Input';
 import { Icon } from '../../atoms/Icon';
 import type { NewsHero } from '../../../types/news.types';
 import { saveEmail } from '../../../services/emailService';
 import { startMissionFromContactEmail } from '../../../services/missionService';
-import type { RootState } from '../../../store';
-import { api } from '../../../services/cloudflareApi';
 import styles from './EmailComposer.module.css';
 
 export interface EmailComposerProps {
@@ -32,7 +27,6 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   onClose,
   hero,
   missionId,
-  stageId,
   theme = 'light',
   articleId,
   onSend
@@ -42,12 +36,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const [isTyping, setIsTyping] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isSending, setIsSending] = useState(false);
-  const [missionStartResult, setMissionStartResult] = useState<any>(null);
   const [sendError, setSendError] = useState<string | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-
-  // Get current user from Redux store
-  const currentUser = useSelector((state: RootState) => state.auth.user);
 
   // Generate recipient email
   const recipientEmail = `${hero.name.toLowerCase().replace(/\s+/g, '.')}@${hero.organization.toLowerCase().replace(/\s+/g, '')}.org`;
@@ -56,15 +46,6 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   const getSimpleMessage = useCallback(() => {
     return `Hey ${hero.name}! I love what you're doing! Do you need any help with your software stack?`;
   }, [hero.name]);
-
-  // Update news article accepted status
-  const updateNewsArticleAcceptedStatus = async (articleId: string, status: 'no' | 'pending' | 'yes') => {
-    try {
-      await api.patch(`/news/${articleId}/status`, { accepted: status });
-    } catch (error) {
-      console.error('Error in updateNewsArticleAcceptedStatus:', error);
-    }
-  };
 
   // Typing animation effect
   const typeMessage = useCallback(async () => {
@@ -85,10 +66,6 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     if (isOpen) {
       setSubject('Do you need any help??');
       typeMessage();
-      // Mark article as "pending" when Contact is clicked to open composer
-      if (articleId) {
-        updateNewsArticleAcceptedStatus(articleId, 'pending');
-      }
     } else {
       // Reset state when modal closes
       setSubject('');
@@ -100,67 +77,35 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
   }, [isOpen, hero.headline, typeMessage, articleId]);
 
   const handleSend = useCallback(async () => {
-    if (!subject.trim() || !body.trim() || isTyping || !currentUser) return;
+    if (!subject.trim() || !body.trim() || isTyping) return;
 
     setIsSending(true);
     setSendError(null);
     
     try {
-      // Save to database as sent
-      const result = await saveEmail({
-        to: recipientEmail,
-        subject: subject.trim(),
-        body: body.trim(),
-        status: 'sent',
-        hero,
-        missionId,
-        stageId
-      });
+      const result = missionId && articleId
+        ? await startMissionFromContactEmail({
+            newsArticleId: articleId,
+            missionId,
+            contactEmailData: {
+              to: recipientEmail,
+              subject: subject.trim(),
+              body: body.trim(),
+              hero,
+            },
+          })
+        : await saveEmail({
+            to: recipientEmail,
+            subject: subject.trim(),
+            body: body.trim(),
+            status: 'sent',
+            hero,
+          });
 
       if (result.success) {
-        // Mark article as "yes" since email was successfully sent
-        if (articleId) {
-          await updateNewsArticleAcceptedStatus(articleId, 'yes');
-        }
-
-        // Start mission if we have all required data
-        if (missionId && articleId) {
-          console.log('Starting mission with:', { missionId, articleId, userId: currentUser.id });
-          try {
-            const missionResult = await startMissionFromContactEmail({
-              userId: currentUser.id,
-              newsArticleId: articleId,
-              missionId: missionId,
-              contactEmailData: {
-                to: recipientEmail,
-                subject: subject.trim(),
-                body: body.trim(),
-                hero
-              }
-            });
-
-            console.log('Mission start result:', missionResult);
-            setMissionStartResult(missionResult);
-            
-            if (missionResult.success && missionResult.missionStarted) {
-              console.log('Mission started successfully! First stage emails delivered:', missionResult.firstStageEmails);
-              
-              // Refresh the email inbox to show the new mission emails
-              if ((window as any).refreshEmailInbox) {
-                console.log('Refreshing email inbox to show mission emails...');
-                setTimeout(() => {
-                  (window as any).refreshEmailInbox();
-                }, 2000); // Give it 2 seconds for the database to fully process
-              }
-            } else if (!missionResult.success) {
-              console.error('Mission start failed:', missionResult.error);
-            }
-          } catch (missionError) {
-            console.error('Error starting mission:', missionError);
-            // Don't prevent email success flow from completing
-          }
-        } else {
-          console.log('Missing required data for mission start:', { missionId, articleId });
+        if (missionId && articleId && 'missionStarted' in result && !result.missionStarted) {
+          setSendError('This mission has already been started. Open your inbox to continue.');
+          return;
         }
 
         // Call onSend callback if provided
@@ -172,8 +117,8 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         });
         
         // Trigger email notification in GameHUD
-        if ((window as any).triggerEmailNotification) {
-          (window as any).triggerEmailNotification();
+        if (window.triggerEmailNotification) {
+          window.triggerEmailNotification();
         }
         
         onClose();
@@ -187,7 +132,7 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
     } finally {
       setIsSending(false);
     }
-  }, [subject, body, hero, recipientEmail, onSend, onClose, isTyping, currentUser, missionId, articleId]);
+  }, [subject, body, hero, recipientEmail, onSend, onClose, isTyping, missionId, articleId]);
 
   const handleSaveToDrafts = useCallback(async () => {
     if (!subject.trim() && !body.trim()) {
@@ -204,8 +149,6 @@ export const EmailComposer: React.FC<EmailComposerProps> = ({
         body: body.trim(),
         status: 'draft',
         hero,
-        missionId,
-        stageId
       });
 
       if (result.success) {

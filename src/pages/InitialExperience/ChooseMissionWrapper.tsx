@@ -3,8 +3,9 @@ import { BentoGrid } from '../../components/molecules/BentoGrid';
 import { EmailComposer } from '../../components/organisms/EmailComposer/EmailComposer';
 import { TagGroup, TagList, Tag } from '../../components/atoms/TagGroup';
 import { Globe } from '../../components/ui/globe';
-import { useTheme } from '../../contexts/ThemeContext';
+import { useTheme } from '../../hooks/useTheme';
 import { newsService } from '../../services/newsService';
+import { CampaignProgress } from '../../components/organisms/CampaignProgress';
 
 
 import type { NewsArticle, NewsHero } from '../../types/news.types';
@@ -16,74 +17,41 @@ export const ChooseMissionWrapper: React.FC = () => {
   const [categories, setCategories] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
-
-
-
+  const [campaignRevision, setCampaignRevision] = useState(0);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Fetch articles and categories on mount
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       try {
         setLoading(true);
+        setLoadError(null);
         const [articlesData, categoriesData] = await Promise.all([
-          newsService.fetchArticles({ limit: 12 }),
+          newsService.fetchArticles({
+            limit: 12,
+            categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+          }),
           newsService.getCategories()
         ]);
-        setArticles(articlesData);
-        setCategories(categoriesData);
-              } catch (error) {
+        if (!cancelled) {
+          setArticles(articlesData);
+          setCategories(categoriesData);
+        }
+      } catch (error) {
           console.error('Error fetching news data:', error);
-          // Set some default mock data to test the UI
-          const mockArticles: NewsArticle[] = [
-            {
-              id: '1',
-              mission_id: 'mission_1',
-              headline: 'Community Health Initiative Needs Tech Help',
-              subheadline: 'Patient tracking system urgently needed',
-              preview_text: 'Local health organization needs system design support for patient tracking',
-              full_text: 'A community health organization is looking for help with building a patient tracking system to serve 5000+ community members.',
-              author_name: 'Dr. Sarah Johnson',
-              author_avatar_url: '👩‍⚕️',
-              publication_name: 'Community Health Network',
-              category_slug: 'healthcare',
-              urgency_level: 'high',
-              tags: ['healthcare', 'databases', 'privacy', 'api'],
-              impact_stats: { people: 5000, metric: 'patients served' },
-              location: 'Seattle, WA',
-              grid_size: 'medium',
-              sort_weight: 100,
-              article_status: 'active',
-              view_count: 0,
-              contact_count: 0,
-              completion_count: 0,
-              published_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-              created_at: new Date().toISOString()
-            }
-          ];
-          setArticles(mockArticles);
-          setCategories(['healthcare', 'education', 'environment']);
+          if (!cancelled) {
+            setArticles([]);
+            setCategories([]);
+            setLoadError('Missions could not be loaded. Check your connection and try again.');
+          }
         } finally {
-        setLoading(false);
-      }
+          if (!cancelled) setLoading(false);
+        }
     };
 
-    fetchData();
-  }, []);
-
-  // Filter articles when categories change
-  useEffect(() => {
-    if (selectedCategories.length === 0) {
-      // Show all articles if no categories selected
-      newsService.fetchArticles({ limit: 12 }).then(setArticles);
-    } else {
-      // Filter by selected categories
-      newsService.fetchArticles({ 
-        limit: 12, 
-        categories: selectedCategories 
-      }).then(setArticles);
-    }
+    void fetchData();
+    return () => { cancelled = true; };
   }, [selectedCategories]);
 
   // Convert NewsArticle to NewsHero format for components
@@ -114,14 +82,8 @@ export const ChooseMissionWrapper: React.FC = () => {
     };
   }, []);
 
-  const handleContact = useCallback(async (article: NewsArticle) => {
-    try {
-      await newsService.incrementContactCount(article.id);
-      setEmailToOpen(article);
-    } catch (error) {
-      console.error('Error tracking contact:', error);
-      setEmailToOpen(article);
-    }
+  const handleContact = useCallback((article: NewsArticle) => {
+    setEmailToOpen(article);
   }, []);
 
 
@@ -136,9 +98,9 @@ export const ChooseMissionWrapper: React.FC = () => {
     body: string;
     hero: NewsHero;
   }) => {
-    console.log('Email sent:', emailData);
-    // TODO: Implement actual email sending logic
+    void emailData;
     setEmailToOpen(null);
+    setCampaignRevision(r => r + 1);
   }, []);
 
   const formatCategoryName = (slug: string) => {
@@ -151,6 +113,17 @@ export const ChooseMissionWrapper: React.FC = () => {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="animate-pulse">Loading missions...</div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-screen bg-black text-white flex flex-col gap-4 items-center justify-center" role="alert">
+        <p>{loadError}</p>
+        <button type="button" onClick={() => window.location.reload()} className="underline">
+          Try again
+        </button>
       </div>
     );
   }
@@ -254,6 +227,7 @@ export const ChooseMissionWrapper: React.FC = () => {
             )}
           </div>
 
+          <CampaignProgress refreshKey={campaignRevision} />
           {/* News Grid */}
           <div>
             <div className="relative backdrop-blur-sm bg-white/10 dark:bg-black/10 rounded-lg p-6">
@@ -294,4 +268,4 @@ export const ChooseMissionWrapper: React.FC = () => {
       )}
     </>
   );
-}; 
+};

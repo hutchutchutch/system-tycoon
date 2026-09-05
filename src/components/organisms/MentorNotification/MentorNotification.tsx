@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useState, useRef } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState, useRef } from 'react';
 import { X, ChevronRight } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import type { MentorNotificationProps, HighlightOverlayProps } from './MentorNotification.types';
@@ -93,8 +93,8 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   // New props for multi-step flow
   onShowRequirements,
   onShowComponentDrawer,
-  onHideRequirements,
-  onHideComponentDrawer,
+  onHideRequirements: _onHideRequirements,
+  onHideComponentDrawer: _onHideComponentDrawer,
   missionStageId,
   conversationSessionId,
   currentStep,
@@ -112,8 +112,13 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
   // Get current user and profile from Redux store
   const { user, profile } = useSelector((state: RootState) => state.auth);
 
-  // Use preferred mentor from profile, fallback to 'linda-wu'
-  const selectedMentorId = profile?.preferred_mentor_id || 'linda-wu';
+  // Use preferred mentor from profile, fallback to the seeded default mentor.
+  const selectedMentorId = profile?.preferred_mentor_id || 'dr-linda-wu';
+
+  const handleClose = useCallback(() => {
+    setIsVisible(false);
+    onClose?.();
+  }, [onClose]);
 
   // Save notification as system message when component mounts (only once)
   useEffect(() => {
@@ -146,7 +151,7 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
       }, autoHideDuration);
       return () => clearTimeout(timer);
     }
-  }, [autoHideDuration]);
+  }, [autoHideDuration, handleClose]);
 
   useEffect(() => {
     if (!targetElement) return;
@@ -168,11 +173,6 @@ export const MentorNotification: React.FC<MentorNotificationProps> = ({
       element.classList.remove(styles.highlightedElement);
     };
   }, [targetElement]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    onClose?.();
-  };
 
   const handleAction = () => {
     // Multi-step flow actions don't close the notification — parent controls it.

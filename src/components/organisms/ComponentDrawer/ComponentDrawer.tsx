@@ -8,16 +8,15 @@ import { Button } from '../../atoms/Button';
 import type {
   ResourceDrawerProps,
   DrawerComponent,
-  ComponentOffering,
-  DetailedComponentView
+  ComponentOffering
 } from './ComponentDrawer.types';
 import styles from './ComponentDrawer.module.css';
+import type { IconName } from '../../atoms/Icon';
 
 export const ResourceDrawer: React.FC<ResourceDrawerProps> = ({
   components,
   categories,
   searchQuery,
-  selectedComponent,
   expandedComponent,
   userProgress = { completedMissions: [], unlockedConcepts: [], level: 1 },
   onSearchChange,
@@ -129,7 +128,7 @@ export const ResourceDrawer: React.FC<ResourceDrawerProps> = ({
   const renderOffering = (
     offering: ComponentOffering, 
     component: DrawerComponent,
-    vendorCategory: string
+    _vendorCategory: string
   ) => {
     const selectionResult = checkSelectionRules?.(offering);
     const isLocked = selectionResult ? !selectionResult.allowed : !offering.initially_selectable;
@@ -302,7 +301,7 @@ export const ResourceDrawer: React.FC<ResourceDrawerProps> = ({
                 aria-expanded={isExpanded}
                 aria-controls={`category-${category.id}`}
               >
-                <Icon name={category.icon as any} size="md" />
+                <Icon name={category.icon as IconName} size="md" />
                 <span className={styles.categoryTitle}>{category.name}</span>
                 <span className={styles.categoryCount}>
                   {categoryComponents.length}

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AuthFormProps {
   email: string;
   password: string;
@@ -11,4 +9,4 @@ export interface AuthFormProps {
   submitLabel?: string;
   showSocialAuth?: boolean;
   className?: string;
-} 
+}

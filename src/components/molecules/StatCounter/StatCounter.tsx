@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import clsx from 'clsx';
-import { Badge } from '../../atoms/Badge';
 import styles from './StatCounter.module.css';
 
 interface StatCounterProps {
@@ -47,7 +46,7 @@ export const StatCounter: React.FC<StatCounterProps> = ({
       // Easing function
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       
-      const current = Math.floor(start + (displayValue - start) * easeOutQuart);
+      const current = Math.floor(start + (value - start) * easeOutQuart);
       setDisplayValue(current);
 
       if (progress < 1) {
@@ -58,7 +57,7 @@ export const StatCounter: React.FC<StatCounterProps> = ({
     };
 
     requestAnimationFrame(animate);
-  }, []);
+  }, [value]);
 
   return (
     <div className={clsx(

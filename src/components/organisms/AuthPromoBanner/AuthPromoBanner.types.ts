@@ -1,5 +1,3 @@
-import React from 'react';
-
 export interface AuthPromoBannerProps {
   message?: string;
   highlightText?: string;
@@ -12,4 +10,4 @@ export interface AuthPromoBannerProps {
     name?: string;
   }>;
   className?: string;
-} 
+}
