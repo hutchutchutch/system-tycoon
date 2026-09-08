@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+import type { RouteObject } from 'react-router-dom';
 import { ProtectedRoute, OnboardingRoute } from './components/common/ProtectedRoute';
 
 import { ErrorPage } from './pages/ErrorPage';
@@ -28,7 +29,7 @@ const routeFallback = (
 
 const load = (element: React.ReactNode) => <Suspense fallback={routeFallback}>{element}</Suspense>;
 
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     path: '/',
     index: true,
@@ -183,4 +184,7 @@ export const router = createBrowserRouter([
     path: 'signup',
     element: <Navigate to="/auth" replace />,
   },
-]);
+];
+
+// Eager boundary covers landing/auth as well as the lazy game layouts.
+export const router = createBrowserRouter([{ errorElement: <ErrorPage />, children: routes }]);

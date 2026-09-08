@@ -5,9 +5,10 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Configure Rolldown's Oxc minifier directly so production diagnostics do
-    // not leak, without pulling in a second JavaScript minifier.
-    minify: false,
+    // Keep Vite's minification mode aligned with the Rolldown options below.
+    // `false` plus output.minify left imports of removed CSS-only JS chunks in
+    // Vite 8.2.2. scripts/check-build.mjs checks the actual emitted imports.
+    minify: 'oxc',
     cssMinify: 'lightningcss',
     rolldownOptions: {
       output: {
